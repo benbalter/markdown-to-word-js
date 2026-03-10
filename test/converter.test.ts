@@ -188,3 +188,95 @@ describe('Docx round-trip verification with mammoth', () => {
     });
   });
 });
+
+/*
+ * =====================================================
+ * Blob output verification
+ * =====================================================
+ */
+describe('Blob output verification', () => {
+  it('result is a Blob instance', async () => {
+    const blob = await convertMarkdownToWord('# Hello');
+    expect(blob).toBeInstanceOf(Blob);
+  });
+
+  it('blob has non-zero size', async () => {
+    const blob = await convertMarkdownToWord('Some content');
+    expect(blob.size).toBeGreaterThan(0);
+  });
+
+  it('converting different markdowns produces different blob sizes', async () => {
+    const smallBlob = await convertMarkdownToWord('Hi');
+    const largeBlob = await convertMarkdownToWord(
+      '# Title\n\n' +
+      'A much longer document with **bold**, *italic*, and lots of content.\n\n' +
+      '- Item 1\n- Item 2\n- Item 3\n\n' +
+      '> A blockquote for good measure\n\n' +
+      '```js\nconsole.log("code");\n```\n'
+    );
+    expect(largeBlob.size).not.toBe(smallBlob.size);
+  });
+});
+
+/*
+ * =====================================================
+ * Round-trip: code blocks
+ * =====================================================
+ */
+describe('Round-trip: code blocks', () => {
+  it('code block content survives round-trip', async () => {
+    const md = '```javascript\nfunction hello() {\n  return "world";\n}\n```';
+    const recoveredHtml = await markdownThroughDocxToHtml(md);
+    expect(recoveredHtml).toContain('function hello');
+  });
+});
+
+/*
+ * =====================================================
+ * Round-trip: blockquotes
+ * =====================================================
+ */
+describe('Round-trip: blockquotes', () => {
+  it('blockquote text survives round-trip', async () => {
+    const recoveredHtml = await markdownThroughDocxToHtml(
+      getFixture('blockquote')
+    );
+    expect(recoveredHtml).toContain('blockquote');
+  });
+});
+
+/*
+ * =====================================================
+ * Options handling
+ * =====================================================
+ */
+describe('Options handling', () => {
+  it('works with empty options object', async () => {
+    const blob = await convertMarkdownToWord('# Test', {});
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.size).toBeGreaterThan(0);
+  });
+
+  it('works with zero margins', async () => {
+    const blob = await convertMarkdownToWord('# Test', {
+      pageMargins: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.size).toBeGreaterThan(0);
+  });
+
+  it('works with undefined options (no second arg)', async () => {
+    const blob = await convertMarkdownToWord('# Test');
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.size).toBeGreaterThan(0);
+  });
+
+  it('filename option does not affect output content', async () => {
+    const blobWithFilename = await convertMarkdownToWord('# Test', {
+      filename: 'custom.docx',
+    });
+    const blobWithoutFilename = await convertMarkdownToWord('# Test');
+    // Both should produce valid blobs of the same size
+    expect(blobWithFilename.size).toBe(blobWithoutFilename.size);
+  });
+});
