@@ -106,10 +106,11 @@ function convertTokenToParagraphs(token: Token): Paragraph[] {
     case 'space':
       return [new Paragraph({ children: [new TextRun('')] })];
     
-    default:
+    default: {
       // Handle unknown token types by extracting text
-      const text = 'text' in token ? (token as any).text : '';
+      const text = 'text' in token ? (token as { text: string }).text : '';
       return [new Paragraph({ children: [new TextRun(text || '')] })];
+    }
   }
 }
 
@@ -222,14 +223,14 @@ function createTable(token: Tokens.Table): Paragraph {
   
   // Header row
   if (token.header && token.header.length > 0) {
-    const headerRow = token.header.map((cell: any) => cell.text).join(' | ');
+    const headerRow = token.header.map((cell: Tokens.TableCell) => cell.text).join(' | ');
     tableText += headerRow + '\n';
     tableText += token.header.map(() => '---').join(' | ') + '\n';
   }
   
   // Data rows
   for (const row of token.rows) {
-    const dataRow = row.map((cell: any) => cell.text).join(' | ');
+    const dataRow = row.map((cell: Tokens.TableCell) => cell.text).join(' | ');
     tableText += dataRow + '\n';
   }
   
@@ -270,7 +271,7 @@ function parseInlineText(text: string): TextRun[] {
   // Simple regex-based parsing for basic formatting
   // This is a simplified version - a more robust solution would use marked's inline parser
   
-  let remaining = text;
+  const remaining = text;
   let index = 0;
   
   // Process bold, italic, and code formatting
