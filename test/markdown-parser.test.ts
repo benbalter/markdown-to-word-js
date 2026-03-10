@@ -328,3 +328,158 @@ describe('Fixture tests: extractTextFromTokens', () => {
     expect(text).toContain('This is the first paragraph.');
   });
 });
+
+/*
+ * =====================================================
+ * Edge-case tests for parseMarkdownToHtml
+ * =====================================================
+ */
+describe('Edge cases: parseMarkdownToHtml', () => {
+  it('whitespace-only input returns empty or whitespace-only output', () => {
+    const result = parseMarkdownToHtml('   \n  \n   ');
+    expect(result.trim()).toBe('');
+  });
+
+  it('special HTML characters in regular text are escaped when inside inline code', () => {
+    const result = parseMarkdownToHtml('Hello `<script>alert("xss")</script>` world');
+    expect(result).toContain('&lt;script&gt;');
+    expect(result).toContain('<code>');
+  });
+
+  it('code block without language still renders pre/code tags', () => {
+    const md = '```\nplain code\n```';
+    const result = parseMarkdownToHtml(md);
+    expect(result).toContain('<pre><code');
+    expect(result).toContain('plain code');
+    expect(result).toContain('</code></pre>');
+  });
+
+  it('multiple consecutive blockquotes', () => {
+    const md = '> First quote\n\n> Second quote';
+    const result = parseMarkdownToHtml(md);
+    const blockquoteCount = (result.match(/<blockquote/g) || []).length;
+    expect(blockquoteCount).toBe(2);
+    expect(result).toContain('First quote');
+    expect(result).toContain('Second quote');
+  });
+
+  it('deeply nested list items produce nested ul structure', () => {
+    const md = '- Level 1\n  - Level 2\n    - Level 3';
+    const result = parseMarkdownToHtml(md);
+    const ulCount = (result.match(/<ul/g) || []).length;
+    expect(ulCount).toBeGreaterThanOrEqual(2);
+    expect(result).toContain('Level 1');
+    expect(result).toContain('Level 2');
+    expect(result).toContain('Level 3');
+  });
+
+  it('markdown with only a link renders properly', () => {
+    const result = parseMarkdownToHtml('[Example](https://example.com)');
+    expect(result).toContain('<a href="https://example.com"');
+    expect(result).toContain('Example');
+  });
+
+  it('markdown with only an image renders properly', () => {
+    const result = parseMarkdownToHtml('![logo](https://img.com/logo.png)');
+    expect(result).toContain('<img');
+    expect(result).toContain('src="https://img.com/logo.png"');
+    expect(result).toContain('alt="logo"');
+  });
+
+  it('inline code containing special chars', () => {
+    const result = parseMarkdownToHtml('Use `a < b && c > d` in code');
+    expect(result).toContain('<code>');
+    expect(result).toContain('a &lt; b &amp;&amp; c &gt; d');
+  });
+
+  it('numbered list starting from non-1 number still renders an ol', () => {
+    const md = '3. Third\n4. Fourth\n5. Fifth';
+    const result = parseMarkdownToHtml(md);
+    expect(result).toMatch(/<ol[\s>]/);
+    expect(result).toContain('Third');
+    expect(result).toContain('Fourth');
+    expect(result).toContain('Fifth');
+  });
+});
+
+/*
+ * =====================================================
+ * Edge-case tests for parseMarkdownToTokens
+ * =====================================================
+ */
+describe('Edge cases: parseMarkdownToTokens', () => {
+  it('heading tokens have correct depth property (1-6)', () => {
+    const tokens = parseMarkdownToTokens(readFixture('headings'));
+    const headings = tokens.filter((t) => t.type === 'heading');
+    for (let i = 0; i < headings.length; i++) {
+      expect((headings[i] as { depth: number }).depth).toBe(i + 1);
+    }
+  });
+
+  it('ordered list token has ordered=true, unordered has ordered=false', () => {
+    const orderedTokens = parseMarkdownToTokens(readFixture('ordered-list'));
+    const orderedList = orderedTokens.find((t) => t.type === 'list');
+    expect((orderedList as { ordered: boolean }).ordered).toBe(true);
+
+    const unorderedTokens = parseMarkdownToTokens(readFixture('unordered-list'));
+    const unorderedList = unorderedTokens.find((t) => t.type === 'list');
+    expect((unorderedList as { ordered: boolean }).ordered).toBe(false);
+  });
+
+  it('paragraph tokens from simple text', () => {
+    const tokens = parseMarkdownToTokens('Just a simple paragraph.');
+    const paragraphs = tokens.filter((t) => t.type === 'paragraph');
+    expect(paragraphs.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('multiple token types from mixed fixture', () => {
+    const tokens = parseMarkdownToTokens(readFixture('mixed'));
+    const types = new Set(tokens.map((t) => t.type));
+    expect(types.has('heading')).toBe(true);
+    expect(types.has('paragraph')).toBe(true);
+    expect(types.has('list')).toBe(true);
+    expect(types.has('table')).toBe(true);
+  });
+
+  it('space tokens from fixture with blank lines', () => {
+    const tokens = parseMarkdownToTokens(readFixture('paragraphs'));
+    const spaceTokens = tokens.filter((t) => t.type === 'space');
+    expect(spaceTokens.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+/*
+ * =====================================================
+ * Edge-case tests for extractTextFromTokens
+ * =====================================================
+ */
+describe('Edge cases: extractTextFromTokens', () => {
+  it('ordered list items still get bullet prefix (•)', () => {
+    const tokens = parseMarkdownToTokens(readFixture('ordered-list'));
+    const text = extractTextFromTokens(tokens);
+    expect(text).toContain('• First item');
+    expect(text).toContain('• Second item');
+    expect(text).toContain('• Third item');
+  });
+
+  it('handles tokens with no text property gracefully (default case)', () => {
+    const tokens = parseMarkdownToTokens('\n\n\n');
+    // space tokens have no text property, should not throw
+    expect(() => extractTextFromTokens(tokens)).not.toThrow();
+  });
+
+  it('mixed content extracts all sections correctly', () => {
+    const tokens = parseMarkdownToTokens(readFixture('mixed'));
+    const text = extractTextFromTokens(tokens);
+    expect(text).toContain('Project Overview');
+    expect(text).toContain('Features');
+    expect(text).toContain('• Feature one');
+  });
+
+  it('table tokens fall through to default case without error', () => {
+    const tokens = parseMarkdownToTokens(readFixture('table'));
+    // Table tokens have no explicit case and no top-level text property,
+    // so the default case handles them gracefully (no output, no error)
+    expect(() => extractTextFromTokens(tokens)).not.toThrow();
+  });
+});
