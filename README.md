@@ -42,8 +42,8 @@ Convert GitHub Flavored Markdown to Word documents directly in your browser. No 
 
 ```bash
 # Clone the repository
-git clone https://github.com/benbalter/markdown-to-word.git
-cd markdown-to-word
+git clone https://github.com/benbalter/markdown-to-word-js.git
+cd markdown-to-word-js
 
 # Install dependencies
 npm install
@@ -106,6 +106,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- 🐛 [Report Issues](https://github.com/benbalter/markdown-to-word/issues)
-- 💡 [Request Features](https://github.com/benbalter/markdown-to-word/issues)
-- 💬 [Discussions](https://github.com/benbalter/markdown-to-word/discussions)
+- 🐛 [Report Issues](https://github.com/benbalter/markdown-to-word-js/issues)
+- 💡 [Request Features](https://github.com/benbalter/markdown-to-word-js/issues)
+- 💬 [Discussions](https://github.com/benbalter/markdown-to-word-js/discussions)
