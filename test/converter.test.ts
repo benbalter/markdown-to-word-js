@@ -93,7 +93,14 @@ describe('Docx round-trip verification with mammoth', () => {
 
     it('preserves all cell values inside a <table>', () => {
       expect(recoveredHtml).toContain('<table>');
-      for (const cellText of ['Name', 'Age', 'City', 'Alice', '30', 'NYC', 'Bob', '25', 'LA']) {
+      const expectedCells = [
+        // Header row
+        'Name', 'Age', 'City',
+        // Data rows
+        'Alice', '30', 'NYC',
+        'Bob', '25', 'LA',
+      ];
+      for (const cellText of expectedCells) {
         expect(recoveredHtml).toContain(cellText);
       }
       expect(recoveredHtml).toContain('</table>');
@@ -174,8 +181,10 @@ describe('Docx round-trip verification with mammoth', () => {
       const marginOpts = {
         pageMargins: { top: 1.5, right: 1, bottom: 1.5, left: 1 },
       };
-      const recovered = await markdownThroughDocxToHtml('# Margin Check');
-      expect(recovered).toContain('<h1>Margin Check</h1>');
+      const blob = await convertMarkdownToWord('# Margin Check', marginOpts);
+      const buf = Buffer.from(await blob.arrayBuffer());
+      const { value } = await mammoth.convertToHtml({ buffer: buf });
+      expect(value).toContain('<h1>Margin Check</h1>');
     });
   });
 });
