@@ -1,4 +1,8 @@
-import { marked, Token } from 'marked';
+import { marked, Token, Tokens } from 'marked';
+
+interface TaskListToken extends Tokens.Generic {
+  checked: boolean;
+}
 
 // Configure marked for GitHub Flavored Markdown
 marked.setOptions({
@@ -38,11 +42,12 @@ marked.use({
         };
       }
     },
-    renderer(token: any) {
-      const checked = token.checked ? 'checked' : '';
+    renderer(token: Tokens.Generic) {
+      const taskToken = token as TaskListToken;
+      const checked = taskToken.checked ? 'checked' : '';
       return `<li class="task-list-item">
         <input type="checkbox" ${checked} disabled> 
-        ${this.parser.parseInline(token.tokens)}
+        ${this.parser.parseInline(taskToken.tokens ?? [])}
       </li>`;
     }
   }]
