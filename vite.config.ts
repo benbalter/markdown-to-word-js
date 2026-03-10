@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/markdown-to-word/',
+  base: '/markdown-to-word-js/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

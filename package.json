@@ -34,7 +34,7 @@
   },
   "author": "Ben Balter <ben@balter.com>",
   "license": "MIT",
-  "homepage": "https://benbalter.com/markdown-to-word/",
+  "homepage": "https://benbalter.com/markdown-to-word-js/",
   "repository": {
     "type": "git",
     "url": "https://github.com/benbalter/markdown-to-word-js.git"
