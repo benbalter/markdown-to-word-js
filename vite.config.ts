@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig, Plugin } from 'vite'
 import fs from 'fs'
 import { createRequire } from 'module'
@@ -48,5 +49,9 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
+  },
+  test: {
+    environment: 'jsdom',
+    include: ['test/**/*.test.ts'],
   }
 })
