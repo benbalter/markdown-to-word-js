@@ -9,7 +9,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['docx', 'marked', 'file-saver'],
+          vendor: ['@turbodocx/html-to-docx', 'marked', 'file-saver'],
           ui: ['bootstrap', 'clipboard']
         }
       }
