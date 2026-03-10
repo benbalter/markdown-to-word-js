@@ -340,7 +340,7 @@ describe('Edge cases: parseMarkdownToHtml', () => {
     expect(result.trim()).toBe('');
   });
 
-  it('special HTML characters in regular text are escaped when inside inline code', () => {
+  it('special HTML characters in inline code are escaped', () => {
     const result = parseMarkdownToHtml('Hello `<script>alert("xss")</script>` world');
     expect(result).toContain('&lt;script&gt;');
     expect(result).toContain('<code>');

@@ -38,14 +38,15 @@ function setupDOM(): void {
   `;
 }
 
+/**
+ * Dynamically imports the index module to register the DOMContentLoaded listener,
+ * then dispatches the event to instantiate the app. Dynamic import is used because
+ * vi.resetModules() is called in beforeEach to ensure fresh module state per test.
+ */
 async function initApp(): Promise<void> {
-  // Dynamically import the module which registers DOMContentLoaded listener
   await import('../src/index.js');
-  // Fire DOMContentLoaded to instantiate the app
   document.dispatchEvent(new Event('DOMContentLoaded'));
-  // Allow microtasks to settle
   await vi.waitFor(() => {
-    // The app should have attached listeners by now
     expect(document.getElementById('convert-button')).not.toBeNull();
   });
 }
@@ -100,10 +101,10 @@ describe('MarkdownToWordApp', () => {
       // Enable the button so click fires (normally disabled when textarea is empty)
       convertBtn.disabled = false;
       convertBtn.click();
-      // Allow async operations to settle
-      await new Promise((r) => setTimeout(r, 10));
 
-      expect(errorAlert.classList.contains('d-none')).toBe(false);
+      await vi.waitFor(() => {
+        expect(errorAlert.classList.contains('d-none')).toBe(false);
+      });
     });
 
     it('calls converter and shows results on success', async () => {
@@ -213,9 +214,10 @@ describe('MarkdownToWordApp', () => {
       // Enable button so click fires (normally disabled when textarea is empty)
       convertBtn.disabled = false;
       convertBtn.click();
-      await new Promise((r) => setTimeout(r, 10));
 
-      expect(errorAlert.classList.contains('d-none')).toBe(false);
+      await vi.waitFor(() => {
+        expect(errorAlert.classList.contains('d-none')).toBe(false);
+      });
       const errorMessage = document.getElementById('error-message') as HTMLElement;
       expect(errorMessage.textContent).toBeTruthy();
     });
@@ -229,8 +231,9 @@ describe('MarkdownToWordApp', () => {
       // Enable button so click fires, then show error
       convertBtn.disabled = false;
       convertBtn.click();
-      await new Promise((r) => setTimeout(r, 10));
-      expect(errorAlert.classList.contains('d-none')).toBe(false);
+      await vi.waitFor(() => {
+        expect(errorAlert.classList.contains('d-none')).toBe(false);
+      });
 
       // Hide error via new conversion
       newConversionBtn.click();
