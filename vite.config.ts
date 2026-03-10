@@ -28,7 +28,7 @@ function fixHtmlToDocxPlugin(): Plugin {
 }
 
 export default defineConfig({
-  base: '/markdown-to-word-js/',
+  base: './',
   plugins: [fixHtmlToDocxPlugin()],
   define: {
     global: 'globalThis',
