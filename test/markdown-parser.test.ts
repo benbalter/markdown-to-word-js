@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -40,28 +40,27 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
   describe('text-formatting fixture', () => {
     let result: string;
 
-    it('wraps bold text in <strong>', () => {
+    beforeAll(() => {
       result = parseMarkdownToHtml(readFixture('text-formatting'));
+    });
+
+    it('wraps bold text in <strong>', () => {
       expect(result).toContain('<strong>Bold text</strong>');
     });
 
     it('wraps italic text in <em>', () => {
-      result = parseMarkdownToHtml(readFixture('text-formatting'));
       expect(result).toContain('<em>italic text</em>');
     });
 
     it('wraps strikethrough text in <del>', () => {
-      result = parseMarkdownToHtml(readFixture('text-formatting'));
       expect(result).toContain('<del>strikethrough text</del>');
     });
 
     it('renders inline code with <code> tag', () => {
-      result = parseMarkdownToHtml(readFixture('text-formatting'));
       expect(result).toContain('<code>inline code</code>');
     });
 
     it('supports nested bold and italic', () => {
-      result = parseMarkdownToHtml(readFixture('text-formatting'));
       expect(result).toMatch(/<strong>Bold and <em>nested italic<\/em> text\.<\/strong>/);
     });
   });
@@ -201,8 +200,11 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
   describe('mixed fixture (comprehensive)', () => {
     let result: string;
 
-    it('renders all major element types together', () => {
+    beforeAll(() => {
       result = parseMarkdownToHtml(readFixture('mixed'));
+    });
+
+    it('renders all major element types together', () => {
       // Headings
       expect(result).toContain('<h1>Project Overview</h1>');
       expect(result).toContain('<h2>Features</h2>');
