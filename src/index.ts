@@ -223,4 +223,16 @@ class MarkdownToWordApp {
 // Initialize the app when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   new MarkdownToWordApp();
+
+  // Listen for OS color scheme changes and update Bootstrap theme
+  if (typeof window.matchMedia === 'function') {
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', (e) => {
+        document.documentElement.setAttribute(
+          'data-bs-theme',
+          e.matches ? 'dark' : 'light',
+        );
+      });
+  }
 });

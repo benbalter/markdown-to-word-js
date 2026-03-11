@@ -1,4 +1,4 @@
-import { marked, Token, Tokens } from 'marked';
+import { marked, Tokens } from 'marked';
 
 interface TaskListToken extends Tokens.Generic {
   checked: boolean;
@@ -66,64 +66,10 @@ export function parseMarkdownToHtml(markdown: string): string {
 }
 
 /**
- * Parse markdown and return tokens for Word document generation
- */
-export function parseMarkdownToTokens(markdown: string): Token[] {
-  try {
-    return marked.lexer(markdown);
-  } catch (error) {
-    console.error('Markdown tokenization error:', error);
-    throw new Error('Failed to tokenize markdown content');
-  }
-}
-
-/**
  * Escape HTML entities
  */
 function escapeHtml(text: string): string {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
-}
-
-/**
- * Extract text content from markdown tokens (for Word document generation)
- */
-export function extractTextFromTokens(tokens: Token[]): string {
-  let text = '';
-  
-  for (const token of tokens) {
-    switch (token.type) {
-      case 'heading':
-        text += token.text + '\n\n';
-        break;
-      case 'paragraph':
-        text += token.text + '\n\n';
-        break;
-      case 'list':
-        if ('items' in token) {
-          for (const item of token.items) {
-            text += '• ' + item.text + '\n';
-          }
-        }
-        text += '\n';
-        break;
-      case 'blockquote':
-        text += '> ' + token.text + '\n\n';
-        break;
-      case 'code':
-        text += token.text + '\n\n';
-        break;
-      case 'hr':
-        text += '---\n\n';
-        break;
-      default:
-        if ('text' in token) {
-          text += token.text + '\n';
-        }
-        break;
-    }
-  }
-  
-  return text.trim();
 }

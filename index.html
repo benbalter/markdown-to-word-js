@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
@@ -18,7 +18,15 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
-    <script type="module" src="/src/index.ts"></script>
+    <script>
+      (function () {
+        const theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+        document.documentElement.setAttribute('data-bs-theme', theme);
+      })();
+    </script>
+    <script type="module" src="./src/index.ts"></script>
   </head>
   <body>
     <div class="container text-center mt-2">
@@ -36,7 +44,7 @@
           <div class="col">
             <h3>Step 2</h3>
             <h4>Get a formatted Word document</h4>
-            <pre class="bg-light border p-2 mt-3 text-start"><code># My Document
+            <pre class="bg-body-secondary border p-2 mt-3 text-start"><code># My Document
 
 This **bold** text and *italic* text 
 will be properly formatted in Word.
@@ -132,7 +140,7 @@ Write your **markdown** content here and see it convert to Word format.
             <h3>Original Markdown</h3>
             <pre
               id="original-markdown"
-              class="bg-light border text-start p-2 pre-scrollable"
+              class="bg-body-secondary border text-start p-2 pre-scrollable"
               style="max-height: 400px; overflow-y: auto;"
             ><code></code></pre>
           </div>
@@ -140,7 +148,7 @@ Write your **markdown** content here and see it convert to Word format.
             <h3>Preview</h3>
             <div
               id="markdown-preview"
-              class="bg-light border text-start pre-scrollable py-2 px-3"
+              class="bg-body-secondary border text-start pre-scrollable py-2 px-3"
               style="max-height: 400px; overflow-y: auto;"
             ></div>
           </div>
