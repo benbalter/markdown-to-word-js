@@ -100,7 +100,7 @@ class MarkdownToWordApp {
       this.textInput.value = text;
       this.currentFilename = file.name.replace(/\.[^/.]+$/, '.docx');
       this.handleTextInputChange();
-    } catch (error) {
+    } catch {
       this.showError('Failed to read the selected file. Please try again.');
     }
   }
