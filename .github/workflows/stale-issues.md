@@ -1,8 +1,7 @@
 ---
 description: "Manage stale issues and pull requests"
 on:
-  schedule:
-    - cron: "0 9 * * 1"
+  schedule: weekly on monday
 permissions:
   contents: read
   issues: read

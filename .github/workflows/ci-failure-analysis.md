@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
+    branches: [main]
 permissions:
   contents: read
   actions: read
