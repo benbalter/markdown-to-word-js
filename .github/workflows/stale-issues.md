@@ -31,7 +31,7 @@ Run weekly (every Monday at 9:00 AM UTC) to identify and manage stale issues and
    - Post a polite comment explaining that the issue/PR has been inactive and will be closed in 14 days if there is no further activity.
 4. **Skip items** that:
    - Already have the `stale` label (they have already been notified).
-   - Have the `enhancement` label and fewer than 60 days of inactivity (feature requests may take longer to address).
+   - Have the `enhancement` label — feature requests may take longer to address, so use a 90-day inactivity threshold instead of 60 days.
    - Are pinned issues.
 
 ## Comment template
