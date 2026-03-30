@@ -144,11 +144,9 @@ class MarkdownToWordApp {
 
       // Derive filename from H1 title if available
       const title = extractTitle(markdown);
-      if (title) {
-        const slug = slugify(title);
-        if (slug) {
-          this.currentFilename = `${slug}.docx`;
-        }
+      const slug = title ? slugify(title) : '';
+      if (slug) {
+        this.currentFilename = `${slug}.docx`;
       }
       
       // Generate HTML preview

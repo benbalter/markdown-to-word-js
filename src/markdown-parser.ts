@@ -81,8 +81,10 @@ export function extractTitle(markdown: string): string | null {
 
 /**
  * Convert a string into a URL/filename-safe slug.
- * Lowercases, replaces spaces with hyphens, removes non-alphanumeric characters,
- * and collapses consecutive hyphens.
+ * Lowercases, replaces whitespace and underscores with hyphens,
+ * strips characters that are not word characters (\w), whitespace, or hyphens,
+ * and collapses consecutive hyphens. Note that \w includes [a-zA-Z0-9_] and
+ * Unicode letters/digits, so accented characters are preserved.
  */
 export function slugify(text: string): string {
   return text
