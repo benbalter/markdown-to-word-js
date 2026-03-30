@@ -1,5 +1,5 @@
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
-import { parseMarkdownToHtml } from './markdown-parser.js';
+import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
 
 interface ConversionOptions {
   filename?: string;
@@ -22,6 +22,11 @@ export async function convertMarkdownToWord(
     const html = parseMarkdownToHtml(markdown);
 
     const documentOptions: HTMLtoDOCX.DocumentOptions = {};
+
+    const title = extractTitle(markdown);
+    if (title) {
+      documentOptions.title = title;
+    }
 
     if (options.pageMargins) {
       // Convert inches to twips (1 inch = 1440 twips)
