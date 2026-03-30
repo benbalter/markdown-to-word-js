@@ -7,16 +7,20 @@ vi.mock('../src/converter.js', () => ({
 
 vi.mock('../src/markdown-parser.js', () => ({
   parseMarkdownToHtml: vi.fn(),
+  extractTitle: vi.fn(),
+  slugify: vi.fn(),
 }));
 
 // Mock bootstrap CSS import to avoid errors
 vi.mock('bootstrap/dist/css/bootstrap.min.css', () => ({}));
 
 import { convertMarkdownToWord } from '../src/converter.js';
-import { parseMarkdownToHtml } from '../src/markdown-parser.js';
+import { parseMarkdownToHtml, extractTitle, slugify } from '../src/markdown-parser.js';
 
 const mockedConvert = vi.mocked(convertMarkdownToWord);
 const mockedParseHtml = vi.mocked(parseMarkdownToHtml);
+const mockedExtractTitle = vi.mocked(extractTitle);
+const mockedSlugify = vi.mocked(slugify);
 
 function setupDOM(): void {
   document.body.innerHTML = `
@@ -58,6 +62,8 @@ describe('MarkdownToWordApp', () => {
     vi.clearAllMocks();
     mockedConvert.mockResolvedValue(new Blob(['test'], { type: 'application/octet-stream' }));
     mockedParseHtml.mockReturnValue('<p>preview</p>');
+    mockedExtractTitle.mockReturnValue(null);
+    mockedSlugify.mockReturnValue('');
   });
 
   afterEach(() => {
@@ -316,6 +322,47 @@ describe('MarkdownToWordApp', () => {
       const dragEnterEvent = new Event('dragenter', { bubbles: true, cancelable: true });
       dropZone.dispatchEvent(dragEnterEvent);
       expect(dragEnterEvent.defaultPrevented).toBe(true);
+    });
+  });
+
+  describe('Filename from H1 title', () => {
+    it('uses slugified H1 title as download filename', async () => {
+      await initApp();
+      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
+      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
+
+      mockedExtractTitle.mockReturnValue('My Document Title');
+      mockedSlugify.mockReturnValue('my-document-title');
+
+      textarea.value = '# My Document Title\n\nContent';
+      textarea.dispatchEvent(new Event('input'));
+      convertBtn.click();
+
+      await vi.waitFor(() => {
+        expect(document.getElementById('results')!.classList.contains('d-none')).toBe(false);
+      });
+
+      expect(mockedExtractTitle).toHaveBeenCalledWith('# My Document Title\n\nContent');
+      expect(mockedSlugify).toHaveBeenCalledWith('My Document Title');
+    });
+
+    it('does not call slugify when no H1 exists', async () => {
+      await initApp();
+      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
+      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
+
+      mockedExtractTitle.mockReturnValue(null);
+
+      textarea.value = 'No heading content';
+      textarea.dispatchEvent(new Event('input'));
+      convertBtn.click();
+
+      await vi.waitFor(() => {
+        expect(document.getElementById('results')!.classList.contains('d-none')).toBe(false);
+      });
+
+      expect(mockedExtractTitle).toHaveBeenCalledWith('No heading content');
+      expect(mockedSlugify).not.toHaveBeenCalled();
     });
   });
 });

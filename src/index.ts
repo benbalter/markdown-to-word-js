@@ -1,5 +1,5 @@
 import { convertMarkdownToWord } from './converter.js';
-import { parseMarkdownToHtml } from './markdown-parser.js';
+import { parseMarkdownToHtml, extractTitle, slugify } from './markdown-parser.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 class MarkdownToWordApp {
@@ -141,6 +141,15 @@ class MarkdownToWordApp {
       // Generate Word document
       const wordDoc = await convertMarkdownToWord(markdown);
       this.currentWordDoc = wordDoc;
+
+      // Derive filename from H1 title if available
+      const title = extractTitle(markdown);
+      if (title) {
+        const slug = slugify(title);
+        if (slug) {
+          this.currentFilename = `${slug}.docx`;
+        }
+      }
       
       // Generate HTML preview
       const htmlPreview = parseMarkdownToHtml(markdown);

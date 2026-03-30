@@ -4,6 +4,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   parseMarkdownToHtml,
+  extractTitle,
+  slugify,
 } from '../src/markdown-parser';
 
 const fixturesDir = join(
@@ -223,6 +225,88 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
       // Horizontal rule
       expect(result).toMatch(/<hr/);
     });
+  });
+});
+
+/*
+ * =====================================================
+ * extractTitle
+ * =====================================================
+ */
+describe('extractTitle', () => {
+  it('returns the text of the first H1 heading', () => {
+    expect(extractTitle('# My Title\n\nSome content')).toBe('My Title');
+  });
+
+  it('returns the first H1 when multiple H1s exist', () => {
+    expect(extractTitle('# First\n\n# Second')).toBe('First');
+  });
+
+  it('returns null when no H1 heading exists', () => {
+    expect(extractTitle('## Only H2\n\nNo H1 here')).toBeNull();
+  });
+
+  it('returns null for empty input', () => {
+    expect(extractTitle('')).toBeNull();
+  });
+
+  it('ignores H2 through H6 headings', () => {
+    const md = '## H2\n### H3\n#### H4\n##### H5\n###### H6';
+    expect(extractTitle(md)).toBeNull();
+  });
+
+  it('extracts title from the mixed fixture', () => {
+    const md = readFixture('mixed');
+    expect(extractTitle(md)).toBe('Project Overview');
+  });
+
+  it('extracts title with inline formatting', () => {
+    expect(extractTitle('# Hello **World**')).toBe('Hello **World**');
+  });
+});
+
+/*
+ * =====================================================
+ * slugify
+ * =====================================================
+ */
+describe('slugify', () => {
+  it('converts a simple title to a slug', () => {
+    expect(slugify('Hello World')).toBe('hello-world');
+  });
+
+  it('removes special characters', () => {
+    expect(slugify('Hello, World!')).toBe('hello-world');
+  });
+
+  it('collapses multiple spaces into a single hyphen', () => {
+    expect(slugify('Hello   World')).toBe('hello-world');
+  });
+
+  it('trims leading and trailing hyphens', () => {
+    expect(slugify('  Hello World  ')).toBe('hello-world');
+  });
+
+  it('handles already slugified text', () => {
+    expect(slugify('hello-world')).toBe('hello-world');
+  });
+
+  it('returns empty string for empty input', () => {
+    expect(slugify('')).toBe('');
+  });
+
+  it('handles title with numbers', () => {
+    expect(slugify('Chapter 1: Introduction')).toBe('chapter-1-introduction');
+  });
+
+  it('converts underscores to hyphens', () => {
+    expect(slugify('hello_world_test')).toBe('hello-world-test');
+  });
+
+  it('handles complex titles', () => {
+    expect(slugify('My Project — A Great (Example)!')).toBe(
+      'my-project-a-great-example'
+    );
   });
 });
 

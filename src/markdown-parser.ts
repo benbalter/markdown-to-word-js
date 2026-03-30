@@ -66,6 +66,35 @@ export function parseMarkdownToHtml(markdown: string): string {
 }
 
 /**
+ * Extract the first H1 heading text from markdown content.
+ * Returns null if no H1 heading is found.
+ */
+export function extractTitle(markdown: string): string | null {
+  const tokens = marked.lexer(markdown);
+  for (const token of tokens) {
+    if (token.type === 'heading' && token.depth === 1) {
+      return token.text;
+    }
+  }
+  return null;
+}
+
+/**
+ * Convert a string into a URL/filename-safe slug.
+ * Lowercases, replaces spaces with hyphens, removes non-alphanumeric characters,
+ * and collapses consecutive hyphens.
+ */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
  * Escape HTML entities
  */
 function escapeHtml(text: string): string {
