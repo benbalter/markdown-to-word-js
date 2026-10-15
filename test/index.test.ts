@@ -43,10 +43,12 @@ function setupDOM(): void {
         <input type="file" id="file">
       </label>
       <textarea id="markdown-input"></textarea>
-      <select id="font-preset">
-        <option value="">Default</option>
-        <option value="chinese-official">Chinese official document</option>
-      </select>
+      <div id="font-preset-field" class="hidden" data-collapsed>
+        <select id="font-preset">
+          <option value="">Default</option>
+          <option value="chinese-official">Chinese official document</option>
+        </select>
+      </div>
       <button id="convert-button" disabled>Convert</button>
       <p id="font-preset-hint" class="hidden"></p>
     </div>
@@ -277,6 +279,30 @@ describe('converter UI', () => {
       await initApp();
       typeMarkdown('# Quarterly report\n\nAll teams met their goals.');
       expect(isHidden('font-preset-hint')).toBe(true);
+    });
+
+    it('keeps a collapsed Style menu hidden for English text', async () => {
+      await initApp();
+      typeMarkdown('# Quarterly report\n\nAll teams met their goals.');
+      expect(isHidden('font-preset-field')).toBe(true);
+    });
+
+    it('reveals a collapsed Style menu for Chinese text and keeps it', async () => {
+      await initApp();
+      typeMarkdown(
+        '# 关于开展年度工作检查的通知\n\n各单位：现将有关事项通知如下。'
+      );
+      expect(isHidden('font-preset-field')).toBe(false);
+
+      // Clearing the text doesn't snatch the menu away mid-edit.
+      typeMarkdown('');
+      expect(isHidden('font-preset-field')).toBe(false);
+    });
+
+    it('reveals a collapsed Style menu when a preset was remembered', async () => {
+      localStorage.setItem('markdown-to-word:font-preset', 'chinese-official');
+      await initApp();
+      expect(isHidden('font-preset-field')).toBe(false);
     });
   });
 

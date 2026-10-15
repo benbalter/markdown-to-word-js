@@ -2,10 +2,14 @@
 // Converter: the input (paste box, style, dropzone) and the post-conversion
 // results panels. The element ids and data-* attributes here are the contract
 // with the browser logic in src/index.ts — keep them in sync with that module.
-import { useTranslations } from '../../i18n';
+import { asLocale, useTranslations } from '../../i18n';
 import { UTM_SOURCE } from '../../site';
 
 const t = useTranslations(Astro.currentLocale);
+// The Style menu holds only the Chinese 公文 preset today, so outside the
+// Chinese page it starts collapsed: src/index.ts reveals it once the pasted
+// text is mostly Chinese or a preset was chosen on an earlier visit.
+const collapseStyle = asLocale(Astro.currentLocale) !== 'zh';
 const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&utm_medium=referral&utm_campaign=results`;
 ---
 
@@ -59,7 +63,11 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
     <div
       class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
     >
-      <div class="flex flex-col gap-1 text-start">
+      <div
+        id="font-preset-field"
+        class:list={['flex flex-col gap-1 text-start', { hidden: collapseStyle }]}
+        data-collapsed={collapseStyle ? '' : undefined}
+      >
         <label
           for="font-preset"
           class="font-mono text-[0.72rem] font-medium tracking-wide text-navy-soft uppercase rtl:font-sans rtl:tracking-normal dark:text-mist"
@@ -77,7 +85,7 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
       <button
         id="convert-button"
         type="button"
-        class="btn btn-accent disabled:cursor-not-allowed disabled:opacity-60"
+        class="btn btn-accent disabled:cursor-not-allowed disabled:opacity-60 sm:ms-auto"
         disabled
       >
         <svg

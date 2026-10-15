@@ -34,7 +34,7 @@ As on GitHub, a single newline inside a paragraph is joined into the same line, 
 
 ## Optional Font Presets
 
-Conversions use Word's standard styling by default. Choosing **Chinese official document (公文)** from the **Style** menu rewrites the generated document so each level gets an East Asian face and a 公文 size alongside Times New Roman:
+Conversions use Word's standard styling by default. Choosing **Chinese official document (公文)** from the **Style** menu (always shown on the Chinese page, and elsewhere once the pasted text is mostly Chinese) rewrites the generated document so each level gets an East Asian face and a 公文 size alongside Times New Roman:
 
 | Level       | Font size   | Chinese characters | Latin letters and digits |
 | ----------- | ----------- | ------------------ | ------------------------ |

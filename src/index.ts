@@ -179,10 +179,18 @@ function selectedPreset(): string {
 }
 
 // Suggest the Chinese preset when the text is mostly Chinese and no style is
-// chosen yet.
+// chosen yet. Outside the Chinese page the Style menu starts collapsed
+// (data-collapsed); the same signal, or a remembered preset, reveals it, and
+// it stays put after that so it doesn't vanish mid-edit.
 function updatePresetHint(): void {
   const text = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
-  const suggest = selectedPreset() === '' && isMostlyChinese(text);
+  const chinese = isMostlyChinese(text);
+  const field = byId('font-preset-field');
+  if (field?.hasAttribute('data-collapsed') && (chinese || selectedPreset())) {
+    field.removeAttribute('data-collapsed');
+    field.classList.remove('hidden');
+  }
+  const suggest = selectedPreset() === '' && chinese;
   byId('font-preset-hint')?.classList.toggle('hidden', !suggest);
 }
 
