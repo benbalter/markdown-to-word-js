@@ -6,7 +6,7 @@ vi.mock('../src/converter.js', () => ({
 }));
 
 vi.mock('../src/markdown-parser.js', () => ({
-  parseMarkdownToHtml: vi.fn(),
+  renderPreviewHtml: vi.fn(),
   extractTitle: vi.fn(),
   slugify: vi.fn(),
 }));
@@ -15,11 +15,11 @@ vi.mock('../src/markdown-parser.js', () => ({
 vi.mock('bootstrap/dist/css/bootstrap.min.css', () => ({}));
 
 import { convertMarkdownToWord } from '../src/converter.js';
-import { parseMarkdownToHtml, extractTitle, slugify } from '../src/markdown-parser.js';
+import { renderPreviewHtml, extractTitle, slugify } from '../src/markdown-parser.js';
 import { CHINESE_OFFICIAL_DOC_FONTS, isMostlyChinese } from '../src/font-presets.js';
 
 const mockedConvert = vi.mocked(convertMarkdownToWord);
-const mockedParseHtml = vi.mocked(parseMarkdownToHtml);
+const mockedPreviewHtml = vi.mocked(renderPreviewHtml);
 const mockedExtractTitle = vi.mocked(extractTitle);
 const mockedSlugify = vi.mocked(slugify);
 
@@ -68,7 +68,7 @@ describe('MarkdownToWordApp', () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockedConvert.mockResolvedValue(new Blob(['test'], { type: 'application/octet-stream' }));
-    mockedParseHtml.mockReturnValue('<p>preview</p>');
+    mockedPreviewHtml.mockReturnValue('<p>preview</p>');
     mockedExtractTitle.mockReturnValue(null);
     mockedSlugify.mockReturnValue('');
   });
@@ -136,7 +136,7 @@ describe('MarkdownToWordApp', () => {
       });
 
       expect(mockedConvert).toHaveBeenCalledWith('# Hello World', { fontPreset: undefined });
-      expect(mockedParseHtml).toHaveBeenCalledWith('# Hello World');
+      expect(mockedPreviewHtml).toHaveBeenCalledWith('# Hello World');
     });
 
     it('passes the Chinese font preset when it is chosen', async () => {

@@ -6,6 +6,7 @@ import {
   parseMarkdownToHtml,
   extractTitle,
   slugify,
+  renderPreviewHtml,
 } from '../src/markdown-parser';
 
 const fixturesDir = join(
@@ -184,9 +185,16 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
       expect(result).toContain('<p>This is the first paragraph.</p>');
     });
 
-    it('inserts line breaks where appropriate', () => {
+    it('joins a single newline into the paragraph, as GitHub renders .md files', () => {
       const result = parseMarkdownToHtml(readFixture('paragraphs'));
-      expect(result).toMatch(/<br/);
+      expect(result).not.toMatch(/<br/);
+      expect(result).toContain('second paragraph with a\nline break inside it.</p>');
+    });
+
+    it('still breaks the line after two trailing spaces', () => {
+      expect(parseMarkdownToHtml('line one  \nline two')).toContain(
+        'line one<br>line two'
+      );
     });
   });
 
@@ -260,8 +268,69 @@ describe('extractTitle', () => {
     expect(extractTitle(md)).toBe('Project Overview');
   });
 
-  it('extracts title with inline formatting', () => {
-    expect(extractTitle('# Hello **World**')).toBe('Hello **World**');
+  it('drops inline formatting, since the title is plain document metadata', () => {
+    expect(extractTitle('# Hello **World**')).toBe('Hello World');
+    expect(extractTitle('# Use `npm` and [the docs](https://x.test)')).toBe(
+      'Use npm and the docs'
+    );
+  });
+
+  it('keeps characters that look like HTML as text', () => {
+    expect(extractTitle('# Q&A: `a < b`')).toBe('Q&A: a < b');
+  });
+});
+
+/*
+ * =====================================================
+ * renderPreviewHtml
+ * =====================================================
+ */
+describe('renderPreviewHtml', () => {
+  it('strips event handlers from raw HTML in the markdown', () => {
+    const result = renderPreviewHtml('<img src="x" onerror="alert(1)">');
+    expect(result).toContain('<img src="x">');
+    expect(result).not.toContain('onerror');
+  });
+
+  it('strips script tags', () => {
+    const result = renderPreviewHtml('Hi\n\n<script>alert(1)</script>');
+    expect(result).toContain('Hi');
+    expect(result).not.toContain('<script');
+  });
+
+  it('strips javascript: links', () => {
+    expect(renderPreviewHtml('[x](javascript:alert(1))')).not.toContain(
+      'javascript:'
+    );
+  });
+
+  it('keeps task list checkboxes, tables and code blocks', () => {
+    const result = renderPreviewHtml(
+      [
+        '- [x] done',
+        '',
+        '| a | b |',
+        '| - | - |',
+        '| 1 | 2 |',
+        '',
+        '```js',
+        'const a = 1 < 2;',
+        '```',
+      ].join('\n')
+    );
+    expect(result).toMatch(/<input[^>]*checked[^>]*type="checkbox"/);
+    expect(result).toContain('<table>');
+    expect(result).toContain(
+      '<pre><code class="language-js">const a = 1 &lt; 2;</code></pre>'
+    );
+  });
+});
+
+describe('code blocks', () => {
+  it('leaves no trailing newline, which would become a blank line in Word', () => {
+    expect(parseMarkdownToHtml('```\nplain\n```')).toBe(
+      '<pre><code>plain</code></pre>\n'
+    );
   });
 });
 
