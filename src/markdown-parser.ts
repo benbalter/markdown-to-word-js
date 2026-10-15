@@ -61,7 +61,7 @@ export function parseMarkdownToHtml(markdown: string): string {
     return marked.parse(markdown) as string;
   } catch (error) {
     console.error('Markdown parsing error:', error);
-    throw new Error('Failed to parse markdown content');
+    throw new Error('Failed to parse markdown content', { cause: error });
   }
 }
 

@@ -7,7 +7,7 @@ Browser app that converts Markdown to Word documents, published with GitHub Page
 Run these before pushing. They match [ci.yml](.github/workflows/ci.yml):
 
 ```sh
-npm run lint    # eslint --fix: rewrites files, so review the diff it leaves
+npm run lint    # eslint, check only; `npm run lint:fix` rewrites files
 npm test        # vitest
 npm run build   # tsc + vite build, output in dist/
 ```
