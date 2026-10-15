@@ -10,6 +10,7 @@ Convert GitHub Flavored Markdown to Word documents directly in your browser. No 
 - **Live Preview**: See how your markdown will render
 - **Modern Interface**: Clean, responsive design built with Bootstrap 5
 - **Multiple Input Methods**: Upload `.md` files or paste markdown text directly
+- **Optional Chinese Font Preset**: Opt-in 公文 styling (仿宋 / 方正小标宋 / 黑体 / 楷体) with Times New Roman for Latin text
 
 ## Supported Markdown Features
 
@@ -23,6 +24,33 @@ Convert GitHub Flavored Markdown to Word documents directly in your browser. No 
 - ✅ Blockquotes
 - ✅ Horizontal rules
 - ✅ Line breaks and paragraphs
+
+## Optional Font Presets
+
+Conversions use Word's standard styling by default. Ticking **Chinese official document fonts** (中文公文) rewrites the generated document so each level gets an East Asian face and a 公文 size alongside Times New Roman:
+
+| Level | Font size | Chinese characters | Latin letters and digits |
+| --- | --- | --- | --- |
+| Body | 三号 (16pt) | 仿宋 | Times New Roman |
+| Heading 1 | 二号 (22pt) | 方正小标宋简体 | Times New Roman |
+| Heading 2 | 三号 (16pt) | 黑体 | Times New Roman |
+| Heading 3 | 三号 (16pt) | 楷体 | Times New Roman |
+| Heading 4-6 | 三号 (16pt) | 仿宋 (bold) | Times New Roman |
+
+Word resolves a typeface per character class, so English words and numbers inside a Chinese sentence stay in Times New Roman. The fonts must be installed on the machine that opens the document.
+
+Every level also drops to 段前段后 0 行. The preset also pins 单倍行距 (`w:lineRule="auto"`) on the body and heading styles rather than relying on the converter default of 最小值 12 磅.
+
+Programmatically:
+
+```ts
+import { convertMarkdownToWord } from './src/converter.js';
+import { CHINESE_OFFICIAL_DOC_FONTS } from './src/font-presets.js';
+
+const blob = await convertMarkdownToWord(markdown, {
+  fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+});
+```
 
 ## Usage
 
@@ -91,6 +119,7 @@ This tool runs entirely in your browser. No markdown content or generated docume
 - Complex HTML within markdown may not convert perfectly
 - Some advanced Word features are not supported
 - Images must be web-accessible URLs (local images are not embedded)
+- Fenced code blocks are monospace with real line breaks; inline code spans keep the body font
 
 ## Contributing
 
