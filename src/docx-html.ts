@@ -9,6 +9,13 @@ export const CODE_FONT = 'Courier New';
 const CHECKBOX = { checked: '☒', unchecked: '☐' };
 
 /**
+ * Stands in for `<hr>`, which the generator drops. The structure patch turns
+ * each one into a bordered paragraph; if that patch fails, a centered `* * *`
+ * still reads as a section break.
+ */
+export const RULE_TEXT = '* * *';
+
+/**
  * Adjusts the parser's HTML for html-to-docx, which drops or flattens some of
  * what the browser preview renders:
  *
@@ -19,6 +26,8 @@ const CHECKBOX = { checked: '☒', unchecked: '☐' };
  * - Table header cells: `<th>` isn't bold, so its content is wrapped in
  *   `<strong>`. Column alignment from GFM's `align` attribute is ignored, but
  *   the same value as a `text-align` style is honored.
+ * - Horizontal rules: `<hr>` is dropped, so it becomes a centered RULE_TEXT
+ *   paragraph for the structure patch to draw as a rule.
  *
  * Only the HTML bound for the .docx changes; the preview keeps the original.
  */
@@ -51,6 +60,13 @@ export function prepareHtmlForDocx(html: string): string {
       strong.append(...Array.from(cell.childNodes));
       cell.append(strong);
     }
+  }
+
+  for (const rule of Array.from(dom.querySelectorAll('hr'))) {
+    const paragraph = dom.createElement('p');
+    paragraph.setAttribute('style', 'text-align: center');
+    paragraph.textContent = RULE_TEXT;
+    rule.replaceWith(paragraph);
   }
 
   return dom.body.innerHTML;

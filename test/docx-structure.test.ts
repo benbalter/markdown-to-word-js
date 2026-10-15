@@ -1,0 +1,77 @@
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import JSZip from 'jszip';
+import { convertMarkdownToWord } from '../src/converter';
+import { RULE_TEXT } from '../src/docx-html';
+
+const fixtureRoot = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
+
+async function documentXml(markdown: string): Promise<string> {
+  const blob = await convertMarkdownToWord(markdown);
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  return zip.file('word/document.xml')!.async('string');
+}
+
+/** Each body paragraph as its text, or `<rule>` for an empty bordered one. */
+function paragraphs(xml: string): string[] {
+  const body = xml.slice(xml.lastIndexOf('</w:sectPr>'));
+  return (body.match(/<w:p>[\s\S]*?<\/w:p>/g) ?? []).map((p) => {
+    const text = (p.match(/<w:t[^>]*>[^<]*<\/w:t>/g) ?? [])
+      .map((t) => t.replace(/<[^>]+>/g, ''))
+      .join('');
+    return text === '' && /<w:pBdr>\s*<w:bottom w:val="single"/.test(p) ? '<rule>' : text;
+  });
+}
+
+describe('horizontal rules', () => {
+  it('draws the rule the generator would drop', async () => {
+    const markdown = readFileSync(join(fixtureRoot, 'horizontal-rule.md'), 'utf-8');
+    expect(paragraphs(await documentXml(markdown))).toEqual([
+      'Above the rule.',
+      '<rule>',
+      'Below the rule.',
+    ]);
+  });
+
+  it('draws every rule, in order', async () => {
+    expect(paragraphs(await documentXml('one\n\n---\n\ntwo\n\n***\n\nthree\n'))).toEqual([
+      'one',
+      '<rule>',
+      'two',
+      '<rule>',
+      'three',
+    ]);
+  });
+
+  it('leaves a paragraph that only says the placeholder text alone', async () => {
+    expect(paragraphs(await documentXml('\\* \\* \\*\n\n---\n'))).toEqual([RULE_TEXT, '<rule>']);
+  });
+});
+
+describe('tables', () => {
+  const table = '| a | b |\n| - | - |\n| 1 | 2 |\n';
+
+  it('repeats the header row on each page the table spans', async () => {
+    const xml = await documentXml(table);
+    const rows = xml.match(/<w:tr>[\s\S]*?<\/w:tr>/g) ?? [];
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toContain('<w:tblHeader/>');
+    expect(rows[1]).not.toContain('<w:tblHeader');
+  });
+
+  it('leaves a raw HTML table without header cells alone', async () => {
+    const xml = await documentXml('<table><tr><td>1</td><td>2</td></tr></table>\n');
+    expect(xml).not.toContain('<w:tblHeader');
+  });
+
+  it('keeps only the first grid, as the schema requires', async () => {
+    const xml = await documentXml(`${table}\n${table}`);
+    expect((xml.match(/<w:tbl>/g) ?? []).length).toBe(2);
+    expect((xml.match(/<w:tblGrid>/g) ?? []).length).toBe(2);
+    for (const tbl of xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g) ?? []) {
+      expect(tbl.indexOf('<w:tblGrid>')).toBeLessThan(tbl.indexOf('<w:tr>'));
+    }
+  });
+});

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import JSZip from 'jszip';
 import mammoth from 'mammoth';
 import { convertMarkdownToWord } from '../src/converter';
-import { CODE_FONT, prepareHtmlForDocx } from '../src/docx-html';
+import { CODE_FONT, RULE_TEXT, prepareHtmlForDocx } from '../src/docx-html';
 import { parseMarkdownToHtml } from '../src/markdown-parser';
 
 function prepare(markdown: string): string {
@@ -41,6 +41,14 @@ describe('prepareHtmlForDocx', () => {
 
     it('leaves code blocks alone', () => {
       expect(prepare('```\nblock\n```\n')).toBe(parseMarkdownToHtml('```\nblock\n```\n'));
+    });
+  });
+
+  describe('horizontal rules', () => {
+    it('stands in a centered section break that reads fine if the rule patch fails', () => {
+      expect(prepare('a\n\n---\n\nb\n')).toContain(
+        `<p style="text-align: center">${RULE_TEXT}</p>`
+      );
     });
   });
 

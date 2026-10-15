@@ -125,7 +125,8 @@ This tool runs entirely in your browser. No markdown content or generated docume
 - Images must be web-accessible URLs (local images are not embedded)
 - Fenced code blocks are monospace with real line breaks, and inline code is monospace too
 - Word can't show checkboxes from HTML, so task list items start with ☒ (done) or ☐ (to do)
-- Tables get thin borders, a bold header row, and the column alignment from the Markdown
+- Tables get thin borders, a bold header row that repeats on each page, and the column alignment from the Markdown
+- Horizontal rules become a line across the page
 - As on GitHub, a single newline inside a paragraph is joined into the same line, so hard-wrapped files convert to normal paragraphs. End a line with two spaces or a backslash to force a line break
 - Raw HTML in the preview is sanitized, so scripts and event handlers in a shared file don't run
 
