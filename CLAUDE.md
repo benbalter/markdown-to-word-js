@@ -16,7 +16,3 @@ npm run build   # tsc + vite build, output in dist/
 
 - Pushing to `main` is a production deploy. [deploy.yml](.github/workflows/deploy.yml) publishes `dist/` to Pages after lint and build only. It doesn't run tests or wait for CI, so failing tests can still ship.
 - So run all three checks above, then push or merge to `main` only when the owner says to.
-
-## Generated files
-
-The `*.lock.yml` workflows in [.github/workflows](.github/workflows) are compiled by [gh-aw](https://github.com/github/gh-aw) from the `.md` file beside each one. Edit the `.md` source and run `gh aw compile`; never hand-edit a `.lock.yml`.
