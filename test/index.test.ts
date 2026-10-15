@@ -161,6 +161,19 @@ describe('converter UI', () => {
       expect($('sr-status').textContent).toMatch(/ready/i);
     });
 
+    it('names task-list checkboxes after their item, not its nested list', async () => {
+      mockedParseHtml.mockReturnValue(
+        '<ul><li><input checked="" disabled="" type="checkbox"> Ship <strong>it</strong>' +
+          '<ul><li><input disabled="" type="checkbox"> Nested</li></ul></li></ul>'
+      );
+      await initApp();
+      await convert('- [x] Ship **it**\n  - [ ] Nested');
+
+      const boxes = $('rendered').querySelectorAll('input[type="checkbox"]');
+      expect(boxes[0].getAttribute('aria-label')).toBe('Ship it');
+      expect(boxes[1].getAttribute('aria-label')).toBe('Nested');
+    });
+
     it('falls back to document.docx without an H1', async () => {
       await initApp();
       await convert('Just text');

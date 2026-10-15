@@ -164,10 +164,10 @@ const footerLinks = [
     <Font cssVariable="--font-jetbrains" />
   </head>
   <body class="flex min-h-screen flex-col">
-    <header class="mx-auto w-full max-w-5xl px-6 pt-7 pb-2">
+    <header class="mx-auto w-full max-w-5xl px-6 pt-5">
       <a
         href={homeHref}
-        class="group inline-flex items-center gap-2.5 no-underline"
+        class="group inline-flex min-h-11 items-center gap-2.5 no-underline"
       >
         {/* The badge is decoration; the visible name is the link's accessible
              name, so voice-control users can say what they see. */}
@@ -188,7 +188,7 @@ const footerLinks = [
     </main>
 
     <footer class="mx-auto mt-16 w-full max-w-5xl px-6 pb-10">
-      <div class="rule mb-5"></div>
+      <div class="rule mb-3"></div>
       {languageLinks.length > 1 && (
       <nav
         aria-label={t.footer.languagesLabel}
@@ -239,14 +239,14 @@ const footerLinks = [
       )}
       <nav
         aria-label={t.footer.linksLabel}
-        class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm"
+        class="flex flex-wrap items-center justify-center gap-x-5 text-sm"
       >
         {
           footerLinks.map((link) => (
             <a
               href={link.href}
               dir="auto"
-              class="font-medium text-navy-soft underline decoration-transparent decoration-2 underline-offset-4 transition-colors hover:text-navy hover:decoration-chartreuse dark:text-mist dark:hover:text-white"
+              class="inline-flex min-h-11 items-center font-medium text-navy-soft underline decoration-transparent decoration-2 underline-offset-4 transition-colors hover:text-navy hover:decoration-chartreuse dark:text-mist dark:hover:text-white"
             >
               {link.label}
             </a>
@@ -254,7 +254,7 @@ const footerLinks = [
         }
       </nav>
       <p
-        class="mt-5 text-center font-mono text-[0.7rem] tracking-wide rtl:font-sans rtl:tracking-normal text-navy-soft dark:text-mist"
+        class="mt-3 text-center font-mono text-[0.7rem] tracking-wide rtl:font-sans rtl:tracking-normal text-navy-soft dark:text-mist"
       >
         {t.footerTagline}
       </p>

@@ -2,7 +2,9 @@
 @plugin '@tailwindcss/typography';
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Word to Markdown — design tokens
+   Markdown to Word — design tokens
+   Mirrors word2md.com, whose DESIGN.md is the source of truth for this
+   system: https://github.com/benbalter/word-to-markdown-js/blob/main/DESIGN.md
    Editorial-technical: an expressive serif (Fraunces, the "document" world)
    resolving into monospace (JetBrains Mono, the Markdown result), over a clean
    grotesque body (Hanken Grotesk). Navy + chartreuse echo the Open & Async
@@ -29,6 +31,13 @@
   --color-chartreuse-deep: #646a00; /* accent that passes contrast on paper */
   --color-rule-light: #e5e3d8; /* hairline borders on paper */
   --color-rule-dark: #243049; /* hairline borders on ink */
+
+  /* Errors: a warm red tuned to the paper, rather than Tailwind's stock red.
+     danger on danger-wash is 6.7:1; danger-bright on ink is ~9:1. */
+  --color-danger: #9b2a1c; /* error text on paper */
+  --color-danger-wash: #fbede6; /* error fill on paper */
+  --color-danger-rule: #ecb9ab; /* error border on paper */
+  --color-danger-bright: #f5b3a4; /* error text, fill and border tint on ink */
 }
 
 @layer base {
@@ -349,7 +358,7 @@
   }
 
   /* Result actions. One filled accent for the next action, the rest quiet
-     (DESIGN.md, Buttons). src/index.ts swaps btn-accent and btn-secondary
+     (word2md's DESIGN.md, Buttons). src/index.ts swaps btn-accent and btn-secondary
      between Copy and Download .zip when a document has images, so both looks
      live here rather than as duplicated utility lists. 44px tall: they're
      the touch targets of the results screen. */
@@ -415,6 +424,22 @@
     }
     to {
       --mark-a: 0%;
+    }
+  }
+
+  /* Text panels (the paste box and both result panels) clip their overflow,
+     which would also clip a focused child's outline, and the textarea had no
+     ring at all. So the ring goes on the panel, matching the dropzone's. */
+  .panel-focus:has(:focus-visible) {
+    outline: 2px solid var(--color-chartreuse-deep);
+    outline-offset: 2px;
+  }
+  .panel-focus :focus-visible {
+    outline: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    .panel-focus:has(:focus-visible) {
+      outline-color: var(--color-chartreuse);
     }
   }
 
