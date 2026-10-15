@@ -16,6 +16,7 @@ vi.mock('bootstrap/dist/css/bootstrap.min.css', () => ({}));
 
 import { convertMarkdownToWord } from '../src/converter.js';
 import { parseMarkdownToHtml, extractTitle, slugify } from '../src/markdown-parser.js';
+import { CHINESE_OFFICIAL_DOC_FONTS, isMostlyChinese } from '../src/font-presets.js';
 
 const mockedConvert = vi.mocked(convertMarkdownToWord);
 const mockedParseHtml = vi.mocked(parseMarkdownToHtml);
@@ -27,6 +28,11 @@ function setupDOM(): void {
     <div id="input">
       <input type="file" id="file">
       <textarea id="markdown-input"></textarea>
+      <select id="font-preset">
+        <option value="">Default</option>
+        <option value="chinese-official">Chinese official document</option>
+      </select>
+      <div id="font-preset-hint" class="d-none"></div>
       <button id="convert-button" disabled>Convert</button>
     </div>
     <div id="results" class="d-none">
@@ -60,6 +66,7 @@ describe('MarkdownToWordApp', () => {
     setupDOM();
     vi.resetModules();
     vi.clearAllMocks();
+    localStorage.clear();
     mockedConvert.mockResolvedValue(new Blob(['test'], { type: 'application/octet-stream' }));
     mockedParseHtml.mockReturnValue('<p>preview</p>');
     mockedExtractTitle.mockReturnValue(null);
@@ -128,8 +135,96 @@ describe('MarkdownToWordApp', () => {
         expect(resultsSection.classList.contains('d-none')).toBe(false);
       });
 
-      expect(mockedConvert).toHaveBeenCalledWith('# Hello World');
+      expect(mockedConvert).toHaveBeenCalledWith('# Hello World', { fontPreset: undefined });
       expect(mockedParseHtml).toHaveBeenCalledWith('# Hello World');
+    });
+
+    it('passes the Chinese font preset when it is chosen', async () => {
+      await initApp();
+      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
+      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
+      const select = document.getElementById('font-preset') as HTMLSelectElement;
+
+      select.value = 'chinese-official';
+      select.dispatchEvent(new Event('change'));
+      textarea.value = '# 通知';
+      textarea.dispatchEvent(new Event('input'));
+      convertBtn.click();
+
+      await vi.waitFor(() => {
+        expect(mockedConvert).toHaveBeenCalledWith('# 通知', {
+          fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+        });
+      });
+    });
+  });
+
+  describe('style', () => {
+    it('remembers the chosen style for the next visit', async () => {
+      await initApp();
+      const select = document.getElementById('font-preset') as HTMLSelectElement;
+      select.value = 'chinese-official';
+      select.dispatchEvent(new Event('change'));
+
+      setupDOM();
+      vi.resetModules();
+      await initApp();
+
+      expect((document.getElementById('font-preset') as HTMLSelectElement).value).toBe(
+        'chinese-official'
+      );
+    });
+
+    it('ignores a remembered style that no longer exists', async () => {
+      localStorage.setItem('markdown-to-word:font-preset', 'retired-preset');
+      await initApp();
+
+      expect((document.getElementById('font-preset') as HTMLSelectElement).value).toBe('');
+    });
+
+    it('suggests the Chinese preset for Chinese text until a style is chosen', async () => {
+      await initApp();
+      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
+      const select = document.getElementById('font-preset') as HTMLSelectElement;
+      const hint = document.getElementById('font-preset-hint') as HTMLElement;
+
+      textarea.value = '# 关于开展年度工作检查的通知\n\n各单位：现将有关事项通知如下。';
+      textarea.dispatchEvent(new Event('input'));
+      expect(hint.classList.contains('d-none')).toBe(false);
+
+      select.value = 'chinese-official';
+      select.dispatchEvent(new Event('change'));
+      expect(hint.classList.contains('d-none')).toBe(true);
+    });
+
+    it('does not suggest the Chinese preset for English text', async () => {
+      await initApp();
+      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
+
+      textarea.value = '# Quarterly report\n\nAll teams met their goals.';
+      textarea.dispatchEvent(new Event('input'));
+
+      expect(document.getElementById('font-preset-hint')!.classList.contains('d-none')).toBe(true);
+    });
+  });
+
+  describe('isMostlyChinese', () => {
+    it('counts Chinese prose with some English and digits', () => {
+      expect(isMostlyChinese('# 年度报告\n\n2026 年 Q3 的收入增长了，详见附件 A。')).toBe(true);
+    });
+
+    it('does not count English with a few Chinese words', () => {
+      expect(isMostlyChinese('The 公文 preset sets 仿宋 for body text and 黑体 for headings.')).toBe(
+        false
+      );
+    });
+
+    it('does not count Japanese, which also uses Han characters', () => {
+      expect(isMostlyChinese('本日の会議では、来年度の予算について議論しました。')).toBe(false);
+    });
+
+    it('needs more than a handful of characters', () => {
+      expect(isMostlyChinese('通知')).toBe(false);
     });
   });
 

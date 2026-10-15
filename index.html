@@ -101,6 +101,17 @@ Write your **markdown** content here and see it convert to Word format.
                   ></textarea>
                 </div>
                 
+                <div class="mb-3">
+                  <label for="font-preset" class="form-label">Style</label>
+                  <select id="font-preset" class="form-select">
+                    <option value="">Default</option>
+                    <option value="chinese-official">Chinese official document (公文)</option>
+                  </select>
+                  <div id="font-preset-hint" class="form-text d-none">
+                    This looks like Chinese text. For 公文-style fonts, choose “Chinese official document (公文)”.
+                  </div>
+                </div>
+
                 <button id="convert-button" type="button" class="btn btn-primary btn-lg">
                   Convert to Word
                 </button>

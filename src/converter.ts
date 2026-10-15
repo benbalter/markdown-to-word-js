@@ -1,4 +1,5 @@
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
+import type { FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
 
 interface ConversionOptions {
@@ -9,6 +10,8 @@ interface ConversionOptions {
     bottom: number;
     left: number;
   };
+  /** Rewrites the document fonts. Omit to keep the default styling. */
+  fontPreset?: FontPreset;
 }
 
 /**
@@ -41,12 +44,57 @@ export async function convertMarkdownToWord(
     const result = await HTMLtoDOCX(html, null, documentOptions);
 
     // HTMLtoDOCX returns Blob in browser, Buffer/ArrayBuffer in Node.js
-    if (result instanceof Blob) {
-      return result;
+    const generated = result instanceof Blob ? result : new Blob([result]);
+
+    // Both patches rewrite the .docx zip with JSZip. html-to-docx bundles its own
+    // copy, so ours is a second one; load it only when a patch actually applies.
+
+    // Code blocks are broken in the generator output itself, so they are fixed
+    // whether or not a font preset is requested.
+    let wordDocument = generated;
+    if (html.includes('<pre')) {
+      const codeBlocks = codeBlockTexts(html);
+      wordDocument = await patchOrKeep(wordDocument, 'code block', async (document) => {
+        const { formatCodeBlocks } = await import('./docx-code-blocks.js');
+        return formatCodeBlocks(document, codeBlocks);
+      });
     }
-    return new Blob([result]);
+
+    const { fontPreset } = options;
+    if (fontPreset) {
+      wordDocument = await patchOrKeep(wordDocument, 'font preset', async (document) => {
+        const { applyFontPreset } = await import('./docx-font-preset.js');
+        return applyFontPreset(document, fontPreset);
+      });
+    }
+
+    return wordDocument;
   } catch (error) {
     console.error('Word document generation error:', error);
     throw new Error('Failed to generate Word document');
+  }
+}
+
+/** The text of each `<pre>` in `html`, in document order. */
+function codeBlockTexts(html: string): string[] {
+  const dom = new DOMParser().parseFromString(html, 'text/html');
+  return Array.from(dom.querySelectorAll('pre'), (pre) => pre.textContent ?? '');
+}
+
+/**
+ * The patches polish a document html-to-docx already produced, so a failure in
+ * one (including its chunk failing to load) keeps the unpatched document
+ * rather than failing the whole conversion.
+ */
+async function patchOrKeep(
+  wordDocument: Blob,
+  name: string,
+  patch: (wordDocument: Blob) => Promise<Blob>
+): Promise<Blob> {
+  try {
+    return await patch(wordDocument);
+  } catch (error) {
+    console.warn(`Skipped the ${name} patch; keeping the unpatched document:`, error);
+    return wordDocument;
   }
 }

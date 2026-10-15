@@ -20,9 +20,13 @@ Thank you for your interest in contributing to this project! This document provi
 
 ```
 src/
-├── index.ts          # Main application entry point
-├── converter.ts      # Word document generation logic
-└── markdown-parser.ts # Markdown parsing utilities
+├── index.ts              # Main application entry point
+├── converter.ts          # Word document generation logic
+├── docx-code-blocks.ts   # Repairs code blocks in an already generated .docx
+├── docx-font-preset.ts   # Rewrites fonts in an already generated .docx
+├── font-presets.ts       # Font preset definitions
+├── markdown-parser.ts    # Markdown parsing utilities
+└── xml-part.ts           # Shared helpers for the XML parts of a .docx
 ```
 
 ### Available Scripts
