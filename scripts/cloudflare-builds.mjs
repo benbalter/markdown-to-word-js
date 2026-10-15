@@ -99,10 +99,11 @@ const settings = {
   path_includes: ['*'],
   path_excludes: PATH_EXCLUDES,
 };
-// Branch builds upload a version with a preview URL instead of deploying.
+// Branch builds create a Worker Preview instead of deploying. Needs the
+// `previews` block in wrangler.jsonc.
 const previewSettings = {
   ...settings,
-  deploy_command: 'npx wrangler versions upload',
+  deploy_command: 'npx wrangler preview',
 };
 
 const existing = await cf('GET', `/builds/workers/${worker.tag}`);
