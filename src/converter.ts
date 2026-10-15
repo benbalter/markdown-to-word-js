@@ -1,5 +1,6 @@
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
 import { prepareHtmlForDocx } from './docx-html.js';
+import type { DocumentStructure } from './docx-structure.js';
 import type { FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
 
@@ -52,7 +53,7 @@ export async function convertMarkdownToWord(
     // HTMLtoDOCX returns Blob in browser, Buffer/ArrayBuffer in Node.js
     const generated = result instanceof Blob ? result : new Blob([result]);
 
-    // Both patches rewrite the .docx zip with JSZip. html-to-docx bundles its own
+    // The patches rewrite the .docx zip with JSZip. html-to-docx bundles its own
     // copy, so ours is a second one; load it only when a patch actually applies.
 
     // Code blocks are broken in the generator output itself, so they are fixed
@@ -63,6 +64,14 @@ export async function convertMarkdownToWord(
       wordDocument = await patchOrKeep(wordDocument, 'code block', async (document) => {
         const { formatCodeBlocks } = await import('./docx-code-blocks.js');
         return formatCodeBlocks(document, codeBlocks);
+      });
+    }
+
+    if (html.includes('<hr') || html.includes('<table')) {
+      const structure = documentStructure(html);
+      wordDocument = await patchOrKeep(wordDocument, 'structure', async (document) => {
+        const { patchStructure } = await import('./docx-structure.js');
+        return patchStructure(document, structure);
       });
     }
 
@@ -85,6 +94,18 @@ export async function convertMarkdownToWord(
 function codeBlockTexts(html: string): string[] {
   const dom = new DOMParser().parseFromString(html, 'text/html');
   return Array.from(dom.querySelectorAll('pre'), (pre) => pre.textContent ?? '');
+}
+
+/** The rules and table header rows in `html`, for the structure patch. */
+function documentStructure(html: string): DocumentStructure {
+  const dom = new DOMParser().parseFromString(html, 'text/html');
+  return {
+    rules: dom.querySelectorAll('hr').length,
+    headerRows: Array.from(dom.querySelectorAll('table'), (table) => {
+      const firstRow = table.querySelector('tr');
+      return Boolean(table.tHead) || Boolean(firstRow && firstRow.querySelector('td') === null);
+    }),
+  };
 }
 
 /**
