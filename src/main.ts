@@ -9,5 +9,6 @@ export {
   type FontPreset,
   type LevelStyle,
   type LineSpacing,
+  type PageLayout,
   type ParagraphStyle,
 } from './font-presets.js';

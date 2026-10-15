@@ -3,18 +3,21 @@ import './buffer-global.js';
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
 import { prepareHtmlForDocx } from './docx-html.js';
 import type { DocumentStructure } from './docx-structure.js';
-import type { FontPreset } from './font-presets.js';
+import { mmToTwips, type FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
 
 export interface ConversionOptions {
-  /** Page margins in inches. */
+  /** Page margins in inches. Overrides the margins of `fontPreset.page`. */
   pageMargins?: {
     top: number;
     right: number;
     bottom: number;
     left: number;
   };
-  /** Rewrites the document fonts. Omit to keep the default styling. */
+  /**
+   * Rewrites the document fonts, and the page layout if the preset has one.
+   * Omit to keep the default styling.
+   */
   fontPreset?: FontPreset;
 }
 
@@ -38,6 +41,20 @@ export async function convertMarkdownToWord(
     const title = extractTitle(markdown);
     if (title) {
       documentOptions.title = title;
+    }
+
+    const page = options.fontPreset?.page;
+    if (page) {
+      documentOptions.pageSize = {
+        width: mmToTwips(page.widthMm),
+        height: mmToTwips(page.heightMm),
+      };
+      documentOptions.margins = {
+        top: mmToTwips(page.marginsMm.top),
+        right: mmToTwips(page.marginsMm.right),
+        bottom: mmToTwips(page.marginsMm.bottom),
+        left: mmToTwips(page.marginsMm.left),
+      };
     }
 
     if (options.pageMargins) {

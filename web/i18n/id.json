@@ -14,7 +14,7 @@
   "styleLabel": "Gaya",
   "styleDefault": "Bawaan",
   "styleChineseOfficial": "Dokumen resmi Tiongkok (公文)",
-  "styleChineseHint": "Ini tampaknya teks berbahasa Mandarin. Untuk font bergaya 公文, pilih “Dokumen resmi Tiongkok (公文)”.",
+  "styleChineseHint": "Ini tampaknya teks berbahasa Mandarin. Untuk format 公文, pilih “Dokumen resmi Tiongkok (公文)”.",
   "convertButton": "Konversi ke Word",
   "convertSectionAria": "Konversi dokumen",
   "convertedLabel": "Dikonversi",
@@ -85,7 +85,7 @@
     },
     {
       "q": "Bisakah alat ini memformat dokumen resmi Tiongkok (公文)?",
-      "a": "Bisa. Pilih gaya Dokumen resmi Tiongkok (公文) sebelum mengonversi. Teks isi memakai FangSong, judul memakai FZXiaoBiaoSong, SimHei, dan KaiTi dengan ukuran yang lazim, serta Times New Roman untuk teks Latin. Font-font tersebut harus terpasang di perangkat tempat dokumen dibuka."
+      "a": "Bisa. Pilih gaya Dokumen resmi Tiongkok (公文) sebelum mengonversi. Gaya ini mengikuti GB/T 9704-2012: teks isi memakai FangSong, judul memakai FZXiaoBiaoSong, SimHei, dan KaiTi dengan ukuran yang lazim, serta Times New Roman untuk teks Latin, di kertas A4 dengan margin standar, 22 baris berisi 28 karakter per halaman, judul di tengah, dan paragraf menjorok dua karakter. Font-font tersebut harus terpasang di perangkat tempat dokumen dibuka."
     },
     {
       "q": "Apa bedanya dengan Pandoc?",
@@ -110,7 +110,7 @@
     "Konversi Markdown (.md) ke Word (.docx)",
     "Tabel, daftar, dan blok kode GitHub Flavored Markdown",
     "Salin teks terformat untuk Word atau Google Docs",
-    "Font dokumen resmi Tiongkok (公文)",
+    "Format dokumen resmi Tiongkok (公文), sesuai GB/T 9704-2012",
     "100% di sisi klien — tidak ada yang diunggah"
   ],
   "errorGeneric": "Terjadi kesalahan saat mengonversi Markdown Anda. Silakan coba lagi.",

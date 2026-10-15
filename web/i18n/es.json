@@ -14,7 +14,7 @@
   "styleLabel": "Estilo",
   "styleDefault": "Predeterminado",
   "styleChineseOfficial": "Documento oficial chino (公文)",
-  "styleChineseHint": "Parece texto en chino. Para usar las fuentes de estilo 公文, elige “Documento oficial chino (公文)”.",
+  "styleChineseHint": "Parece texto en chino. Para usar el formato 公文, elige “Documento oficial chino (公文)”.",
   "convertButton": "Convertir a Word",
   "convertSectionAria": "Convertir un documento",
   "convertedLabel": "Convertido",
@@ -85,7 +85,7 @@
     },
     {
       "q": "¿Puede dar formato a un documento oficial chino (公文)?",
-      "a": "Sí. Elige el estilo Documento oficial chino (公文) antes de convertir. El cuerpo usa FangSong y los títulos FZXiaoBiaoSong, SimHei y KaiTi en los tamaños habituales, con Times New Roman para el texto latino. Esas fuentes deben estar instaladas donde se abra el documento."
+      "a": "Sí. Elige el estilo Documento oficial chino (公文) antes de convertir. Sigue la norma GB/T 9704-2012: el cuerpo usa FangSong y los títulos FZXiaoBiaoSong, SimHei y KaiTi en los tamaños habituales, con Times New Roman para el texto latino, en papel A4 con los márgenes de la norma, 22 líneas de 28 caracteres por página, el título centrado y los párrafos con sangría de dos caracteres. Esas fuentes deben estar instaladas donde se abra el documento."
     },
     {
       "q": "¿En qué se diferencia de Pandoc?",
@@ -110,7 +110,7 @@
     "Convierte Markdown (.md) a Word (.docx)",
     "Tablas, listas y bloques de código de GitHub Flavored Markdown",
     "Copia texto con formato para Word o Google Docs",
-    "Fuentes para documentos oficiales chinos (公文)",
+    "Formato de documentos oficiales chinos (公文), según GB/T 9704-2012",
     "100% del lado del cliente: no se sube nada"
   ],
   "errorGeneric": "Algo salió mal al convertir tu Markdown. Inténtalo de nuevo.",

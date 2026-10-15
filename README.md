@@ -34,7 +34,7 @@ As on GitHub, a single newline inside a paragraph is joined into the same line, 
 
 ## Optional Font Presets
 
-Conversions use Word's standard styling by default. Choosing **Chinese official document (公文)** from the **Style** menu (always shown on the Chinese page, and elsewhere once the pasted text is mostly Chinese) rewrites the generated document so each level gets an East Asian face and a 公文 size alongside Times New Roman:
+Conversions use Word's standard styling by default. Choosing **Chinese official document (公文)** from the **Style** menu (always shown on the Chinese page, and elsewhere once the pasted text is mostly Chinese) rewrites the generated document to the layout of GB/T 9704-2012 《党政机关公文格式》. Each level gets an East Asian face and a 公文 size alongside Times New Roman:
 
 | Level       | Font size   | Chinese characters | Latin letters and digits |
 | ----------- | ----------- | ------------------ | ------------------------ |
@@ -42,15 +42,25 @@ Conversions use Word's standard styling by default. Choosing **Chinese official 
 | Heading 1   | 二号 (22pt) | 方正小标宋简体     | Times New Roman          |
 | Heading 2   | 三号 (16pt) | 黑体               | Times New Roman          |
 | Heading 3   | 三号 (16pt) | 楷体               | Times New Roman          |
-| Heading 4-6 | 三号 (16pt) | 仿宋 (bold)        | Times New Roman          |
+| Heading 4-6 | 三号 (16pt) | 仿宋               | Times New Roman          |
+
+The preset also sets the page:
+
+- **Paper and margins (5.1, 5.2.1):** A4, with a 37mm top margin (天头) and a 28mm left margin (订口) around a 156 × 225mm text block (版心).
+- **22 lines of 28 characters (5.2.3):** a Word document grid (文档网格) with exact line spacing at its pitch, 28.95pt. Widow control (孤行控制) is off, so it can't push a line to the next page and leave 21.
+- **Indent (7.3.3):** paragraphs, and the headings below the title, start two characters in (首行缩进 2 字符). Table cells, list items, and code blocks don't.
+- **Title (7.3.1):** Heading 1 is centered.
+- **Spacing:** 段前段后 0 行 on every level.
 
 The app remembers your choice in this browser, and suggests the preset when the text you paste is mostly Chinese.
 
-Word resolves a typeface per character class, so English words and numbers inside a Chinese sentence stay in Times New Roman. The fonts must be installed on the machine that opens the document.
+Word resolves a typeface per character class, so English words and numbers inside a Chinese sentence stay in Times New Roman. The fonts must be installed on the machine that opens the document. Some of the choices go beyond the standard:
 
-Every level also drops to 段前段后 0 行. The preset also pins 单倍行距 (`w:lineRule="auto"`) on the body and heading styles rather than relying on the converter default of 最小值 12 磅.
+- The standard names no Latin font. Times New Roman for Latin letters and digits is common practice.
+- The standard says 小标宋体, not 方正小标宋简体 specifically. 方正小标宋简体 is a commercial Founder font that most machines don't have, so Word substitutes another font for the title unless it's installed.
+- Headings 4-6 aren't bold, because the standard sets levels 3 and 4 in plain 仿宋. Numbered headings (1. and （1）) still stand out by their numbers, as in a printed 公文.
 
-The preset covers fonts, sizes and spacing only. It doesn't yet set A4 paper, the GB/T 9704-2012 margins or the 22-line page, so documents are 公文-styled rather than compliant; see [#106](https://github.com/benbalter/markdown-to-word-js/issues/106).
+Page numbers (7.5) aren't added yet; see [#106](https://github.com/benbalter/markdown-to-word-js/issues/106). Neither are the red separator line and the other 版头 elements, which Markdown has no way to express.
 
 Programmatically:
 
@@ -61,6 +71,8 @@ const blob = await convertMarkdownToWord(markdown, {
   fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
 });
 ```
+
+`pageMargins`, when you also pass it, takes precedence over the preset's margins; the line grid is fitted to the margins the document ends up with.
 
 ## Privacy
 
