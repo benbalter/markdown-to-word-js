@@ -120,9 +120,12 @@ test.describe('converter', () => {
     page,
   }) => {
     await page.goto('/');
+    // Outside /zh/ the menu waits until the text is Chinese.
+    await expect(page.locator('#font-preset')).toBeHidden();
     await page
       .locator('#markdown-input')
       .fill('# 关于开展年度工作检查的通知\n\n各单位：现将有关事项通知如下。');
+    await expect(page.locator('#font-preset')).toBeVisible();
     await expect(page.locator('#font-preset-hint')).toBeVisible();
 
     await page.locator('#font-preset').selectOption('chinese-official');
@@ -130,6 +133,13 @@ test.describe('converter', () => {
 
     await page.reload();
     await expect(page.locator('#font-preset')).toHaveValue('chinese-official');
+    // A remembered preset keeps the menu in view on the next visit.
+    await expect(page.locator('#font-preset')).toBeVisible();
+  });
+
+  test('the Chinese page always shows the style menu', async ({ page }) => {
+    await page.goto('/zh/');
+    await expect(page.locator('#font-preset')).toBeVisible();
   });
 
   // Every locale, before and after a conversion: translated labels run longer
