@@ -4,6 +4,8 @@ Convert GitHub Flavored Markdown to Word documents directly in your browser at *
 
 It's the mirror image of [word2md.com](https://word2md.com) ([word-to-markdown-js](https://github.com/benbalter/word-to-markdown-js)), which goes the other way.
 
+It's also the successor to [markdown_to_word](https://github.com/benbalter/markdown_to_word), the original Ruby gem and web demo, first published in 2015. That project is archived; this one carries it forward entirely in the browser.
+
 ## Features
 
 - **GitHub Flavored Markdown Support**: Tables, task lists, strikethrough, and more
@@ -121,6 +123,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Related Projects
 
 - [Word to Markdown](https://word2md.com) ([source](https://github.com/benbalter/word-to-markdown-js)) - Convert Word documents to Markdown (the reverse of this tool)
+- [markdown_to_word](https://github.com/benbalter/markdown_to_word) - The original Ruby gem (2015, archived) this project succeeds
 
 ## Support
 

@@ -20,10 +20,10 @@ export interface UIStrings {
   /** Plain-language tagline under the wordmark. `.docx` is wrapped in <code>. */
   tagline: string;
   /**
-   * Lineage line under the hero. `{link}` is replaced with a link to
-   * word2md.com, so keep it literal.
+   * Lineage line under the hero: the tool dates to the markdown_to_word Ruby
+   * gem (2015). The "2015" year is a literal, not translated.
    */
-  lineage: string;
+  trustBadge: string;
 
   // Visual flow (alt text for the .md → .docx glyph row)
   flowFromAlt: string;

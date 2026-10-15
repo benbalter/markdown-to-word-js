@@ -139,7 +139,7 @@ const DO_NOT_TRANSLATE = [
   'JavaScript',
   'md2word.app',
   'word2md.com',
-  '{link}',
+  '2015',
   '公文',
 ];
 

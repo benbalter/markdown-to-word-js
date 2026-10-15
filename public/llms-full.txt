@@ -24,4 +24,5 @@ Markdown and the documents made from it never leave the device. The hosted site 
 
 - Source: https://github.com/benbalter/markdown-to-word-js
 - The reverse converter, Word to Markdown: https://word2md.com/
+- The original project, the markdown_to_word Ruby gem (2015): https://github.com/benbalter/markdown_to_word
 - Author: [Ben Balter](https://ben.balter.com)

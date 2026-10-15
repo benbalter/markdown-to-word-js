@@ -1,7 +1,7 @@
 {
   "eyebrow": "Free · Open source · 100% in your browser",
   "tagline": "Turn Markdown into a formatted Word (.docx) document, entirely in your browser. Your files are never uploaded.",
-  "lineage": "From the maker of {link}, which goes the other way",
+  "trustBadge": "Trusted since 2015",
   "flowFromAlt": "Markdown file",
   "flowToAlt": "Word document",
   "dropzoneTitle": "Drop your .md file here",

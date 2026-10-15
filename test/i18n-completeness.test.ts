@@ -72,12 +72,4 @@ describe('i18n dictionary completeness', () => {
     );
     expect(blanks).toEqual([]);
   });
-
-  it.each(localeFiles)(
-    '%s keeps the {link} placeholder in lineage',
-    (locale) => {
-      const { lineage } = load(locale) as { lineage: string };
-      expect(lineage).toContain('{link}');
-    }
-  );
 });
