@@ -1,4 +1,5 @@
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
+import { formatCodeBlocks } from './docx-code-blocks.js';
 import { applyFontPreset } from './docx-font-preset.js';
 import type { FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
@@ -45,11 +46,13 @@ export async function convertMarkdownToWord(
     const result = await HTMLtoDOCX(html, null, documentOptions);
 
     // HTMLtoDOCX returns Blob in browser, Buffer/ArrayBuffer in Node.js
-    const wordDocument = result instanceof Blob ? result : new Blob([result]);
+    const generated = result instanceof Blob ? result : new Blob([result]);
 
-    return options.fontPreset
-      ? applyFontPreset(wordDocument, options.fontPreset)
-      : wordDocument;
+    // Code blocks are broken in the generator output itself, so they are fixed
+    // whether or not a font preset is requested.
+    const wordDocument = await formatCodeBlocks(generated);
+
+    return options.fontPreset ? applyFontPreset(wordDocument, options.fontPreset) : wordDocument;
   } catch (error) {
     console.error('Word document generation error:', error);
     throw new Error('Failed to generate Word document');
