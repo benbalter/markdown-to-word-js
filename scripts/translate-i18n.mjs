@@ -163,9 +163,19 @@ function flatten(obj, prefix = '', out = {}) {
 
 function setPath(root, dottedPath, value) {
   const parts = dottedPath.split('.');
+  const blocked = new Set(['__proto__', 'constructor', 'prototype']);
   let node = root;
-  for (let i = 0; i < parts.length - 1; i++) node = node[parts[i]];
-  node[parts[parts.length - 1]] = value;
+
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = parts[i];
+    if (blocked.has(key)) throw new Error(`Unsafe path segment: ${key}`);
+    if (!Object.prototype.hasOwnProperty.call(node, key)) throw new Error(`Invalid path segment: ${key}`);
+    node = node[key];
+  }
+
+  const leafKey = parts[parts.length - 1];
+  if (blocked.has(leafKey)) throw new Error(`Unsafe path segment: ${leafKey}`);
+  node[leafKey] = value;
 }
 
 async function translateBatch(target, entries) {
