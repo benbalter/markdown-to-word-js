@@ -70,7 +70,7 @@ export default defineConfig({
       i18n: {
         defaultLocale,
         locales: Object.fromEntries(
-          locales.map((l) => [l, localeMeta[l].sitemapLocale])
+          locales.map((l) => [l, localeMeta[l].htmlLang])
         ),
       },
     }),

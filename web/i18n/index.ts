@@ -6,6 +6,11 @@ import type { UIStrings } from './types';
 // diagnostics for .astro files, so it can't catch a missing JSON key). See
 // web/i18n/README.md.
 import en from './en.json';
+import es from './es.json';
+import id from './id.json';
+import pt from './pt.json';
+import vi from './vi.json';
+import zh from './zh.json';
 
 import { defaultLocale, locales, type Locale } from './locales';
 
@@ -18,6 +23,11 @@ export type { Locale, LocaleMeta } from './locales';
 // entry in ./locales.ts can't ship half-wired.
 const dictionaries: Record<Locale, UIStrings> = {
   en,
+  id,
+  vi,
+  pt,
+  es,
+  zh,
 };
 
 /** Narrow an arbitrary string (e.g. Astro.currentLocale) to a known Locale. */

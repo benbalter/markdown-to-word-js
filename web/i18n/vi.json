@@ -1,0 +1,136 @@
+{
+  "eyebrow": "Miễn phí · Mã nguồn mở · 100% trong trình duyệt",
+  "tagline": "Chuyển Markdown thành tài liệu Word (.docx) có định dạng, hoàn toàn trong trình duyệt của bạn. Tệp của bạn không bao giờ bị tải lên.",
+  "trustBadge": "Được tin dùng từ năm 2015",
+  "flowFromAlt": "Tệp Markdown",
+  "flowToAlt": "Tài liệu Word",
+  "dropzoneTitle": "Thả tệp .md của bạn vào đây",
+  "dropzoneTitleTouch": "Chọn tệp Markdown",
+  "dropzoneBrowsePrefix": "hoặc ",
+  "dropzoneBrowseLink": "nhấp để chọn tệp",
+  "dropzoneNote": "Tối đa 5 MB · Chuyển đổi ngay trên thiết bị này, không bao giờ tải lên",
+  "orFile": "hoặc dùng tệp",
+  "pastePlaceholder": "# Tài liệu của tôi\n\nDán hoặc gõ **Markdown** vào đây, rồi chuyển sang Word.",
+  "styleLabel": "Kiểu",
+  "styleDefault": "Mặc định",
+  "styleChineseOfficial": "Công văn tiếng Trung (公文)",
+  "styleChineseHint": "Đây có vẻ là văn bản tiếng Trung. Để dùng phông chữ kiểu 公文, hãy chọn “Công văn tiếng Trung (公文)”.",
+  "convertButton": "Chuyển sang Word",
+  "convertSectionAria": "Chuyển đổi tài liệu",
+  "convertedLabel": "Đã chuyển đổi",
+  "downloadButton": "Tải xuống .docx",
+  "downloadedButton": "Đã tải xuống",
+  "copyButton": "Sao chép có định dạng",
+  "copiedButton": "Đã sao chép!",
+  "convertAnother": "Chuyển đổi tài liệu khác",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "Xem trước",
+  "steps": [
+    {
+      "t": "Dán hoặc thả",
+      "d": "Dán Markdown, hoặc kéo thả một tệp .md hay chọn một tệp."
+    },
+    {
+      "t": "Chuyển đổi",
+      "d": "Chuyển đổi ngay trong trình duyệt — không máy chủ, không chờ đợi."
+    },
+    {
+      "t": "Tải xuống",
+      "d": "Lưu tệp .docx, hoặc sao chép văn bản có định dạng thẳng vào Word hay Google Docs."
+    }
+  ],
+  "conversionHeading": "Những gì được chuyển đổi",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "Trong Word",
+  "conversionRows": [
+    "Kiểu Heading 1–6",
+    "In đậm và in nghiêng",
+    "Gạch ngang",
+    "Danh sách dấu đầu dòng và đánh số",
+    "Mục danh sách việc cần làm ☒ / ☐",
+    "Bảng có viền với hàng tiêu đề lặp lại",
+    "Liên kết có thể nhấp",
+    "Mã nguồn bằng phông chữ đơn cách",
+    "Trích dẫn thụt lề",
+    "Một đường kẻ ngang trang"
+  ],
+  "reverseHeading": "Cần chuyển theo chiều ngược lại?",
+  "reverseBody": "Để biến tài liệu Word hoặc Google Docs thành Markdown gọn gàng, hãy dùng word2md.com. Cùng người tạo, cùng cam kết: mọi thứ diễn ra trong trình duyệt của bạn.",
+  "reverseCta": "Chuyển Word sang Markdown",
+  "faqHeading": "Câu hỏi thường gặp",
+  "faqs": [
+    {
+      "q": "Làm thế nào để chuyển Markdown sang Word?",
+      "a": "Dán Markdown của bạn và nhấp Chuyển sang Word, hoặc thả một tệp .md vào trang (hay chọn một tệp) để chuyển đổi ngay. Tải tệp .docx xuống, hoặc sao chép văn bản có định dạng và dán vào Word."
+    },
+    {
+      "q": "Markdown to Word có miễn phí không?",
+      "a": "Có. Công cụ miễn phí và mã nguồn mở, không cần đăng ký và không giới hạn số tài liệu bạn chuyển đổi."
+    },
+    {
+      "q": "Tài liệu của tôi có được tải lên máy chủ không?",
+      "a": "Không. Việc chuyển đổi diễn ra hoàn toàn trong trình duyệt của bạn bằng JavaScript. Markdown của bạn và tài liệu Word không bao giờ rời khỏi thiết bị, và không bao giờ bị tải lên, lưu trữ hay ghi nhật ký."
+    },
+    {
+      "q": "Làm sao để biến câu trả lời của ChatGPT hoặc Claude thành tài liệu Word?",
+      "a": "Các ứng dụng chat AI trả lời bằng Markdown. Dùng nút sao chép của câu trả lời, dán vào đây rồi chuyển đổi. Tiêu đề, danh sách, bảng và mã sẽ thành định dạng Word thực sự thay vì những dấu sao và dấu thăng lạc lõng."
+    },
+    {
+      "q": "Hỗ trợ loại Markdown nào?",
+      "a": "GitHub Flavored Markdown: tiêu đề, in đậm, in nghiêng, gạch ngang, danh sách dấu đầu dòng và đánh số, danh sách việc cần làm, bảng, liên kết, mã nội dòng, khối mã, trích dẫn và đường kẻ ngang. Tiêu đề đầu tiên sẽ trở thành tiêu đề và tên tệp của tài liệu."
+    },
+    {
+      "q": "Tôi có thể dán kết quả vào Google Docs không?",
+      "a": "Có. Nhấp Sao chép có định dạng rồi dán vào Google Docs hoặc Word, định dạng sẽ được giữ nguyên. Bạn cũng có thể tải tệp .docx xuống và mở trong Google Docs."
+    },
+    {
+      "q": "Công cụ có định dạng được công văn tiếng Trung (公文) không?",
+      "a": "Có. Chọn kiểu Công văn tiếng Trung (公文) trước khi chuyển đổi. Phần thân dùng FangSong, các tiêu đề dùng FZXiaoBiaoSong, SimHei và KaiTi theo cỡ chữ thông dụng, cùng Times New Roman cho chữ Latinh. Các phông chữ này cần được cài trên máy mở tài liệu."
+    },
+    {
+      "q": "Công cụ này khác Pandoc như thế nào?",
+      "a": "Pandoc là công cụ chuyển đổi dòng lệnh mạnh mẽ, nhưng phải cài đặt và cấu hình trước. Markdown to Word chạy ngay trong trình duyệt của bạn mà không cần cài gì."
+    }
+  ],
+  "footer": {
+    "feedback": "Phản hồi",
+    "source": "Mã nguồn",
+    "wordToMarkdown": "Word sang Markdown",
+    "donate": "Ủng hộ",
+    "terms": "Điều khoản",
+    "privacy": "Quyền riêng tư",
+    "languagesLabel": "Ngôn ngữ",
+    "linksLabel": "Liên kết trang"
+  },
+  "footerTagline": "Chuyển đổi trong trình duyệt của bạn · không có gì được tải lên",
+  "metaTitle": "Chuyển Markdown sang Word — .md sang .docx miễn phí",
+  "metaDescription": "Công cụ miễn phí, mã nguồn mở chuyển Markdown, kể cả câu trả lời ChatGPT và Claude, thành Word (.docx) ngay trong trình duyệt. Không tải lên gì cả.",
+  "schemaDescription": "Công cụ miễn phí, mã nguồn mở chuyển GitHub Flavored Markdown thành tài liệu Word (.docx) có định dạng, hoàn toàn trong trình duyệt của bạn.",
+  "schemaFeatureList": [
+    "Chuyển Markdown (.md) sang Word (.docx)",
+    "Bảng, danh sách và khối mã GitHub Flavored Markdown",
+    "Sao chép văn bản có định dạng cho Word hoặc Google Docs",
+    "Phông chữ công văn tiếng Trung (公文)",
+    "100% phía máy khách — không có gì được tải lên"
+  ],
+  "errorGeneric": "Đã xảy ra lỗi khi chuyển đổi Markdown của bạn. Vui lòng thử lại.",
+  "fileTooLargeError": "Tệp này quá lớn để chuyển đổi trong trình duyệt. Hãy thử một tệp Markdown nhỏ hơn 5 MB.",
+  "notMarkdownFileError": "Đây có vẻ không phải tệp Markdown hay tệp văn bản nên không thể chuyển đổi. Hãy chọn một tệp .md.",
+  "docxFileError": "Đây đã là tài liệu Word. Để chuyển nó thành Markdown, hãy dùng word2md.com.",
+  "readError": "Không thể đọc tệp đó. Vui lòng thử chọn lại.",
+  "emptyError": "Hãy dán Markdown hoặc chọn một tệp .md trước.",
+  "copyFailed": "Không thể tự động sao chép. Hãy chọn phần xem trước và sao chép bằng Ctrl+C (⌘C trên Mac).",
+  "onlyFirstFile": "Chỉ tệp đầu tiên được chuyển đổi. Hãy thêm các tệp còn lại lần lượt từng tệp.",
+  "conversionAnnouncement": "Đã chuyển đổi xong. Tài liệu Word của bạn đã sẵn sàng để tải xuống.",
+  "convertingStatus": "Đang chuyển đổi…",
+  "dismiss": "Đóng",
+  "suggestLanguage": "Trang này cũng có bản tiếng Việt",
+  "promo": {
+    "label": "Từ người tạo ra công cụ",
+    "body": "Tôi đã xây dựng công cụ miễn phí này — và tôi đã viết cuốn sách về cách làm việc minh bạch, công khai. <strong>Open &amp; Async</strong> là cẩm nang đã được kiểm chứng trên GitHub dành cho các nhóm làm việc từ xa và phân tán.",
+    "cta": "Mua ngay",
+    "coverAlt": "Bìa sách Open and Async",
+    "resultsLead": "Tuyệt — thêm một tài liệu nữa từ Markdown sang Word. Tôi đã viết cẩm nang về cách làm việc bằng văn bản như thế này:",
+    "resultsCta": "Xem Open & Async"
+  }
+}

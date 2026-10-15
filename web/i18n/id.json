@@ -1,0 +1,136 @@
+{
+  "eyebrow": "Gratis · Open source · 100% di peramban",
+  "tagline": "Ubah Markdown menjadi dokumen Word (.docx) yang terformat, sepenuhnya di peramban Anda. Berkas Anda tidak pernah diunggah.",
+  "trustBadge": "Tepercaya sejak 2015",
+  "flowFromAlt": "Berkas Markdown",
+  "flowToAlt": "Dokumen Word",
+  "dropzoneTitle": "Letakkan berkas .md Anda di sini",
+  "dropzoneTitleTouch": "Pilih berkas Markdown",
+  "dropzoneBrowsePrefix": "atau ",
+  "dropzoneBrowseLink": "klik untuk memilih berkas",
+  "dropzoneNote": "Hingga 5 MB · Dikonversi di perangkat ini, tidak pernah diunggah",
+  "orFile": "atau gunakan berkas",
+  "pastePlaceholder": "# Dokumen saya\n\nTempel atau ketik **Markdown** di sini, lalu konversi ke Word.",
+  "styleLabel": "Gaya",
+  "styleDefault": "Bawaan",
+  "styleChineseOfficial": "Dokumen resmi Tiongkok (公文)",
+  "styleChineseHint": "Ini tampaknya teks berbahasa Mandarin. Untuk font bergaya 公文, pilih “Dokumen resmi Tiongkok (公文)”.",
+  "convertButton": "Konversi ke Word",
+  "convertSectionAria": "Konversi dokumen",
+  "convertedLabel": "Dikonversi",
+  "downloadButton": "Unduh .docx",
+  "downloadedButton": "Terunduh",
+  "copyButton": "Salin teks terformat",
+  "copiedButton": "Tersalin!",
+  "convertAnother": "Konversi lagi",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "Pratinjau",
+  "steps": [
+    {
+      "t": "Tempel atau letakkan",
+      "d": "Tempel Markdown, atau seret berkas .md ke sini atau pilih satu."
+    },
+    {
+      "t": "Konversi",
+      "d": "Dikonversi di peramban Anda — tanpa server, tanpa menunggu."
+    },
+    {
+      "t": "Unduh",
+      "d": "Simpan .docx, atau salin teks terformat langsung ke Word atau Google Docs."
+    }
+  ],
+  "conversionHeading": "Apa yang dikonversi",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "Di Word",
+  "conversionRows": [
+    "Gaya Judul 1–6",
+    "Tebal dan miring",
+    "Coret",
+    "Daftar berpoin dan bernomor",
+    "Item daftar tugas ☒ / ☐",
+    "Tabel berbingkai dengan baris judul yang berulang",
+    "Tautan yang bisa diklik",
+    "Kode dalam font monospace",
+    "Kutipan menjorok",
+    "Garis melintang selebar halaman"
+  ],
+  "reverseHeading": "Perlu kebalikannya?",
+  "reverseBody": "Untuk mengubah dokumen Word atau Google Docs menjadi Markdown yang rapi, gunakan word2md.com. Pembuat yang sama, janji yang sama: semuanya terjadi di peramban Anda.",
+  "reverseCta": "Konversi Word ke Markdown",
+  "faqHeading": "Pertanyaan yang sering diajukan",
+  "faqs": [
+    {
+      "q": "Bagaimana cara mengonversi Markdown ke Word?",
+      "a": "Tempel Markdown Anda dan klik Konversi ke Word, atau letakkan berkas .md di halaman ini (atau pilih satu) untuk langsung mengonversinya. Unduh .docx, atau salin teks terformat dan tempel ke Word."
+    },
+    {
+      "q": "Apakah Markdown to Word gratis?",
+      "a": "Ya. Alat ini gratis dan open source, tanpa pendaftaran dan tanpa batas jumlah dokumen yang dikonversi."
+    },
+    {
+      "q": "Apakah dokumen saya diunggah ke server?",
+      "a": "Tidak. Konversi berlangsung sepenuhnya di peramban Anda menggunakan JavaScript. Markdown Anda dan dokumen Word tidak pernah meninggalkan perangkat Anda dan tidak pernah diunggah, disimpan, atau dicatat."
+    },
+    {
+      "q": "Bagaimana cara mengubah jawaban ChatGPT atau Claude menjadi dokumen Word?",
+      "a": "Aplikasi chat AI menjawab dalam Markdown. Gunakan tombol salin pada jawaban, tempel di sini, lalu konversi. Judul, daftar, tabel, dan kode menjadi format Word sungguhan, bukan tanda bintang dan tanda pagar yang berserakan."
+    },
+    {
+      "q": "Markdown apa yang didukung?",
+      "a": "GitHub Flavored Markdown: judul, tebal, miring, coret, daftar berpoin dan bernomor, daftar tugas, tabel, tautan, kode sebaris, blok kode, kutipan, dan garis horizontal. Judul pertama menjadi judul dan nama berkas dokumen."
+    },
+    {
+      "q": "Bisakah saya menempelkan hasilnya ke Google Docs?",
+      "a": "Bisa. Klik Salin teks terformat lalu tempel ke Google Docs atau Word, dan formatnya ikut terbawa. Anda juga bisa mengunduh .docx dan membukanya di Google Docs."
+    },
+    {
+      "q": "Bisakah alat ini memformat dokumen resmi Tiongkok (公文)?",
+      "a": "Bisa. Pilih gaya Dokumen resmi Tiongkok (公文) sebelum mengonversi. Teks isi memakai FangSong, judul memakai FZXiaoBiaoSong, SimHei, dan KaiTi dengan ukuran yang lazim, serta Times New Roman untuk teks Latin. Font-font tersebut harus terpasang di perangkat tempat dokumen dibuka."
+    },
+    {
+      "q": "Apa bedanya dengan Pandoc?",
+      "a": "Pandoc adalah pengonversi baris perintah yang canggih, tetapi harus dipasang dan dikonfigurasi terlebih dahulu. Markdown to Word langsung berjalan di peramban Anda tanpa perlu memasang apa pun."
+    }
+  ],
+  "footer": {
+    "feedback": "Masukan",
+    "source": "Kode sumber",
+    "wordToMarkdown": "Word ke Markdown",
+    "donate": "Donasi",
+    "terms": "Ketentuan",
+    "privacy": "Privasi",
+    "languagesLabel": "Bahasa",
+    "linksLabel": "Tautan situs"
+  },
+  "footerTagline": "Dikonversi di peramban Anda · tidak ada yang diunggah",
+  "metaTitle": "Konversi Markdown ke Word — .md ke .docx Gratis Online",
+  "metaDescription": "Pengonversi gratis dan open source: ubah Markdown, termasuk jawaban ChatGPT dan Claude, menjadi Word (.docx) di peramban Anda. Tidak ada yang diunggah.",
+  "schemaDescription": "Alat gratis dan open source yang mengonversi GitHub Flavored Markdown menjadi dokumen Word (.docx) terformat, sepenuhnya di peramban Anda.",
+  "schemaFeatureList": [
+    "Konversi Markdown (.md) ke Word (.docx)",
+    "Tabel, daftar, dan blok kode GitHub Flavored Markdown",
+    "Salin teks terformat untuk Word atau Google Docs",
+    "Font dokumen resmi Tiongkok (公文)",
+    "100% di sisi klien — tidak ada yang diunggah"
+  ],
+  "errorGeneric": "Terjadi kesalahan saat mengonversi Markdown Anda. Silakan coba lagi.",
+  "fileTooLargeError": "Berkas ini terlalu besar untuk dikonversi di peramban Anda. Coba berkas Markdown yang lebih kecil dari 5 MB.",
+  "notMarkdownFileError": "Ini tampaknya bukan berkas Markdown atau teks, jadi tidak bisa dikonversi. Pilih berkas .md.",
+  "docxFileError": "Ini sudah berupa dokumen Word. Untuk mengubahnya menjadi Markdown, gunakan word2md.com.",
+  "readError": "Berkas itu tidak dapat dibaca. Coba pilih lagi.",
+  "emptyError": "Tempel Markdown atau pilih berkas .md terlebih dahulu.",
+  "copyFailed": "Tidak dapat menyalin secara otomatis. Pilih pratinjau lalu salin dengan Ctrl+C (⌘C di Mac).",
+  "onlyFirstFile": "Hanya berkas pertama yang dikonversi. Tambahkan berkas lainnya satu per satu.",
+  "conversionAnnouncement": "Konversi selesai. Dokumen Word Anda siap diunduh.",
+  "convertingStatus": "Mengonversi…",
+  "dismiss": "Tutup",
+  "suggestLanguage": "Juga tersedia dalam Bahasa Indonesia",
+  "promo": {
+    "label": "Dari pembuatnya",
+    "body": "Saya membuat alat gratis ini — dan saya menulis buku tentang bekerja secara terbuka. <strong>Open &amp; Async</strong> adalah panduan yang sudah teruji di GitHub untuk tim jarak jauh dan terdistribusi.",
+    "cta": "Beli sekarang",
+    "coverAlt": "Sampul buku Open and Async",
+    "resultsLead": "Bagus — satu dokumen lagi dari Markdown ke Word. Saya menulis panduan untuk cara kerja yang serba tertulis seperti ini:",
+    "resultsCta": "Lihat Open & Async"
+  }
+}

@@ -3,6 +3,7 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import mammoth from 'mammoth';
+import { defaultLocale, locales } from '../../web/i18n/locales.ts';
 
 // The converter in a real browser: inputs (file, drop, paste), the result
 // actions, and the .docx itself, read back with mammoth.
@@ -131,12 +132,27 @@ test.describe('converter', () => {
     await expect(page.locator('#font-preset')).toHaveValue('chinese-official');
   });
 
-  test('fits a phone screen without horizontal scrolling', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 800 });
-    await page.goto('/');
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth
-    );
-    expect(overflow).toBe(false);
-  });
+  // Every locale, before and after a conversion: translated labels run longer
+  // than English, and the result pane's buttons only appear after one.
+  for (const locale of locales) {
+    const home = locale === defaultLocale ? '/' : `/${locale}/`;
+    test(`${home} fits a phone screen without horizontal scrolling`, async ({
+      page,
+    }) => {
+      const overflows = (): Promise<boolean> =>
+        page.evaluate(
+          () => document.documentElement.scrollWidth > window.innerWidth
+        );
+      await page.setViewportSize({ width: 375, height: 800 });
+      await page.goto(home);
+      expect(await overflows()).toBe(false);
+
+      await page.locator('#markdown-input').fill('# Plan\n\n- one');
+      await page.locator('#markdown-input').press('ControlOrMeta+Enter');
+      await expect(page.locator('#filename')).toHaveText('plan.docx', {
+        timeout: 15000,
+      });
+      expect(await overflows()).toBe(false);
+    });
+  }
 });

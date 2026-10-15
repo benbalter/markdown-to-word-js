@@ -1,6 +1,6 @@
 # Translations
 
-UI strings live in one JSON file per locale. Today that's only `en.json`, the source of truth; the site is ready for more but launches in English.
+UI strings live in one JSON file per locale. `en.json` is the source of truth; `locales.ts` lists the rest.
 
 JSON is used because it's the standard interchange format for translation management tools (Crowdin, Weblate, Tolgee, etc.), so crowdsourced translation can be wired up without restructuring. The setup mirrors [word2md.com](https://github.com/benbalter/word-to-markdown-js/tree/main/web/i18n), which ships 21 locales this way.
 
@@ -20,7 +20,7 @@ JSON is used because it's the standard interchange format for translation manage
 4. Generate its social card: `npm run build && npm run gen:og`.
 5. Run `npm test` and `npm run build`.
 
-Routing (`/<locale>/`), the sitemap's hreflang alternates, the head's hreflang cluster, and the footer language switcher (hidden while there's one locale) pick it up from there. With a second locale, consider porting word2md's [`worker/index.js`](https://github.com/benbalter/word-to-markdown-js/blob/main/worker/index.js) for the Accept-Language redirect and the "also available in" banner.
+Routing (`/<locale>/`), the sitemap's hreflang alternates, the head's hreflang cluster, and the footer language switcher, and the edge redirect in [`worker/index.js`](../../worker/index.js) pick it up from there. To also suggest the locale to English-browsing visitors from a country, add `countries` to its entry (see `id` and `vi`).
 
 ## Right-to-left locales
 
@@ -30,4 +30,4 @@ Routing (`/<locale>/`), the sitemap's hreflang alternates, the head's hreflang c
 
 ## Review status
 
-Machine-translated locales are a first pass and need native review. Legal pages (Terms/Privacy) are intentionally English-only.
+Machine-translated locales are a first pass and need native review. The first five (`id`, `vi`, `pt`, `es`, `zh`) were written by Claude rather than `gen:i18n`, reusing word2md's wording wherever the English matches, and haven't had a native review yet. Legal pages (Terms/Privacy) are intentionally English-only.

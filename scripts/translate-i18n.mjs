@@ -26,6 +26,40 @@ const CACHE_DIR = path.join(__dirname, '.gen-cache', 'i18n');
 // reuses htmlLang/ogLocale/name from here.
 export const TARGETS = [
   {
+    code: 'id',
+    lang: 'Indonesian',
+    htmlLang: 'id',
+    ogLocale: 'id_ID',
+    name: 'Bahasa Indonesia',
+    notes:
+      'Address the reader as "Anda". Use "berkas" for file and "peramban" for browser.',
+  },
+  {
+    code: 'vi',
+    lang: 'Vietnamese',
+    htmlLang: 'vi',
+    ogLocale: 'vi_VN',
+    name: 'Tiếng Việt',
+  },
+  {
+    code: 'pt',
+    lang: 'Brazilian Portuguese',
+    htmlLang: 'pt-BR',
+    ogLocale: 'pt_BR',
+    name: 'Português',
+    notes:
+      'Use Brazilian vocabulary and address the reader as "você" (e.g. "arquivo", "baixar").',
+  },
+  {
+    code: 'es',
+    lang: 'Spanish',
+    htmlLang: 'es',
+    ogLocale: 'es_ES',
+    name: 'Español',
+    notes:
+      'Use neutral Spanish that reads naturally in Latin America and Spain, addressing the reader informally as "tú".',
+  },
+  {
     code: 'zh',
     lang: 'Simplified Chinese',
     htmlLang: 'zh-Hans',
@@ -169,7 +203,8 @@ function setPath(root, dottedPath, value) {
   for (let i = 0; i < parts.length - 1; i++) {
     const key = parts[i];
     if (blocked.has(key)) throw new Error(`Unsafe path segment: ${key}`);
-    if (!Object.prototype.hasOwnProperty.call(node, key)) throw new Error(`Invalid path segment: ${key}`);
+    if (!Object.prototype.hasOwnProperty.call(node, key))
+      throw new Error(`Invalid path segment: ${key}`);
     node = node[key];
   }
 

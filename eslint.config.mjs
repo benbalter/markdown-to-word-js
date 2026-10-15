@@ -41,6 +41,15 @@ export default defineConfig(
     languageOptions: { globals: { ...globals.browser } },
   },
 
+  // The Worker runs on Cloudflare's runtime (service-worker globals plus
+  // HTMLRewriter), not Node.
+  {
+    files: ['worker/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.serviceworker, HTMLRewriter: 'readonly' },
+    },
+  },
+
   // Tests, configs, and build scripts run in Node.
   {
     files: ['test/**/*.ts', 'scripts/**/*.mjs', '*.ts', '*.mjs'],

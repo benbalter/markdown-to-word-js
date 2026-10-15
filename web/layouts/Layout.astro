@@ -259,5 +259,21 @@ const footerLinks = [
         {t.footerTagline}
       </p>
     </footer>
+    <script>
+      // Record the current language so the edge redirect (Cloudflare Worker,
+      // worker/index.js) won't auto-redirect on future visits — the language
+      // switcher stays in control. Only localized pages (data-localized) count
+      // as a language choice: the English-only legal and 404 pages would
+      // otherwise pin every first-time visitor to English. A processed (not
+      // is:inline) script, because Astro's CSP only hashes scripts it bundles.
+      try {
+        const root = document.documentElement;
+        if (root.hasAttribute('data-localized') && root.dataset.locale) {
+          document.cookie = `lang=${root.dataset.locale}; path=/; max-age=31536000; samesite=lax; secure`;
+        }
+      } catch {
+        /* cookies unavailable — fine, redirect simply re-evaluates next visit */
+      }
+    </script>
   </body>
 </html>
