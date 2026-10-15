@@ -21,6 +21,7 @@ Thank you for your interest in contributing to this project! This document provi
 ```
 src/
 ├── index.ts              # Main application entry point
+├── buffer-global.ts      # Buffer polyfill html-to-docx needs for images
 ├── converter.ts          # Word document generation logic
 ├── docx-code-blocks.ts   # Repairs code blocks in an already generated .docx
 ├── docx-font-preset.ts   # Rewrites fonts in an already generated .docx

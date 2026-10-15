@@ -1,3 +1,5 @@
+// Must come first: it sets the global Buffer html-to-docx needs for images.
+import './buffer-global.js';
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
 import { prepareHtmlForDocx } from './docx-html.js';
 import type { DocumentStructure } from './docx-structure.js';
