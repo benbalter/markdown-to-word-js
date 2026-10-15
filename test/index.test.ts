@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-// Mock the converter and parser modules before importing
+// Mock the converter and parser modules before importing. src/index.ts loads
+// both with import(), which vi.mock also intercepts.
 vi.mock('../src/converter.js', () => ({
   convertMarkdownToWord: vi.fn(),
 }));
@@ -11,64 +12,107 @@ vi.mock('../src/markdown-parser.js', () => ({
   slugify: vi.fn(),
 }));
 
-// Mock bootstrap CSS import to avoid errors
-vi.mock('bootstrap/dist/css/bootstrap.min.css', () => ({}));
+import {
+  CHINESE_OFFICIAL_DOC_FONTS,
+  isMostlyChinese,
+} from '../src/font-presets.js';
 
-import { convertMarkdownToWord } from '../src/converter.js';
-import { renderPreviewHtml, extractTitle, slugify } from '../src/markdown-parser.js';
-import { CHINESE_OFFICIAL_DOC_FONTS, isMostlyChinese } from '../src/font-presets.js';
+// vi.resetModules() (per test, so src/index.ts initializes fresh) can hand the
+// app a new instance of a mocked module, so each test configures and asserts
+// on the instances the app will import, resolved in beforeEach.
+type ConverterModule = typeof import('../src/converter.js');
+type ParserModule = typeof import('../src/markdown-parser.js');
+let mockedConvert: ReturnType<
+  typeof vi.mocked<ConverterModule['convertMarkdownToWord']>
+>;
+let mockedParseHtml: ReturnType<
+  typeof vi.mocked<ParserModule['renderPreviewHtml']>
+>;
+let mockedExtractTitle: ReturnType<
+  typeof vi.mocked<ParserModule['extractTitle']>
+>;
+let mockedSlugify: ReturnType<typeof vi.mocked<ParserModule['slugify']>>;
 
-const mockedConvert = vi.mocked(convertMarkdownToWord);
-const mockedPreviewHtml = vi.mocked(renderPreviewHtml);
-const mockedExtractTitle = vi.mocked(extractTitle);
-const mockedSlugify = vi.mocked(slugify);
-
+// The ids and data-* attributes that web/components/home/Converter.astro
+// renders, trimmed to what src/index.ts reads.
 function setupDOM(): void {
   document.body.innerHTML = `
+    <div id="sr-status"></div>
     <div id="input">
-      <input type="file" id="file">
+      <label id="dropzone" for="file">
+        <input type="file" id="file">
+      </label>
       <textarea id="markdown-input"></textarea>
       <select id="font-preset">
         <option value="">Default</option>
         <option value="chinese-official">Chinese official document</option>
       </select>
-      <div id="font-preset-hint" class="d-none"></div>
       <button id="convert-button" disabled>Convert</button>
+      <p id="font-preset-hint" class="hidden"></p>
     </div>
-    <div id="results" class="d-none">
-      <div id="original-markdown"><code></code></div>
-      <div id="markdown-preview"></div>
-      <button id="download-button">Download</button>
-      <button id="new-conversion-button">New</button>
+    <div id="results" class="hidden">
+      <bdi id="filename"></bdi>
+      <button id="download-button"><span id="download-label">Download .docx</span></button>
+      <button id="copy-button"><span id="copy-label">Copy formatted text</span></button>
+      <button id="convert-another">Convert another</button>
+      <pre><code id="source"></code></pre>
+      <div class="md-panel"><div id="rendered"></div></div>
     </div>
-    <div id="loading" class="d-none"></div>
-    <div id="error-alert" class="d-none">
-      <span id="error-message"></span>
-    </div>
+    <div id="pre-result"></div>
   `;
 }
 
-/**
- * Dynamically imports the index module to register the DOMContentLoaded listener,
- * then dispatches the event to instantiate the app. Dynamic import is used because
- * vi.resetModules() is called in beforeEach to ensure fresh module state per test.
- */
+const $ = <T extends HTMLElement = HTMLElement>(id: string): T =>
+  document.getElementById(id) as T;
+
+const isHidden = (id: string): boolean => $(id).classList.contains('hidden');
+
 async function initApp(): Promise<void> {
   await import('../src/index.js');
-  document.dispatchEvent(new Event('DOMContentLoaded'));
+}
+
+function typeMarkdown(markdown: string): void {
+  const textarea = $<HTMLTextAreaElement>('markdown-input');
+  textarea.value = markdown;
+  textarea.dispatchEvent(new Event('input'));
+}
+
+async function convert(markdown: string): Promise<void> {
+  typeMarkdown(markdown);
+  $('convert-button').click();
   await vi.waitFor(() => {
-    expect(document.getElementById('convert-button')).not.toBeNull();
+    expect(isHidden('results')).toBe(false);
   });
 }
 
-describe('MarkdownToWordApp', () => {
-  beforeEach(() => {
+// Drops on the dropzone don't bubble: every test re-imports src/index.ts, and
+// earlier instances' window-level drop listeners would otherwise handle them
+// too. (In the browser the module loads once.)
+function dropFiles(target: EventTarget, files: File[]): void {
+  const event = new Event('drop', {
+    bubbles: target === document.body,
+    cancelable: true,
+  });
+  Object.defineProperty(event, 'dataTransfer', { value: { files } });
+  target.dispatchEvent(event);
+}
+
+describe('converter UI', () => {
+  beforeEach(async () => {
     setupDOM();
     vi.resetModules();
     vi.clearAllMocks();
     localStorage.clear();
-    mockedConvert.mockResolvedValue(new Blob(['test'], { type: 'application/octet-stream' }));
-    mockedPreviewHtml.mockReturnValue('<p>preview</p>');
+    const converter = await import('../src/converter.js');
+    const parser = await import('../src/markdown-parser.js');
+    mockedConvert = vi.mocked(converter.convertMarkdownToWord);
+    mockedParseHtml = vi.mocked(parser.renderPreviewHtml);
+    mockedExtractTitle = vi.mocked(parser.extractTitle);
+    mockedSlugify = vi.mocked(parser.slugify);
+    mockedConvert.mockResolvedValue(
+      new Blob(['test'], { type: 'application/octet-stream' })
+    );
+    mockedParseHtml.mockReturnValue('<p>preview</p>');
     mockedExtractTitle.mockReturnValue(null);
     mockedSlugify.mockReturnValue('');
   });
@@ -77,92 +121,114 @@ describe('MarkdownToWordApp', () => {
     document.body.innerHTML = '';
   });
 
-  describe('Initialization', () => {
-    it('creates app without errors when DOM elements exist', async () => {
-      await expect(initApp()).resolves.not.toThrow();
-    });
-  });
-
-  describe('handleTextInputChange', () => {
-    it('convert button is disabled when textarea is empty', async () => {
+  describe('input', () => {
+    it('disables Convert until there is Markdown', async () => {
       await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-
-      textarea.value = '';
-      textarea.dispatchEvent(new Event('input'));
-      expect(convertBtn.disabled).toBe(true);
+      expect($<HTMLButtonElement>('convert-button').disabled).toBe(true);
+      typeMarkdown('# Hello');
+      expect($<HTMLButtonElement>('convert-button').disabled).toBe(false);
+      typeMarkdown('   ');
+      expect($<HTMLButtonElement>('convert-button').disabled).toBe(true);
     });
 
-    it('convert button is enabled when textarea has content', async () => {
+    it('converts on Ctrl/Cmd+Enter in the paste box', async () => {
       await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-
-      textarea.value = '# Hello';
-      textarea.dispatchEvent(new Event('input'));
-      expect(convertBtn.disabled).toBe(false);
-    });
-  });
-
-  describe('handleConvert', () => {
-    it('shows error when no text is entered', async () => {
-      await initApp();
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const errorAlert = document.getElementById('error-alert') as HTMLElement;
-
-      // Enable the button so click fires (normally disabled when textarea is empty)
-      convertBtn.disabled = false;
-      convertBtn.click();
-
+      typeMarkdown('# Hello');
+      $('markdown-input').dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', metaKey: true })
+      );
       await vi.waitFor(() => {
-        expect(errorAlert.classList.contains('d-none')).toBe(false);
-      });
-    });
-
-    it('calls converter and shows results on success', async () => {
-      await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const resultsSection = document.getElementById('results') as HTMLElement;
-
-      textarea.value = '# Hello World';
-      textarea.dispatchEvent(new Event('input'));
-      convertBtn.click();
-
-      // Wait for the async conversion to complete
-      await vi.waitFor(() => {
-        expect(resultsSection.classList.contains('d-none')).toBe(false);
-      });
-
-      expect(mockedConvert).toHaveBeenCalledWith('# Hello World', { fontPreset: undefined });
-      expect(mockedPreviewHtml).toHaveBeenCalledWith('# Hello World');
-    });
-
-    it('passes the Chinese font preset when it is chosen', async () => {
-      await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const select = document.getElementById('font-preset') as HTMLSelectElement;
-
-      select.value = 'chinese-official';
-      select.dispatchEvent(new Event('change'));
-      textarea.value = '# 通知';
-      textarea.dispatchEvent(new Event('input'));
-      convertBtn.click();
-
-      await vi.waitFor(() => {
-        expect(mockedConvert).toHaveBeenCalledWith('# 通知', {
-          fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+        expect(mockedConvert).toHaveBeenCalledWith('# Hello', {
+          fontPreset: undefined,
         });
       });
     });
   });
 
+  describe('convert', () => {
+    it('shows the source, preview, and filename, then hides the pre-result sections', async () => {
+      mockedExtractTitle.mockReturnValue('My Doc');
+      mockedSlugify.mockReturnValue('my-doc');
+      await initApp();
+      await convert('# My Doc\n\nHello');
+
+      expect($('source').textContent).toBe('# My Doc\n\nHello');
+      expect($('rendered').innerHTML).toBe('<p>preview</p>');
+      expect($('filename').textContent).toBe('my-doc.docx');
+      expect(isHidden('input')).toBe(true);
+      expect(isHidden('pre-result')).toBe(true);
+      expect(document.activeElement?.id).toBe('download-button');
+      expect($('sr-status').textContent).toMatch(/ready/i);
+    });
+
+    it('falls back to document.docx without an H1', async () => {
+      await initApp();
+      await convert('Just text');
+      expect(mockedSlugify).not.toHaveBeenCalled();
+      expect($('filename').textContent).toBe('document.docx');
+    });
+
+    it('opens preview links in a new tab', async () => {
+      mockedParseHtml.mockReturnValue(
+        '<p><a href="https://example.com">x</a></p>'
+      );
+      await initApp();
+      await convert('[x](https://example.com)');
+      const link = $('rendered').querySelector('a')!;
+      expect(link.target).toBe('_blank');
+      expect(link.rel).toBe('noopener noreferrer');
+    });
+
+    it('shows a dismissible error when conversion fails', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockedConvert.mockRejectedValue(new Error('boom'));
+      await initApp();
+      typeMarkdown('# Broken');
+      $('convert-button').click();
+
+      await vi.waitFor(() => {
+        expect($('error-alert')).not.toBeNull();
+      });
+      expect($('error-message').textContent).toMatch(/went wrong/);
+      expect(isHidden('results')).toBe(true);
+      expect($<HTMLButtonElement>('convert-button').disabled).toBe(false);
+
+      // The close button works (#89: it used to rely on Bootstrap's JS).
+      $('error-alert').querySelector('button')!.click();
+      expect($('error-alert')).toBeNull();
+    });
+
+    it('clears a previous error on the next conversion', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockedConvert.mockRejectedValueOnce(new Error('boom'));
+      await initApp();
+      typeMarkdown('# Try');
+      $('convert-button').click();
+      await vi.waitFor(() => {
+        expect($('error-alert')).not.toBeNull();
+      });
+
+      await convert('# Try again');
+      expect($('error-alert')).toBeNull();
+    });
+  });
+
   describe('style', () => {
+    it('passes the Chinese font preset when it is chosen', async () => {
+      await initApp();
+      const select = $<HTMLSelectElement>('font-preset');
+      select.value = 'chinese-official';
+      select.dispatchEvent(new Event('change'));
+      await convert('# 通知');
+
+      expect(mockedConvert).toHaveBeenCalledWith('# 通知', {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      });
+    });
+
     it('remembers the chosen style for the next visit', async () => {
       await initApp();
-      const select = document.getElementById('font-preset') as HTMLSelectElement;
+      const select = $<HTMLSelectElement>('font-preset');
       select.value = 'chinese-official';
       select.dispatchEvent(new Event('change'));
 
@@ -170,7 +236,7 @@ describe('MarkdownToWordApp', () => {
       vi.resetModules();
       await initApp();
 
-      expect((document.getElementById('font-preset') as HTMLSelectElement).value).toBe(
+      expect($<HTMLSelectElement>('font-preset').value).toBe(
         'chinese-official'
       );
     });
@@ -178,49 +244,48 @@ describe('MarkdownToWordApp', () => {
     it('ignores a remembered style that no longer exists', async () => {
       localStorage.setItem('markdown-to-word:font-preset', 'retired-preset');
       await initApp();
-
-      expect((document.getElementById('font-preset') as HTMLSelectElement).value).toBe('');
+      expect($<HTMLSelectElement>('font-preset').value).toBe('');
     });
 
     it('suggests the Chinese preset for Chinese text until a style is chosen', async () => {
       await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const select = document.getElementById('font-preset') as HTMLSelectElement;
-      const hint = document.getElementById('font-preset-hint') as HTMLElement;
+      typeMarkdown(
+        '# 关于开展年度工作检查的通知\n\n各单位：现将有关事项通知如下。'
+      );
+      expect(isHidden('font-preset-hint')).toBe(false);
 
-      textarea.value = '# 关于开展年度工作检查的通知\n\n各单位：现将有关事项通知如下。';
-      textarea.dispatchEvent(new Event('input'));
-      expect(hint.classList.contains('d-none')).toBe(false);
-
+      const select = $<HTMLSelectElement>('font-preset');
       select.value = 'chinese-official';
       select.dispatchEvent(new Event('change'));
-      expect(hint.classList.contains('d-none')).toBe(true);
+      expect(isHidden('font-preset-hint')).toBe(true);
     });
 
     it('does not suggest the Chinese preset for English text', async () => {
       await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-
-      textarea.value = '# Quarterly report\n\nAll teams met their goals.';
-      textarea.dispatchEvent(new Event('input'));
-
-      expect(document.getElementById('font-preset-hint')!.classList.contains('d-none')).toBe(true);
+      typeMarkdown('# Quarterly report\n\nAll teams met their goals.');
+      expect(isHidden('font-preset-hint')).toBe(true);
     });
   });
 
   describe('isMostlyChinese', () => {
     it('counts Chinese prose with some English and digits', () => {
-      expect(isMostlyChinese('# 年度报告\n\n2026 年 Q3 的收入增长了，详见附件 A。')).toBe(true);
+      expect(
+        isMostlyChinese('# 年度报告\n\n2026 年 Q3 的收入增长了，详见附件 A。')
+      ).toBe(true);
     });
 
     it('does not count English with a few Chinese words', () => {
-      expect(isMostlyChinese('The 公文 preset sets 仿宋 for body text and 黑体 for headings.')).toBe(
-        false
-      );
+      expect(
+        isMostlyChinese(
+          'The 公文 preset sets 仿宋 for body text and 黑体 for headings.'
+        )
+      ).toBe(false);
     });
 
     it('does not count Japanese, which also uses Han characters', () => {
-      expect(isMostlyChinese('本日の会議では、来年度の予算について議論しました。')).toBe(false);
+      expect(
+        isMostlyChinese('本日の会議では、来年度の予算について議論しました。')
+      ).toBe(false);
     });
 
     it('needs more than a handful of characters', () => {
@@ -228,236 +293,150 @@ describe('MarkdownToWordApp', () => {
     });
   });
 
-  describe('handleDownload', () => {
-    it('shows error when no document is available', async () => {
+  describe('files', () => {
+    it('reads a chosen file into the paste box and converts it, named after the file', async () => {
       await initApp();
-      const downloadBtn = document.getElementById('download-button') as HTMLButtonElement;
-      const errorAlert = document.getElementById('error-alert') as HTMLElement;
-
-      downloadBtn.click();
-      expect(errorAlert.classList.contains('d-none')).toBe(false);
-    });
-
-    it('creates download link when document exists', async () => {
-      await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const downloadBtn = document.getElementById('download-button') as HTMLButtonElement;
-
-      // First convert to generate a document
-      textarea.value = '# Test';
-      textarea.dispatchEvent(new Event('input'));
-      convertBtn.click();
+      const input = $<HTMLInputElement>('file');
+      const file = new File(['Some notes'], 'notes.md', {
+        type: 'text/markdown',
+      });
+      Object.defineProperty(input, 'files', {
+        value: [file],
+        configurable: true,
+      });
+      input.dispatchEvent(new Event('change'));
 
       await vi.waitFor(() => {
-        expect(document.getElementById('results')!.classList.contains('d-none')).toBe(false);
+        expect(isHidden('results')).toBe(false);
       });
-
-      // Mock URL.createObjectURL and revokeObjectURL
-      const mockUrl = 'blob:http://localhost/test';
-      const createObjectURLSpy = vi.fn().mockReturnValue(mockUrl);
-      const revokeObjectURLSpy = vi.fn();
-      globalThis.URL.createObjectURL = createObjectURLSpy;
-      globalThis.URL.revokeObjectURL = revokeObjectURLSpy;
-
-      // Mock the click on the download anchor
-      const clickSpy = vi.fn();
-      const origCreateElement = document.createElement.bind(document);
-      vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
-        const el = origCreateElement(tag);
-        if (tag === 'a') {
-          el.click = clickSpy;
-        }
-        return el;
+      expect(mockedConvert).toHaveBeenCalledWith('Some notes', {
+        fontPreset: undefined,
       });
-
-      downloadBtn.click();
-
-      expect(createObjectURLSpy).toHaveBeenCalled();
-      expect(clickSpy).toHaveBeenCalled();
-      expect(revokeObjectURLSpy).toHaveBeenCalledWith(mockUrl);
+      expect($('filename').textContent).toBe('notes.docx');
     });
-  });
 
-  describe('handleNewConversion', () => {
-    it('resets form state', async () => {
+    it('converts a file dropped anywhere on the page', async () => {
       await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const newConversionBtn = document.getElementById('new-conversion-button') as HTMLButtonElement;
-      const inputSection = document.getElementById('input') as HTMLElement;
-      const resultsSection = document.getElementById('results') as HTMLElement;
-
-      // First do a conversion
-      textarea.value = '# Test';
-      textarea.dispatchEvent(new Event('input'));
-      convertBtn.click();
-
+      dropFiles(document.body, [new File(['# Dropped'], 'dropped.md')]);
       await vi.waitFor(() => {
-        expect(resultsSection.classList.contains('d-none')).toBe(false);
-      });
-
-      // Click new conversion
-      newConversionBtn.click();
-
-      expect(textarea.value).toBe('');
-      expect(inputSection.classList.contains('d-none')).toBe(false);
-      expect(resultsSection.classList.contains('d-none')).toBe(true);
-    });
-  });
-
-  describe('showError / hideError', () => {
-    it('error alert becomes visible when error is shown', async () => {
-      await initApp();
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const errorAlert = document.getElementById('error-alert') as HTMLElement;
-
-      // Enable button so click fires (normally disabled when textarea is empty)
-      convertBtn.disabled = false;
-      convertBtn.click();
-
-      await vi.waitFor(() => {
-        expect(errorAlert.classList.contains('d-none')).toBe(false);
-      });
-      const errorMessage = document.getElementById('error-message') as HTMLElement;
-      expect(errorMessage.textContent).toBeTruthy();
-    });
-
-    it('error alert is hidden after new conversion', async () => {
-      await initApp();
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const newConversionBtn = document.getElementById('new-conversion-button') as HTMLButtonElement;
-      const errorAlert = document.getElementById('error-alert') as HTMLElement;
-
-      // Enable button so click fires, then show error
-      convertBtn.disabled = false;
-      convertBtn.click();
-      await vi.waitFor(() => {
-        expect(errorAlert.classList.contains('d-none')).toBe(false);
-      });
-
-      // Hide error via new conversion
-      newConversionBtn.click();
-      expect(errorAlert.classList.contains('d-none')).toBe(true);
-    });
-  });
-
-  describe('showLoading / hideLoading', () => {
-    it('loading section visibility toggles during conversion', async () => {
-      await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-      const loadingSection = document.getElementById('loading') as HTMLElement;
-
-      let resolveConvert: (blob: Blob) => void = () => {};
-      mockedConvert.mockImplementation(() => {
-        return new Promise<Blob>((resolve) => {
-          resolveConvert = resolve;
+        expect(mockedConvert).toHaveBeenCalledWith('# Dropped', {
+          fontPreset: undefined,
         });
       });
+    });
 
-      textarea.value = '# Loading test';
-      textarea.dispatchEvent(new Event('input'));
-      convertBtn.click();
-
-      // Loading should be visible while converting
+    it('converts only the first of several files, and says so', async () => {
+      await initApp();
+      dropFiles($('dropzone'), [
+        new File(['# One'], 'one.md'),
+        new File(['# Two'], 'two.md'),
+      ]);
       await vi.waitFor(() => {
-        expect(loadingSection.classList.contains('d-none')).toBe(false);
+        expect(isHidden('results')).toBe(false);
       });
+      expect(mockedConvert).toHaveBeenCalledTimes(1);
+      expect($('error-message').textContent).toMatch(/Only the first file/);
+    });
 
-      // Resolve the conversion
-      resolveConvert(new Blob(['test']));
-
-      // Loading should be hidden after conversion completes
+    it('points Word files to word2md.com instead of converting them', async () => {
+      await initApp();
+      dropFiles($('dropzone'), [new File(['PK'], 'report.docx')]);
       await vi.waitFor(() => {
-        expect(loadingSection.classList.contains('d-none')).toBe(true);
+        expect($('error-alert')).not.toBeNull();
       });
+      expect($('error-message').textContent).toMatch(/word2md\.com/);
+      expect($('error-file').textContent).toBe('report.docx');
+      expect(mockedConvert).not.toHaveBeenCalled();
+    });
+
+    it('rejects binary files', async () => {
+      await initApp();
+      dropFiles($('dropzone'), [new File(['\u0000\u0001\u0002'], 'image.png')]);
+      await vi.waitFor(() => {
+        expect($('error-alert')).not.toBeNull();
+      });
+      expect($('error-message').textContent).toMatch(/Markdown or text file/);
+      expect(mockedConvert).not.toHaveBeenCalled();
+    });
+
+    it('rejects files over the size limit without reading them', async () => {
+      await initApp();
+      const big = new File(['x'], 'big.md');
+      Object.defineProperty(big, 'size', { value: 6 * 1024 * 1024 });
+      dropFiles($('dropzone'), [big]);
+      await vi.waitFor(() => {
+        expect($('error-alert')).not.toBeNull();
+      });
+      expect($('error-message').textContent).toMatch(/too large/);
     });
   });
 
-  describe('handleFileUpload', () => {
-    it('reads file and populates textarea', async () => {
+  describe('results', () => {
+    it('downloads the .docx under its filename and confirms it', async () => {
+      const createObjectURL = vi.fn().mockReturnValue('blob:test');
+      globalThis.URL.createObjectURL = createObjectURL;
+      globalThis.URL.revokeObjectURL = vi.fn();
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => {});
+
       await initApp();
-      const fileInput = document.getElementById('file') as HTMLInputElement;
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
+      await convert('Hello');
+      $('download-button').click();
 
-      const fileContent = '# From File';
-      const file = new File([fileContent], 'test.md', { type: 'text/markdown' });
-
-      // Set file on the input
-      Object.defineProperty(fileInput, 'files', {
-        value: [file],
-        writable: true,
-      });
-
-      fileInput.dispatchEvent(new Event('change'));
-
-      // Wait for FileReader to complete
-      await vi.waitFor(() => {
-        expect(textarea.value).toBe(fileContent);
-      });
-
-      expect(convertBtn.disabled).toBe(false);
-    });
-  });
-
-  describe('Drag and drop setup', () => {
-    it('drag/drop event handlers are registered on the drop zone', async () => {
-      await initApp();
-      const fileInput = document.getElementById('file') as HTMLInputElement;
-      const dropZone = fileInput.parentElement!;
-
-      // Verify dragover is handled (default prevented)
-      const dragOverEvent = new Event('dragover', { bubbles: true, cancelable: true });
-      dropZone.dispatchEvent(dragOverEvent);
-      expect(dragOverEvent.defaultPrevented).toBe(true);
-
-      // Verify dragenter is handled
-      const dragEnterEvent = new Event('dragenter', { bubbles: true, cancelable: true });
-      dropZone.dispatchEvent(dragEnterEvent);
-      expect(dragEnterEvent.defaultPrevented).toBe(true);
-    });
-  });
-
-  describe('Filename from H1 title', () => {
-    it('uses slugified H1 title as download filename', async () => {
-      await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-
-      mockedExtractTitle.mockReturnValue('My Document Title');
-      mockedSlugify.mockReturnValue('my-document-title');
-
-      textarea.value = '# My Document Title\n\nContent';
-      textarea.dispatchEvent(new Event('input'));
-      convertBtn.click();
-
-      await vi.waitFor(() => {
-        expect(document.getElementById('results')!.classList.contains('d-none')).toBe(false);
-      });
-
-      expect(mockedExtractTitle).toHaveBeenCalledWith('# My Document Title\n\nContent');
-      expect(mockedSlugify).toHaveBeenCalledWith('My Document Title');
+      expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+      const anchor = click.mock.contexts[0] as HTMLAnchorElement;
+      expect(anchor.download).toBe('document.docx');
+      expect($('download-label').textContent).toBe('Downloaded');
     });
 
-    it('does not call slugify when no H1 exists', async () => {
+    it('copies the preview as rich text with the Markdown as plain text', async () => {
+      const write = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { write },
+        configurable: true,
+      });
+      class FakeClipboardItem {
+        constructor(public items: Record<string, Blob>) {}
+      }
+      vi.stubGlobal('ClipboardItem', FakeClipboardItem);
+
       await initApp();
-      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
-
-      mockedExtractTitle.mockReturnValue(null);
-
-      textarea.value = 'No heading content';
-      textarea.dispatchEvent(new Event('input'));
-      convertBtn.click();
+      await convert('**Hi**');
+      $('copy-button').click();
 
       await vi.waitFor(() => {
-        expect(document.getElementById('results')!.classList.contains('d-none')).toBe(false);
+        expect($('copy-label').textContent).toBe('Copied!');
       });
+      const [item] = write.mock.calls[0][0] as FakeClipboardItem[];
+      expect(await item.items['text/html'].text()).toBe('<p>preview</p>');
+      expect(await item.items['text/plain'].text()).toBe('**Hi**');
+      vi.unstubAllGlobals();
+    });
 
-      expect(mockedExtractTitle).toHaveBeenCalledWith('No heading content');
-      expect(mockedSlugify).not.toHaveBeenCalled();
+    it('says so when the clipboard is unavailable', async () => {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: undefined,
+        configurable: true,
+      });
+      await initApp();
+      await convert('Hi');
+      $('copy-button').click();
+      expect($('error-message').textContent).toMatch(/Couldn't copy/);
+    });
+
+    it('resets to an empty input for the next document', async () => {
+      await initApp();
+      await convert('# Done');
+      $('convert-another').click();
+
+      expect(isHidden('results')).toBe(true);
+      expect(isHidden('input')).toBe(false);
+      expect(isHidden('pre-result')).toBe(false);
+      expect($<HTMLTextAreaElement>('markdown-input').value).toBe('');
+      expect($('rendered').innerHTML).toBe('');
+      expect($<HTMLButtonElement>('convert-button').disabled).toBe(true);
+      expect(document.activeElement?.id).toBe('markdown-input');
     });
   });
 });

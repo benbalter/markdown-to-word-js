@@ -1,0 +1,134 @@
+{
+  "eyebrow": "Free · Open source · 100% in your browser",
+  "tagline": "Turn Markdown into a formatted Word (.docx) document, entirely in your browser. Your files are never uploaded.",
+  "lineage": "From the maker of {link}, which goes the other way",
+  "flowFromAlt": "Markdown file",
+  "flowToAlt": "Word document",
+  "dropzoneTitle": "Drop your .md file here",
+  "dropzoneTitleTouch": "Choose a Markdown file",
+  "dropzoneBrowsePrefix": "or ",
+  "dropzoneBrowseLink": "click to choose a file",
+  "dropzoneNote": "Up to 5 MB · Converted on this device, never uploaded",
+  "orPaste": "or paste Markdown",
+  "pastePlaceholder": "# My document\n\nPaste or type **Markdown** here, then convert it to Word.",
+  "styleLabel": "Style",
+  "styleDefault": "Default",
+  "styleChineseOfficial": "Chinese official document (公文)",
+  "styleChineseHint": "This looks like Chinese text. For 公文-style fonts, choose “Chinese official document (公文)”.",
+  "convertButton": "Convert to Word",
+  "convertSectionAria": "Convert a document",
+  "convertedLabel": "Converted",
+  "downloadButton": "Download .docx",
+  "downloadedButton": "Downloaded",
+  "copyButton": "Copy formatted text",
+  "copiedButton": "Copied!",
+  "convertAnother": "Convert another",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "Preview",
+  "steps": [
+    {
+      "t": "Drop or paste",
+      "d": "Drag in a .md file, choose one, or paste Markdown."
+    },
+    {
+      "t": "Convert",
+      "d": "It converts in your browser: no server, no waiting."
+    },
+    {
+      "t": "Download",
+      "d": "Save the .docx, or copy formatted text straight into Word or Google Docs."
+    }
+  ],
+  "conversionHeading": "What gets converted",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "In Word",
+  "conversionRows": [
+    "Heading 1–6 styles",
+    "Bold & italic",
+    "Strikethrough",
+    "Bulleted & numbered lists",
+    "Tables",
+    "Clickable links",
+    "Code blocks in a monospace font",
+    "Indented block quotes"
+  ],
+  "reverseHeading": "Going the other way?",
+  "reverseBody": "To turn a Word or Google Doc into clean Markdown, use word2md.com. Same maker, same promise: it all happens in your browser.",
+  "reverseCta": "Convert Word to Markdown",
+  "faqHeading": "Frequently asked questions",
+  "faqs": [
+    {
+      "q": "How do I convert Markdown to Word?",
+      "a": "Drop a .md file onto the page, choose one, or paste your Markdown, then click Convert to Word. Download the .docx, or copy the formatted text and paste it into Word."
+    },
+    {
+      "q": "Is Markdown to Word free?",
+      "a": "Yes. It is free and open source, with no sign-up and no limit on how many documents you convert."
+    },
+    {
+      "q": "Are my documents uploaded to a server?",
+      "a": "No. Conversion happens entirely in your browser using JavaScript. Your Markdown and the Word document never leave your device and are never uploaded, stored, or logged."
+    },
+    {
+      "q": "How do I turn a ChatGPT or Claude response into a Word document?",
+      "a": "AI chat apps answer in Markdown. Use the response's copy button, paste it here, and convert. Headings, lists, tables, and code come through as real Word formatting instead of stray asterisks and pound signs."
+    },
+    {
+      "q": "Which Markdown is supported?",
+      "a": "GitHub Flavored Markdown: headings, bold, italic, strikethrough, bulleted and numbered lists, tables, links, inline code, fenced code blocks, and block quotes. The first heading becomes the document's title and file name."
+    },
+    {
+      "q": "Can I paste the result into Google Docs?",
+      "a": "Yes. Click Copy formatted text and paste into Google Docs or Word, and the formatting comes with it. You can also download the .docx and open it in Google Docs."
+    },
+    {
+      "q": "Can it format a Chinese official document (公文)?",
+      "a": "Yes. Choose the Chinese official document (公文) style before converting. Body text is set in FangSong, headings in FZXiaoBiaoSong, SimHei, and KaiTi at the customary sizes, with Times New Roman for Latin text. Those fonts need to be installed wherever the document is opened."
+    },
+    {
+      "q": "How is this different from Pandoc?",
+      "a": "Pandoc is a powerful command-line converter, but it has to be installed and configured first. Markdown to Word runs instantly in your browser with nothing to install."
+    }
+  ],
+  "footer": {
+    "feedback": "Feedback",
+    "source": "Source",
+    "wordToMarkdown": "Word to Markdown",
+    "donate": "Donate",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "languagesLabel": "Language",
+    "linksLabel": "Site links"
+  },
+  "footerTagline": "Converted in your browser · nothing is uploaded",
+  "homeAria": "Markdown to Word — home",
+  "metaTitle": "Markdown to Word Converter — Free .md to .docx Online",
+  "metaDescription": "Free, open-source converter that turns Markdown, including ChatGPT and Claude replies, into formatted Word (.docx) files in your browser. Nothing is uploaded.",
+  "schemaDescription": "Free, open-source tool that converts GitHub Flavored Markdown to formatted Word (.docx) documents entirely in your browser.",
+  "schemaFeatureList": [
+    "Convert Markdown (.md) to Word (.docx)",
+    "GitHub Flavored Markdown tables, lists, and code blocks",
+    "Copy formatted text for Word or Google Docs",
+    "Chinese official document (公文) fonts",
+    "100% client-side: nothing is uploaded"
+  ],
+  "errorGeneric": "Something went wrong while converting your Markdown. Please try again.",
+  "fileTooLargeError": "This file is too large to convert in your browser. Please try a Markdown file smaller than 5 MB.",
+  "notMarkdownFileError": "This doesn't look like a Markdown or text file, so it can't be converted. Choose a .md file instead.",
+  "docxFileError": "This is already a Word document. To turn it into Markdown, use word2md.com.",
+  "readError": "That file couldn't be read. Please try choosing it again.",
+  "emptyError": "Paste some Markdown or choose a .md file first.",
+  "copyFailed": "Couldn't copy automatically. Select the preview and copy it with Ctrl+C (⌘C on a Mac).",
+  "onlyFirstFile": "Only the first file was converted. Add the others one at a time.",
+  "conversionAnnouncement": "Conversion complete. Your Word document is ready to download.",
+  "convertingStatus": "Converting…",
+  "dismiss": "Dismiss",
+  "promo": {
+    "label": "From the maker",
+    "body": "I built this free tool — and I wrote the book on working in the open. <strong>Open &amp; Async</strong> is the GitHub-tested playbook for remote and distributed teams.",
+    "cta": "Buy now",
+    "coverAlt": "Open and Async book cover",
+    "resultsLead": "Nice — one more doc from Markdown into Word. I wrote the playbook for writing things down this way:",
+    "resultsCta": "See Open & Async"
+  }
+}

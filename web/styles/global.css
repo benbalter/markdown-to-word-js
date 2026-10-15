@@ -1,0 +1,537 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Word to Markdown — design tokens
+   Editorial-technical: an expressive serif (Fraunces, the "document" world)
+   resolving into monospace (JetBrains Mono, the Markdown result), over a clean
+   grotesque body (Hanken Grotesk). Navy + chartreuse echo the Open & Async
+   promo card so the whole site reads as one brand. Dark mode is automatic
+   (prefers-color-scheme), which Tailwind v4's `dark:` variant tracks by default.
+   ──────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Families resolve to the self-hosted Astro Fonts API variables (set by the
+     <Font> components in Layout.astro), with static fallbacks. */
+  --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Brand palette */
+  --color-paper: #f6f5ef; /* warm document paper (light bg) */
+  --color-paper-card: #fffdf8; /* elevated surface in light */
+  --color-ink: #0a1120; /* deep navy-black (dark bg) */
+  --color-ink-card: #111c30; /* elevated surface in dark */
+  --color-navy: #14213c; /* primary ink / brand navy */
+  --color-navy-soft: #54607a; /* muted text on paper */
+  --color-mist: #9aa6bf; /* muted text on ink */
+  --color-snow: #f1f2f7; /* primary text on ink */
+  --color-chartreuse: #d0d820; /* signature accent */
+  --color-chartreuse-deep: #646a00; /* accent that passes contrast on paper */
+  --color-rule-light: #e5e3d8; /* hairline borders on paper */
+  --color-rule-dark: #243049; /* hairline borders on ink */
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Code shows the exact characters that get copied: JetBrains Mono's
+     ligatures would draw `->` or `--` as single glyphs. */
+  code,
+  pre,
+  kbd,
+  samp {
+    font-variant-ligatures: none;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-paper);
+    color: var(--color-navy);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'ss01';
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: var(--color-ink);
+      color: var(--color-snow);
+    }
+  }
+
+  /* Atmosphere: a faint engraved dot-grid in light, a soft navy aurora in dark.
+     Fixed, behind everything, non-interactive. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(
+      rgba(20, 33, 60, 0.06) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+    mask-image: radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      #000 30%,
+      transparent 75%
+    );
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body::before {
+      background-image:
+        radial-gradient(
+          ellipse 70% 55% at 50% -5%,
+          rgba(208, 216, 32, 0.07),
+          transparent 60%
+        ),
+        radial-gradient(rgba(154, 166, 191, 0.05) 1px, transparent 1px);
+      background-size:
+        100% 100%,
+        22px 22px;
+      mask-image: none;
+    }
+  }
+
+  ::selection {
+    background-color: var(--color-chartreuse);
+    color: #0a1120;
+  }
+
+  /* Bright chartreuse is ~1.4:1 on paper, under WCAG's 3:1 for focus
+     indicators, so light mode uses the deep shade. */
+  :focus-visible {
+    outline: 2px solid var(--color-chartreuse-deep);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :focus-visible {
+      outline-color: var(--color-chartreuse);
+    }
+  }
+}
+
+@layer components {
+  /* Drag-and-drop target. Layout is composed with Tailwind in the markup;
+     this carries the resting border, fill and shadow, the transition, and
+     the JS-toggled `.is-dragover` state. The resting look lives here rather
+     than as utilities because utilities outrank this layer: as utilities they
+     silently overrode the hover, focus and drag-over states below. The
+     dashed rule is navy at 28% in light mode; the paper rule it replaced was
+     too faint to read as a drop target. */
+  .dropzone {
+    border: 2px dashed color-mix(in srgb, var(--color-navy) 28%, transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--color-paper-card) 70%,
+      transparent
+    );
+    box-shadow: 0 1px 2px rgba(20, 33, 60, 0.04);
+    transition:
+      border-color 0.18s ease,
+      background-color 0.18s ease,
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  @media (prefers-color-scheme: dark) {
+    .dropzone {
+      border-color: var(--color-rule-dark);
+      background-color: color-mix(
+        in srgb,
+        var(--color-ink-card) 60%,
+        transparent
+      );
+    }
+  }
+  .dropzone:hover {
+    border-color: color-mix(in srgb, var(--color-chartreuse) 70%, transparent);
+  }
+  /* The file <input> is visually hidden (sr-only), so keyboard focus lands on
+     it invisibly. Surface a clear focus ring on the surrounding dropzone. */
+  .dropzone:focus-within {
+    border-color: var(--color-chartreuse);
+    border-style: solid;
+    outline: 2px solid var(--color-chartreuse-deep);
+    outline-offset: 2px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .dropzone:focus-within {
+      outline-color: var(--color-chartreuse);
+    }
+  }
+  .dropzone.is-dragover {
+    border-color: var(--color-chartreuse);
+    border-style: solid;
+    background-color: color-mix(
+      in srgb,
+      var(--color-chartreuse) 9%,
+      transparent
+    );
+    transform: scale(1.012);
+    box-shadow: 0 14px 40px -18px rgba(208, 216, 32, 0.55);
+  }
+  .dropzone.is-dragover .dropzone-icon {
+    transform: translateY(-4px);
+    color: var(--color-chartreuse-deep);
+  }
+  @media (prefers-color-scheme: dark) {
+    .dropzone.is-dragover .dropzone-icon {
+      color: var(--color-chartreuse);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dropzone,
+    .dropzone.is-dragover {
+      transform: none;
+    }
+  }
+
+  /* Conversion in progress: the dropzone stays visible while the (off-thread)
+     convert runs, so swap the upload icon for a spinner as immediate feedback
+     that the drop registered — the results reveal is otherwise the first cue. */
+  .dropzone.is-converting {
+    cursor: progress;
+  }
+  .dropzone.is-converting .dropzone-icon {
+    position: relative;
+    color: var(--color-chartreuse-deep);
+  }
+  .dropzone.is-converting .dropzone-icon svg {
+    opacity: 0;
+  }
+  .dropzone.is-converting .dropzone-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 22px;
+    height: 22px;
+    margin: auto;
+    border: 2px solid
+      color-mix(in srgb, var(--color-chartreuse) 30%, transparent);
+    border-top-color: var(--color-chartreuse-deep);
+    border-radius: 9999px;
+    animation: dropzone-spin 0.7s linear infinite;
+  }
+  @media (prefers-color-scheme: dark) {
+    .dropzone.is-converting .dropzone-icon {
+      color: var(--color-chartreuse);
+    }
+    .dropzone.is-converting .dropzone-icon::after {
+      border-top-color: var(--color-chartreuse);
+    }
+  }
+  @keyframes dropzone-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  /* Reduced-motion: keep the icon and skip the spin, but still change state. */
+  @media (prefers-reduced-motion: reduce) {
+    .dropzone.is-converting .dropzone-icon svg {
+      opacity: 1;
+    }
+    .dropzone.is-converting .dropzone-icon::after {
+      animation: none;
+      border-top-color: color-mix(
+        in srgb,
+        var(--color-chartreuse) 30%,
+        transparent
+      );
+    }
+  }
+
+  /* Result highlights: the Markdown lands like an added hunk in a diff. On a
+     finished conversion (and on Copy, to show exactly what hit the clipboard)
+     src/index.ts replays `.is-lit` on the Markdown panel and the converted
+     filename. Decoration only: the text is readable from the first frame and
+     nothing waits on the animation. Reduced motion keeps the color fade but
+     drops the sweep and the dot's ping. */
+  .md-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: color-mix(in srgb, var(--color-chartreuse) 16%, transparent);
+    box-shadow: inset 0 0 0 1px var(--color-chartreuse);
+  }
+  .md-panel.is-lit::after {
+    animation: diff-wash 1s cubic-bezier(0.16, 1, 0.3, 1) 0.12s backwards;
+  }
+  .md-panel.is-lit .md-dot {
+    animation: dot-ping 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
+  }
+  @keyframes diff-wash {
+    0% {
+      opacity: 1;
+      clip-path: inset(0 0 100% 0);
+    }
+    35% {
+      opacity: 1;
+      clip-path: inset(0 0 0 0);
+    }
+    100% {
+      opacity: 0;
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes dot-ping {
+    from {
+      box-shadow: 0 0 0 0
+        color-mix(in srgb, var(--color-chartreuse) 70%, transparent);
+    }
+    to {
+      box-shadow: 0 0 0 7px transparent;
+    }
+  }
+
+  /* The converted filename gets a highlighter pass in the reading direction,
+     which then fades back to plain accent text. --mark-a is registered (below)
+     so the tint's alpha can animate. */
+  .fresh-mark {
+    background-image: linear-gradient(
+      color-mix(in srgb, var(--color-chartreuse) var(--mark-a), transparent),
+      color-mix(in srgb, var(--color-chartreuse) var(--mark-a), transparent)
+    );
+    background-repeat: no-repeat;
+    background-position: left;
+    background-size: 100% 100%;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    border-radius: 3px;
+  }
+  .fresh-mark:dir(rtl) {
+    background-position: right;
+  }
+  .fresh-mark.is-lit {
+    animation: mark-sweep 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.12s backwards;
+  }
+  @keyframes mark-sweep {
+    0% {
+      --mark-a: 38%;
+      background-size: 0% 100%;
+    }
+    30% {
+      --mark-a: 38%;
+      background-size: 100% 100%;
+    }
+    100% {
+      --mark-a: 0%;
+      background-size: 100% 100%;
+    }
+  }
+  @media (prefers-color-scheme: dark) {
+    @keyframes mark-sweep {
+      0% {
+        --mark-a: 22%;
+        background-size: 0% 100%;
+      }
+      30% {
+        --mark-a: 22%;
+        background-size: 100% 100%;
+      }
+      100% {
+        --mark-a: 0%;
+        background-size: 100% 100%;
+      }
+    }
+  }
+
+  /* Result actions. One filled accent for the next action, the rest quiet
+     (DESIGN.md, Buttons). src/index.ts swaps btn-accent and btn-secondary
+     between Copy and Download .zip when a document has images, so both looks
+     live here rather than as duplicated utility lists. 44px tall: they're
+     the touch targets of the results screen. */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-colors;
+  }
+  .btn-secondary {
+    @apply border-navy/15 bg-paper-card font-medium text-navy hover:border-chartreuse hover:bg-chartreuse/10 dark:border-white/15 dark:bg-ink-card dark:text-snow dark:hover:border-chartreuse;
+  }
+  .btn-accent {
+    @apply border-chartreuse bg-chartreuse font-semibold text-navy shadow-sm hover:border-chartreuse-deep hover:bg-chartreuse-deep hover:text-white;
+  }
+
+  /* Copy and Download confirm with a drawn check for as long as their label
+     reads "Copied!" / "Downloaded" (src/index.ts toggles `.is-confirmed`). */
+  .confirmable .confirm-icon,
+  .confirmable.is-confirmed .idle-icon {
+    display: none;
+  }
+  .confirmable.is-confirmed .confirm-icon {
+    display: block;
+  }
+  .confirmable.is-confirmed .confirm-icon path {
+    stroke-dasharray: 1;
+    animation: check-draw 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes check-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Ease in: hold the tint a beat, then fade (the expo ease-out above
+       would spend most of it before the eye lands). */
+    .md-panel.is-lit::after {
+      animation-name: diff-fade;
+      animation-timing-function: ease-in;
+    }
+    .md-panel.is-lit .md-dot,
+    .confirmable.is-confirmed .confirm-icon path {
+      animation: none;
+    }
+    .fresh-mark.is-lit {
+      animation-name: mark-fade;
+      animation-timing-function: ease-in;
+    }
+  }
+  @keyframes diff-fade {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes mark-fade {
+    from {
+      --mark-a: 30%;
+    }
+    to {
+      --mark-a: 0%;
+    }
+  }
+
+  /* Hairline divider used between major bands */
+  .rule {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-rule-light),
+      transparent
+    );
+  }
+  @media (prefers-color-scheme: dark) {
+    .rule {
+      background: linear-gradient(
+        to right,
+        transparent,
+        var(--color-rule-dark),
+        transparent
+      );
+    }
+  }
+}
+
+@layer utilities {
+  /* Staggered page-load reveal. Disabled for reduced-motion users. Each element
+     sets its stagger with a `[--reveal-delay:…]` class — not an inline style
+     attribute, which the Content-Security-Policy blocks. */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      opacity: 0;
+      animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: var(--reveal-delay, 0s);
+    }
+    /* Rise-only variant for the LCP-critical hero <h1>: same upward motion, but
+       it never drops to opacity:0. Chrome discounts an opacity:0 element as an
+       LCP candidate until it fades in, which would push the largest element's
+       LCP time out past its animation-delay and let a smaller always-opaque
+       element (the promo cover) win LCP instead. Keeping opacity at 1 makes the
+       <h1> a contentful paint from the first frame; a transform offset doesn't
+       affect contentfulness, so the motion is preserved. */
+    .reveal-rise {
+      transform: translateY(14px);
+      animation: rise-solid 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: var(--reveal-delay, 0s);
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes rise-solid {
+    from {
+      transform: translateY(14px);
+    }
+    to {
+      transform: none;
+    }
+  }
+}
+
+/* Animatable alpha for the filename highlighter (.fresh-mark). */
+@property --mark-a {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+/* Tailwind Typography tuning for the rendered Markdown (#rendered) and the
+   legal pages — bind it to the brand fonts/accent. */
+.prose {
+  --tw-prose-headings: var(--color-navy);
+  --tw-prose-links: var(--color-navy);
+  --tw-prose-bold: var(--color-navy);
+  --tw-prose-counters: var(--color-chartreuse-deep);
+  --tw-prose-bullets: var(--color-chartreuse-deep);
+  /* Code blocks sit on the page's own paper inside the panel, ruled like every
+     other surface, instead of Typography's default dark slate slab. These are
+     unlayered, so they also beat prose-invert's mapping: the dark pair is set
+     in the media query below. */
+  --tw-prose-code: var(--color-navy);
+  --tw-prose-pre-code: var(--color-navy);
+  --tw-prose-pre-bg: var(--color-paper);
+}
+.prose :where(h1, h2, h3, h4) {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.prose :where(code, pre) {
+  font-family: var(--font-mono);
+}
+.prose :where(pre) {
+  border: 1px solid var(--color-rule-light);
+  border-radius: 0.5rem;
+}
+.prose :where(a) {
+  text-decoration-color: var(--color-chartreuse);
+  text-underline-offset: 3px;
+}
+@media (prefers-color-scheme: dark) {
+  .prose {
+    --tw-prose-headings: var(--color-snow);
+    --tw-prose-links: var(--color-snow);
+    --tw-prose-bold: var(--color-snow);
+    --tw-prose-code: var(--color-snow);
+    --tw-prose-pre-code: var(--color-snow);
+    --tw-prose-pre-bg: var(--color-ink);
+  }
+  .prose :where(pre) {
+    border-color: var(--color-rule-dark);
+  }
+}

@@ -1,287 +1,621 @@
-import { convertMarkdownToWord } from './converter.js';
-import { renderPreviewHtml, extractTitle, slugify } from './markdown-parser.js';
+// Browser entry for the converter UI (web/components/home/Converter.astro).
+// Element ids and data-* attributes are the contract with that component.
+// Patterned on word2md.com's src/index.ts (benbalter/word-to-markdown-js), in
+// reverse: Markdown in, a .docx out.
 import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
-import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Markdown is text, so this is generous; it bounds the in-browser render.
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 /** localStorage key for the last chosen style, so regular users pick it once. */
 const FONT_PRESET_STORAGE_KEY = 'markdown-to-word:font-preset';
 
-class MarkdownToWordApp {
-  private fileInput!: HTMLInputElement;
-  private textInput!: HTMLTextAreaElement;
-  private convertButton!: HTMLButtonElement;
-  private downloadButton!: HTMLButtonElement;
-  private newConversionButton!: HTMLButtonElement;
-  private fontPreset!: HTMLSelectElement;
-  private fontPresetHint!: HTMLElement;
-  private inputSection!: HTMLElement;
-  private resultsSection!: HTMLElement;
-  private loadingSection!: HTMLElement;
-  private errorAlert!: HTMLElement;
-  private originalMarkdown!: HTMLElement;
-  private markdownPreview!: HTMLElement;
-  
-  private currentWordDoc: Blob | null = null;
-  private currentFilename: string = 'document.docx';
+// The converter (html-to-docx, JSZip) is the heavy part of the page, so it's
+// loaded on demand: on intent, at idle, or on the first conversion.
+// Each loader memoizes its promise, so a prefetch and a conversion share one.
+type ConverterModule = typeof import('./converter.js');
+type ParserModule = typeof import('./markdown-parser.js');
+let converterModule: Promise<ConverterModule> | undefined;
+let parserModule: Promise<ParserModule> | undefined;
+const loadConverter = (): Promise<ConverterModule> =>
+  (converterModule ??= import('./converter.js'));
+const loadParser = (): Promise<ParserModule> =>
+  (parserModule ??= import('./markdown-parser.js'));
 
-  constructor() {
-    this.initializeElements();
-    this.restoreFontPreset();
-    this.attachEventListeners();
+let lastDocument: Blob | null = null;
+let lastFilename = 'document.docx';
+let lastPreviewHtml = '';
+let lastMarkdown = '';
+
+let downloadLabelDefault = '';
+let downloadResetTimer: number | undefined;
+let copyLabelDefault = '';
+let copyResetTimer: number | undefined;
+
+// Incremented per conversion; a result from a superseded one is discarded.
+let activeConversion = 0;
+
+type UIStringKey =
+  | 'errorGeneric'
+  | 'fileTooLarge'
+  | 'notMarkdownFileError'
+  | 'docxFileError'
+  | 'readError'
+  | 'emptyError'
+  | 'copyFailed'
+  | 'onlyFirstFile'
+  | 'conversionAnnouncement'
+  | 'converting'
+  | 'copied'
+  | 'downloaded'
+  | 'dismiss';
+
+// Localized UI strings are rendered as data-* attributes on #input, keeping
+// this module language-agnostic. Falls back to English when the attribute is
+// absent (e.g. in unit tests that mount a bare DOM).
+function uiString(key: UIStringKey, fallback: string): string {
+  const value = document.getElementById('input')?.dataset[key];
+  return value && value.length > 0 ? value : fallback;
+}
+
+function byId<T extends HTMLElement = HTMLElement>(id: string): T | null {
+  return document.getElementById(id) as T | null;
+}
+
+// Speculatively warm the converter chunks so the first conversion resolves
+// from cache. Runs at most once, on intent or idle, never on initial paint.
+let converterWarmed = false;
+function prefetchConverter(): void {
+  if (converterWarmed) return;
+  converterWarmed = true;
+  const ignore = (): void => {};
+  loadConverter().catch(ignore);
+  loadParser().catch(ignore);
+}
+
+function announce(message: string): void {
+  const status = byId('sr-status');
+  if (status) status.textContent = message;
+}
+
+// Restart a one-shot CSS animation keyed to a class (see .is-lit in
+// global.css): drop the class, force a reflow, then add it back.
+function replayClass(element: Element | null, className: string): void {
+  if (!(element instanceof HTMLElement)) return;
+  element.classList.remove(className);
+  void element.offsetWidth;
+  element.classList.add(className);
+}
+
+// Flip a confirmable button's label to a transient confirmation, then restore.
+function confirmButton(
+  buttonId: string,
+  labelId: string,
+  message: string,
+  restore: string,
+  timer: number | undefined
+): number | undefined {
+  const label = byId(labelId);
+  if (!label) return timer;
+  label.textContent = message;
+  announce(message);
+  const button = byId(buttonId);
+  button?.classList.add('is-confirmed');
+  window.clearTimeout(timer);
+  return window.setTimeout(() => {
+    label.textContent = restore;
+    button?.classList.remove('is-confirmed');
+  }, 2000);
+}
+
+// Show an error alert in whichever region is on screen. `fileName` names the
+// file it's about, on its own line above the message.
+function showError(message: string, fileName?: string): void {
+  let alert = byId('error-alert');
+  if (!alert) {
+    alert = document.createElement('div');
+    alert.id = 'error-alert';
+    alert.setAttribute('role', 'alert');
+    alert.className =
+      'relative mb-4 flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-start text-sm text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-200';
+
+    const body = document.createElement('div');
+    body.className = 'flex-1';
+    // <bdi> so a right-to-left filename doesn't reorder the punctuation.
+    const fileLine = document.createElement('bdi');
+    fileLine.id = 'error-file';
+    fileLine.className = 'mb-0.5 block font-mono text-xs font-medium break-all';
+    const messageSpan = document.createElement('span');
+    messageSpan.id = 'error-message';
+    messageSpan.className = 'block';
+    body.append(fileLine, messageSpan);
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.setAttribute('aria-label', uiString('dismiss', 'Dismiss'));
+    closeButton.className =
+      '-m-1 shrink-0 p-1 leading-none text-red-700 transition-colors hover:text-red-900 dark:text-red-200 dark:hover:text-red-50';
+    closeButton.innerHTML =
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+    const created = alert;
+    closeButton.addEventListener('click', () => dismissAlert(created));
+
+    alert.append(body, closeButton);
   }
 
-  private initializeElements(): void {
-    this.fileInput = document.getElementById('file') as HTMLInputElement;
-    this.textInput = document.getElementById('markdown-input') as HTMLTextAreaElement;
-    this.convertButton = document.getElementById('convert-button') as HTMLButtonElement;
-    this.downloadButton = document.getElementById('download-button') as HTMLButtonElement;
-    this.newConversionButton = document.getElementById('new-conversion-button') as HTMLButtonElement;
-    this.fontPreset = document.getElementById('font-preset') as HTMLSelectElement;
-    this.fontPresetHint = document.getElementById('font-preset-hint') as HTMLElement;
-    this.inputSection = document.getElementById('input') as HTMLElement;
-    this.resultsSection = document.getElementById('results') as HTMLElement;
-    this.loadingSection = document.getElementById('loading') as HTMLElement;
-    this.errorAlert = document.getElementById('error-alert') as HTMLElement;
-    this.originalMarkdown = document.getElementById('original-markdown') as HTMLElement;
-    this.markdownPreview = document.getElementById('markdown-preview') as HTMLElement;
+  const results = byId('results');
+  const container =
+    results && !results.classList.contains('hidden') ? results : byId('input');
+  if (container && alert.parentElement !== container) {
+    container.insertBefore(alert, container.firstChild);
   }
 
-  private attachEventListeners(): void {
-    // File upload
-    this.fileInput.addEventListener('change', this.handleFileUpload.bind(this));
-    
-    // Convert button
-    this.convertButton.addEventListener('click', this.handleConvert.bind(this));
-    
-    // Download button
-    this.downloadButton.addEventListener('click', this.handleDownload.bind(this));
-    
-    // New conversion button
-    this.newConversionButton.addEventListener('click', this.handleNewConversion.bind(this));
-    
-    // Real-time preview for text input
-    this.textInput.addEventListener('input', this.handleTextInputChange.bind(this));
+  const fileElement = byId('error-file');
+  if (fileElement) {
+    fileElement.textContent = fileName ?? '';
+    fileElement.hidden = !fileName;
+  }
+  const messageElement = byId('error-message');
+  if (messageElement) messageElement.textContent = message;
+}
 
-    // Style
-    this.fontPreset.addEventListener('change', this.handleFontPresetChange.bind(this));
-    
-    // Drag and drop for file input
-    this.setupDragAndDrop();
+// Remove an alert. If focus was inside it, move focus to the current primary
+// control instead of letting it fall back to <body>.
+function dismissAlert(alert: HTMLElement): void {
+  const hadFocus = alert.contains(document.activeElement);
+  alert.remove();
+  if (!hadFocus) return;
+  const results = byId('results');
+  const target =
+    results && !results.classList.contains('hidden')
+      ? byId('download-button')
+      : byId('markdown-input');
+  target?.focus();
+}
+
+function selectedPreset(): string {
+  return byId<HTMLSelectElement>('font-preset')?.value ?? '';
+}
+
+// Suggest the Chinese preset when the text is mostly Chinese and no style is
+// chosen yet.
+function updatePresetHint(): void {
+  const text = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
+  const suggest = selectedPreset() === '' && isMostlyChinese(text);
+  byId('font-preset-hint')?.classList.toggle('hidden', !suggest);
+}
+
+function updateConvertButton(): void {
+  const text = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
+  const button = byId<HTMLButtonElement>('convert-button');
+  if (button) button.disabled = text.trim() === '';
+}
+
+function restorePreset(): void {
+  const select = byId<HTMLSelectElement>('font-preset');
+  if (!select) return;
+  let saved: string | null = null;
+  try {
+    saved = localStorage.getItem(FONT_PRESET_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable, e.g. in a private window; keep the default.
+  }
+  if (saved && saved in FONT_PRESETS) select.value = saved;
+}
+
+function rememberPreset(): void {
+  try {
+    localStorage.setItem(FONT_PRESET_STORAGE_KEY, selectedPreset());
+  } catch {
+    // Remembering the choice is a convenience; the conversion still uses it.
+  }
+  updatePresetHint();
+}
+
+// A file that's mostly binary isn't Markdown. NUL never appears in text.
+function looksBinary(text: string): boolean {
+  return text.slice(0, 8192).includes('\u0000');
+}
+
+const WORD_FILE = /\.(docx?|dotx?|odt|rtf)$/i;
+
+// Read a chosen or dropped file into the paste box, then convert it, so a
+// file is one step, like word2md.com's dropzone.
+async function processFile(
+  file: File | undefined,
+  ignoredFiles = 0
+): Promise<void> {
+  if (!file) return;
+  prefetchConverter();
+  const ignoredNote =
+    ignoredFiles > 0
+      ? uiString(
+          'onlyFirstFile',
+          'Only the first file was converted. Add the others one at a time.'
+        )
+      : '';
+  const withNote = (message: string): string =>
+    ignoredNote ? `${message} ${ignoredNote}` : message;
+
+  if (WORD_FILE.test(file.name)) {
+    showError(
+      withNote(
+        uiString(
+          'docxFileError',
+          'This is already a Word document. To turn it into Markdown, use word2md.com.'
+        )
+      ),
+      file.name
+    );
+    return;
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    showError(
+      withNote(
+        uiString(
+          'fileTooLarge',
+          'This file is too large to convert in your browser. Please try a Markdown file smaller than 5 MB.'
+        )
+      ),
+      file.name
+    );
+    return;
   }
 
-  private setupDragAndDrop(): void {
-    const dropZone = this.fileInput.parentElement;
-    if (!dropZone) return;
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, this.preventDefaults, false);
-    });
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
-    });
-
-    dropZone.addEventListener('drop', this.handleDrop.bind(this), false);
+  let text: string;
+  try {
+    text = await file.text();
+  } catch {
+    showError(
+      withNote(
+        uiString(
+          'readError',
+          "That file couldn't be read. Please try choosing it again."
+        )
+      ),
+      file.name
+    );
+    return;
+  }
+  if (looksBinary(text)) {
+    showError(
+      withNote(
+        uiString(
+          'notMarkdownFileError',
+          "This doesn't look like a Markdown or text file, so it can't be converted. Choose a .md file instead."
+        )
+      ),
+      file.name
+    );
+    return;
   }
 
-  private preventDefaults(e: Event): void {
-    e.preventDefault();
-    e.stopPropagation();
+  const textarea = byId<HTMLTextAreaElement>('markdown-input');
+  if (textarea) textarea.value = text;
+  updateConvertButton();
+  updatePresetHint();
+  await convert(file.name.replace(/\.[^/.]+$/, '') || 'document', ignoredNote);
+}
+
+function processFiles(files: ArrayLike<File> | null | undefined): void {
+  if (!files || files.length === 0) return;
+  void processFile(files[0], files.length - 1);
+}
+
+// Convert the paste box's Markdown. `sourceName` (an uploaded file's base
+// name) names the download when the Markdown has no H1.
+async function convert(sourceName?: string, note = ''): Promise<void> {
+  const markdown = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
+  if (markdown.trim() === '') {
+    showError(
+      uiString('emptyError', 'Paste some Markdown or choose a .md file first.')
+    );
+    return;
   }
 
-  private handleDrop(e: DragEvent): void {
-    const dt = e.dataTransfer;
-    const files = dt?.files;
-    
-    if (files && files.length > 0) {
-      this.fileInput.files = files;
-      this.handleFileUpload();
-    }
-  }
+  const token = ++activeConversion;
+  const inputRegion = byId('input');
+  const dropzone = byId('dropzone');
+  const convertButton = byId<HTMLButtonElement>('convert-button');
+  const endBusy = (): void => {
+    inputRegion?.removeAttribute('aria-busy');
+    dropzone?.classList.remove('is-converting');
+    if (convertButton) convertButton.disabled = false;
+  };
 
-  private async handleFileUpload(): Promise<void> {
-    const file = this.fileInput.files?.[0];
-    if (!file) return;
+  byId('error-alert')?.remove();
+  inputRegion?.setAttribute('aria-busy', 'true');
+  dropzone?.classList.add('is-converting');
+  if (convertButton) convertButton.disabled = true;
+  announce(uiString('converting', 'Converting…'));
 
-    try {
-      const text = await this.readFileAsText(file);
-      this.textInput.value = text;
-      this.currentFilename = file.name.replace(/\.[^/.]+$/, '.docx');
-      this.handleTextInputChange();
-    } catch {
-      this.showError('Failed to read the selected file. Please try again.');
-    }
-  }
+  try {
+    const [{ convertMarkdownToWord }, parser] = await Promise.all([
+      loadConverter(),
+      loadParser(),
+    ]);
+    const preset = FONT_PRESETS[selectedPreset()];
+    const blob = await convertMarkdownToWord(markdown, { fontPreset: preset });
+    if (token !== activeConversion) return;
+    endBusy();
 
-  private readFileAsText(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    });
-  }
+    const title = parser.extractTitle(markdown);
+    const slug = title ? parser.slugify(title) : '';
+    lastFilename = `${slug || sourceName || 'document'}.docx`;
+    lastDocument = blob;
+    lastMarkdown = markdown;
+    // Sanitized: a shared .md file can carry raw HTML with script in it.
+    lastPreviewHtml = parser.renderPreviewHtml(markdown);
 
-  private restoreFontPreset(): void {
-    let saved: string | null = null;
-    try {
-      saved = localStorage.getItem(FONT_PRESET_STORAGE_KEY);
-    } catch {
-      // Storage can be unavailable, e.g. in a private window; keep the default.
-    }
-    if (saved && saved in FONT_PRESETS) {
-      this.fontPreset.value = saved;
-    }
-  }
-
-  private handleFontPresetChange(): void {
-    try {
-      localStorage.setItem(FONT_PRESET_STORAGE_KEY, this.fontPreset.value);
-    } catch {
-      // Remembering the choice is a convenience; the conversion still uses it.
-    }
-    this.updateFontPresetHint();
-  }
-
-  /** Suggests the Chinese preset when the text is mostly Chinese and no style is chosen. */
-  private updateFontPresetHint(): void {
-    const suggest = this.fontPreset.value === '' && isMostlyChinese(this.textInput.value);
-    this.fontPresetHint.classList.toggle('d-none', !suggest);
-  }
-
-  private handleTextInputChange(): void {
-    const markdown = this.textInput.value.trim();
-    this.updateFontPresetHint();
-    
-    if (markdown) {
-      this.convertButton.disabled = false;
-      // Optional: Show live preview if needed
-      // this.updatePreview(markdown);
-    } else {
-      this.convertButton.disabled = true;
-    }
-  }
-
-  private async handleConvert(): Promise<void> {
-    const markdown = this.textInput.value.trim();
-    
-    if (!markdown) {
-      this.showError('Please enter some markdown text or upload a file.');
-      return;
-    }
-
-    this.showLoading();
-    this.hideError();
-
-    try {
-      // Generate Word document
-      const wordDoc = await convertMarkdownToWord(markdown, {
-        fontPreset: FONT_PRESETS[this.fontPreset.value],
-      });
-      this.currentWordDoc = wordDoc;
-
-      // Derive filename from H1 title if available
-      const title = extractTitle(markdown);
-      const slug = title ? slugify(title) : '';
-      if (slug) {
-        this.currentFilename = `${slug}.docx`;
-      }
-      
-      // Generate HTML preview
-      const htmlPreview = renderPreviewHtml(markdown);
-      
-      // Show results
-      this.showResults(markdown, htmlPreview);
-      
-    } catch (error) {
-      console.error('Conversion error:', error);
-      this.showError('Failed to convert markdown to Word. Please check your markdown syntax and try again.');
-    } finally {
-      this.hideLoading();
-    }
-  }
-
-  private handleDownload(): void {
-    if (!this.currentWordDoc) {
-      this.showError('No document available for download. Please convert your markdown first.');
-      return;
-    }
-
-    // Create download link
-    const url = URL.createObjectURL(this.currentWordDoc);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = this.currentFilename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  private handleNewConversion(): void {
-    // Reset form
-    this.fileInput.value = '';
-    this.textInput.value = '';
-    this.currentWordDoc = null;
-    this.currentFilename = 'document.docx';
-    
-    // Show input section, hide results
-    this.inputSection.classList.remove('d-none');
-    this.resultsSection.classList.add('d-none');
-    this.hideError();
-    
-    // Focus on text input
-    this.textInput.focus();
-  }
-
-  private showResults(markdown: string, htmlPreview: string): void {
-    // Update display elements
-    this.originalMarkdown.querySelector('code')!.textContent = markdown;
-    this.markdownPreview.innerHTML = htmlPreview;
-    
-    // Show results section, hide input section
-    this.inputSection.classList.add('d-none');
-    this.resultsSection.classList.remove('d-none');
-  }
-
-  private showLoading(): void {
-    this.loadingSection.classList.remove('d-none');
-    this.convertButton.disabled = true;
-  }
-
-  private hideLoading(): void {
-    this.loadingSection.classList.add('d-none');
-    this.convertButton.disabled = false;
-  }
-
-  private showError(message: string): void {
-    const errorMessage = document.getElementById('error-message') as HTMLElement;
-    errorMessage.textContent = message;
-    this.errorAlert.classList.remove('d-none');
-  }
-
-  private hideError(): void {
-    this.errorAlert.classList.add('d-none');
+    showResults(markdown, lastPreviewHtml);
+    if (note) showError(note);
+  } catch {
+    // The converter logs the underlying error; the visitor gets the alert.
+    if (token !== activeConversion) return;
+    endBusy();
+    announce('');
+    showError(
+      uiString(
+        'errorGeneric',
+        'Something went wrong while converting your Markdown. Please try again.'
+      )
+    );
   }
 }
 
-// Initialize the app when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  new MarkdownToWordApp();
-
-  // Listen for OS color scheme changes and update Bootstrap theme
-  if (typeof window.matchMedia === 'function') {
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', (e) => {
-        document.documentElement.setAttribute(
-          'data-bs-theme',
-          e.matches ? 'dark' : 'light',
-        );
-      });
+function showResults(markdown: string, previewHtml: string): void {
+  // textContent, not innerText: the <pre> keeps the newlines.
+  const source = byId('source');
+  if (source) source.textContent = markdown;
+  const rendered = byId('rendered');
+  if (rendered) {
+    rendered.innerHTML = previewHtml;
+    // Links in the preview open in a new tab so the result isn't lost.
+    for (const link of rendered.querySelectorAll('a[href]')) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+    }
   }
-});
+  const filename = byId('filename');
+  if (filename) filename.textContent = lastFilename;
+
+  byId('input')?.classList.add('hidden');
+  const results = byId('results');
+  results?.classList.remove('hidden');
+  // The page is now about this result: hide How It Works, the promo card, the
+  // table, and the FAQ. The results pane carries its own quiet pitch.
+  byId('pre-result')?.classList.add('hidden');
+
+  announce(
+    uiString(
+      'conversionAnnouncement',
+      'Conversion complete. Your Word document is ready to download.'
+    )
+  );
+  // Scroll first, then focus without scrolling so the two don't fight. Both
+  // are optional-chained because jsdom implements neither.
+  const reduceMotion = window.matchMedia?.(
+    '(prefers-reduced-motion: reduce)'
+  )?.matches;
+  results?.scrollIntoView?.({
+    behavior: reduceMotion ? 'auto' : 'smooth',
+    block: 'start',
+  });
+  byId('download-button')?.focus({ preventScroll: true });
+  replayClass(document.querySelector('#results .md-panel'), 'is-lit');
+  replayClass(filename, 'is-lit');
+}
+
+// Save a Blob via a temporary object URL and a synthetic <a download> click.
+function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  // Revoking synchronously can cancel the download in some browsers.
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadDocument(): void {
+  if (!lastDocument) return;
+  saveBlob(lastDocument, lastFilename);
+  downloadResetTimer = confirmButton(
+    'download-button',
+    'download-label',
+    uiString('downloaded', 'Downloaded'),
+    downloadLabelDefault,
+    downloadResetTimer
+  );
+}
+
+// Copy the preview as rich text (HTML, with the Markdown as the plain-text
+// fallback), which pastes into Word or Google Docs with its formatting. The
+// write starts synchronously inside the click handler so browsers that require
+// transient user activation, notably Safari, still honor it.
+function copyFormatted(): void {
+  if (!lastPreviewHtml) return;
+  const copyFailed = (): void => {
+    showError(
+      uiString(
+        'copyFailed',
+        "Couldn't copy automatically. Select the preview and copy it with Ctrl+C (⌘C on a Mac)."
+      )
+    );
+  };
+  if (
+    typeof navigator.clipboard?.write !== 'function' ||
+    typeof ClipboardItem === 'undefined'
+  ) {
+    copyFailed();
+    return;
+  }
+  const item = new ClipboardItem({
+    'text/html': new Blob([lastPreviewHtml], { type: 'text/html' }),
+    'text/plain': new Blob([lastMarkdown], { type: 'text/plain' }),
+  });
+  navigator.clipboard.write([item]).then(() => {
+    copyResetTimer = confirmButton(
+      'copy-button',
+      'copy-label',
+      uiString('copied', 'Copied!'),
+      copyLabelDefault,
+      copyResetTimer
+    );
+    // Light up the preview: that's what's on the clipboard now.
+    replayClass(document.querySelector('#results .md-panel'), 'is-lit');
+  }, copyFailed);
+}
+
+// Back to an empty input for the next document, without reloading the page.
+function resetConverter(): void {
+  activeConversion++;
+  const fileInput = byId<HTMLInputElement>('file');
+  if (fileInput) fileInput.value = '';
+  const textarea = byId<HTMLTextAreaElement>('markdown-input');
+  if (textarea) textarea.value = '';
+  const rendered = byId('rendered');
+  if (rendered) rendered.innerHTML = '';
+  lastDocument = null;
+  lastPreviewHtml = '';
+  lastMarkdown = '';
+  lastFilename = 'document.docx';
+
+  byId('error-alert')?.remove();
+  byId('results')?.classList.add('hidden');
+  byId('input')?.classList.remove('hidden');
+  byId('pre-result')?.classList.remove('hidden');
+  announce('');
+  updateConvertButton();
+  updatePresetHint();
+  textarea?.focus();
+}
+
+function initDragAndDrop(dropzone: HTMLElement): void {
+  // A drop anywhere on the page converts, not just on the dropzone: a
+  // near-miss, or a second document dropped onto the results. Cancelling the
+  // default also stops the browser opening the file and discarding the page.
+  window.addEventListener('dragover', (event: DragEvent) => {
+    event.preventDefault();
+  });
+  window.addEventListener('drop', (event: DragEvent) => {
+    event.preventDefault();
+    if (dropzone.contains(event.target as Node)) return;
+    processFiles(event.dataTransfer?.files);
+  });
+
+  const activate = (event: DragEvent): void => {
+    event.preventDefault();
+    dropzone.classList.add('is-dragover');
+  };
+  dropzone.addEventListener('dragenter', activate);
+  dropzone.addEventListener('dragover', activate);
+  dropzone.addEventListener('dragleave', (event: DragEvent) => {
+    if (!dropzone.contains(event.relatedTarget as Node)) {
+      dropzone.classList.remove('is-dragover');
+    }
+  });
+  dropzone.addEventListener('drop', (event: DragEvent) => {
+    event.preventDefault();
+    dropzone.classList.remove('is-dragover');
+    processFiles(event.dataTransfer?.files);
+  });
+}
+
+function init(): void {
+  restorePreset();
+
+  byId<HTMLInputElement>('file')?.addEventListener(
+    'change',
+    function (this: HTMLInputElement) {
+      const file = this.files?.[0];
+      // Clear the input so picking the same file again still fires "change".
+      this.value = '';
+      void processFile(file);
+    }
+  );
+
+  const textarea = byId<HTMLTextAreaElement>('markdown-input');
+  textarea?.addEventListener('input', () => {
+    updateConvertButton();
+    updatePresetHint();
+  });
+  // Ctrl/Cmd+Enter converts from the keyboard.
+  textarea?.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      void convert();
+    }
+  });
+  // Typing or pasting signals an imminent conversion.
+  textarea?.addEventListener('focus', prefetchConverter, { once: true });
+  updateConvertButton();
+  updatePresetHint();
+
+  byId('font-preset')?.addEventListener('change', rememberPreset);
+  byId('convert-button')?.addEventListener('click', () => void convert());
+
+  const dropzone = byId('dropzone');
+  if (dropzone) {
+    initDragAndDrop(dropzone);
+    for (const evt of ['pointerenter', 'focusin', 'dragenter']) {
+      dropzone.addEventListener(evt, prefetchConverter, {
+        once: true,
+        passive: true,
+      });
+    }
+  }
+
+  // Warm the converter at idle, unless the visitor is on a metered or slow
+  // connection (don't spend their data speculatively).
+  const connection = (
+    navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }
+  ).connection;
+  const lowData =
+    connection?.saveData === true ||
+    /(^|-)2g$/.test(connection?.effectiveType ?? '');
+  if (!lowData) {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(prefetchConverter, { timeout: 4000 });
+    } else {
+      window.setTimeout(prefetchConverter, 2000);
+    }
+  }
+
+  // The output panels are focusable (tabindex) so a click focuses them; scope
+  // Ctrl/Cmd+A to the focused panel instead of selecting the whole page.
+  for (const panel of document.querySelectorAll<HTMLElement>(
+    '[data-select-all]'
+  )) {
+    panel.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (
+        event.key.toLowerCase() !== 'a' ||
+        !(event.ctrlKey || event.metaKey) ||
+        event.altKey ||
+        event.shiftKey
+      ) {
+        return;
+      }
+      event.preventDefault();
+      window.getSelection()?.selectAllChildren(panel);
+    });
+  }
+
+  downloadLabelDefault = byId('download-label')?.textContent ?? '';
+  byId('download-button')?.addEventListener('click', downloadDocument);
+  copyLabelDefault = byId('copy-label')?.textContent ?? '';
+  byId('copy-button')?.addEventListener('click', copyFormatted);
+  byId('convert-another')?.addEventListener('click', resetConverter);
+}
+
+// Astro bundles this as a module script, which runs after parsing, but the
+// unit tests import it before dispatching DOMContentLoaded themselves.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

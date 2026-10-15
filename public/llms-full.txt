@@ -1,0 +1,27 @@
+# Markdown to Word
+
+> Free, open-source tool that converts GitHub Flavored Markdown into formatted Word (.docx) documents — entirely in your browser. Nothing is uploaded.
+
+## The converter
+
+[Markdown to Word](https://md2word.app/) takes Markdown three ways: drop a `.md` file onto the page, choose one with the file picker, or paste Markdown into the text box. It produces a Word document you can download as a `.docx`, and a preview you can copy as formatted text to paste straight into Word or Google Docs.
+
+It supports GitHub Flavored Markdown: headings (as Word's Heading 1–6 styles), bold, italic, strikethrough, bulleted and numbered lists, tables, links, inline code, fenced code blocks (in a monospace font with line breaks kept), and block quotes. The first heading becomes the document's title and file name.
+
+AI chat apps such as ChatGPT and Claude answer in Markdown, so pasting a response here turns it into a properly formatted Word document instead of text full of asterisks and pound signs.
+
+An optional style, Chinese official document (公文), sets the fonts and sizes customary for Chinese government documents: FangSong body text, FZXiaoBiaoSong, SimHei, and KaiTi headings, and Times New Roman for Latin text.
+
+## How it works
+
+The page converts Markdown to HTML with [marked](https://marked.js.org/), then builds the `.docx` with [html-to-docx](https://github.com/TurboDocx/html-to-docx), all in JavaScript running in the browser. No server is involved.
+
+## Privacy
+
+Markdown and the documents made from it never leave the device. The hosted site at md2word.app uses Cloudflare Web Analytics for anonymous, cookie-free usage statistics. See [Privacy](https://md2word.app/privacy/).
+
+## About
+
+- Source: https://github.com/benbalter/markdown-to-word-js
+- The reverse converter, Word to Markdown: https://word2md.com/
+- Author: [Ben Balter](https://ben.balter.com)

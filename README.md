@@ -1,15 +1,16 @@
 # Markdown to Word Converter
 
-Convert GitHub Flavored Markdown to Word documents directly in your browser. No uploads required - everything happens client-side.
+Convert GitHub Flavored Markdown to Word documents directly in your browser at **[md2word.app](https://md2word.app)**. No uploads required: everything happens client-side.
+
+It's the mirror image of [word2md.com](https://word2md.com) ([word-to-markdown-js](https://github.com/benbalter/word-to-markdown-js)), which goes the other way.
 
 ## Features
 
 - **GitHub Flavored Markdown Support**: Tables, task lists, strikethrough, and more
 - **Client-Side Processing**: No data sent to servers - complete privacy
-- **Drag & Drop**: Easy file upload with drag-and-drop support
-- **Live Preview**: See how your markdown will render
-- **Modern Interface**: Clean, responsive design built with Bootstrap 5
-- **Multiple Input Methods**: Upload `.md` files or paste markdown text directly
+- **Drag & Drop**: Drop a `.md` file anywhere on the page, choose one, or paste Markdown
+- **Preview**: See the rendered document next to its Markdown after converting
+- **Copy Formatted Text**: Paste the result straight into Word or Google Docs, formatting included
 - **Optional Chinese Font Preset**: Opt-in 公文 fonts (仿宋 / 方正小标宋 / 黑体 / 楷体) with Times New Roman for Latin text
 
 ## Supported Markdown Features
@@ -58,53 +59,32 @@ const blob = await convertMarkdownToWord(markdown, {
 
 ## Usage
 
-1. **Visit the app**: Go to https://benbalter.com/markdown-to-word/
-2. **Add your content**: Either upload a `.md` file or paste your markdown text
-3. **Convert**: Click "Convert to Word" to generate your document
-4. **Download**: Click "Download Word Document" to save the `.docx` file
+1. **Visit the app**: Go to [md2word.app](https://md2word.app)
+2. **Add your content**: Drop or choose a `.md` file, or paste your Markdown
+3. **Convert**: A dropped file converts right away; for pasted text, click "Convert to Word" (or press Ctrl/⌘+Enter)
+4. **Download**: Click "Download .docx", or "Copy formatted text" to paste into Word or Google Docs
 
-## Local Development
+## Development
 
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-
-### Setup
+Requires Node.js 22.12 or later (`.nvmrc` pins the version CI uses).
 
 ```bash
-# Clone the repository
 git clone https://github.com/benbalter/markdown-to-word-js.git
 cd markdown-to-word-js
-
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
+npm run dev        # http://localhost:4321
+npm run build      # static site in dist/
 ```
 
-### Project Structure
-
-```
-src/
-├── index.ts          # Main application entry point
-├── converter.ts      # Word document generation logic
-├── markdown-parser.ts # Markdown parsing and HTML generation
-└── styles.css       # Custom styles (if needed)
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and checks.
 
 ## Technology Stack
 
-- **Build Tool**: Vite
+- **Site**: [Astro](https://astro.build) (static output) with [Tailwind CSS](https://tailwindcss.com), hosted on Cloudflare Workers Static Assets ([docs/cloudflare.md](docs/cloudflare.md))
 - **Language**: TypeScript
-- **UI Framework**: Bootstrap 5
-- **Markdown Parser**: marked.js with GFM support
-- **Word Generation**: docx library
-- **File Handling**: File API with drag-and-drop
+- **Markdown Parser**: [marked](https://marked.js.org/) with GFM support
+- **Word Generation**: [@turbodocx/html-to-docx](https://github.com/TurboDocx/html-to-docx), with JSZip patches for code blocks and font presets
+- **Tests**: Vitest (unit, including .docx round-trips through mammoth) and Playwright (end to end)
 
 ## Browser Compatibility
 
@@ -140,7 +120,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Related Projects
 
-- [word-to-markdown-js](https://github.com/benbalter/word-to-markdown-js) - Convert Word documents to Markdown (the reverse of this tool)
+- [Word to Markdown](https://word2md.com) ([source](https://github.com/benbalter/word-to-markdown-js)) - Convert Word documents to Markdown (the reverse of this tool)
 
 ## Support
 

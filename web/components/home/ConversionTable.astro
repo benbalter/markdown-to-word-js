@@ -1,0 +1,70 @@
+---
+// "What gets converted" reference table. The Markdown column is universal
+// syntax, so it stays literal here and pairs with t.conversionRows (the Word
+// result, translated) by index — the two arrays must stay the same length.
+// List only what the converter really produces; test/converter.test.ts
+// round-trips each of these through a .docx.
+import { useTranslations } from '../../i18n';
+
+const t = useTranslations(Astro.currentLocale);
+
+const markdownInputs = [
+  '# Heading',
+  '**bold** *italic*',
+  '~~text~~',
+  '- item · 1. item',
+  '| a | b |',
+  '[text](url)',
+  '```',
+  '> quote',
+];
+---
+
+<section class="mx-auto mt-20 max-w-2xl">
+  <h2
+    class="text-center font-display text-2xl font-semibold tracking-tight text-navy sm:text-3xl dark:text-snow"
+  >
+    {t.conversionHeading}
+  </h2>
+  <div
+    class="mt-8 overflow-hidden rounded-xl border border-rule-light dark:border-rule-dark"
+  >
+    <table class="w-full border-collapse text-start text-sm">
+      <thead>
+        <tr
+          class="border-b border-rule-light bg-paper-card/60 dark:border-rule-dark dark:bg-ink-card/50"
+        >
+          <th
+            scope="col"
+            class="px-5 py-3 font-display font-medium text-navy dark:text-snow"
+            >{t.conversionColInput}</th
+          >
+          <th
+            scope="col"
+            class="px-5 py-3 font-display font-medium text-navy dark:text-snow"
+            >{t.conversionColOutput}</th
+          >
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-rule-light dark:divide-rule-dark">
+        {
+          t.conversionRows.map((row, i) => (
+            <tr>
+              <td class="px-5 py-3">
+                <code
+                  dir="ltr"
+                  class="font-mono text-[0.82rem] text-chartreuse-deep dark:text-chartreuse"
+                >
+                  {markdownInputs[i]}
+                </code>
+              </td>
+              <td class="px-5 py-3 font-display text-navy-soft dark:text-mist">
+                {row}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

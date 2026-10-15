@@ -53,7 +53,8 @@ export async function convertMarkdownToWord(
     const result = await HTMLtoDOCX(prepareHtmlForDocx(html), null, documentOptions);
 
     // HTMLtoDOCX returns Blob in browser, Buffer/ArrayBuffer in Node.js
-    const generated = result instanceof Blob ? result : new Blob([result]);
+    const generated =
+      result instanceof Blob ? result : new Blob([result as BlobPart]);
 
     // The patches rewrite the .docx zip with JSZip. html-to-docx bundles its own
     // copy, so ours is a second one; load it only when a patch actually applies.

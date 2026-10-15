@@ -1,0 +1,17 @@
+# Markdown to Word
+
+> Free, open-source tool that converts GitHub Flavored Markdown into formatted Word (.docx) documents — entirely in your browser. Nothing is uploaded.
+
+Markdown to Word runs 100% client-side: Markdown is converted locally in the browser and never sent to any server. It's the reverse of [Word to Markdown](https://word2md.com/), by the same maker.
+
+## Pages
+
+- [Markdown to Word converter](https://md2word.app/): Drop or paste Markdown (including ChatGPT or Claude responses) and download a formatted `.docx`, or copy formatted text into Word or Google Docs.
+- [Privacy](https://md2word.app/privacy/): How your data is handled — conversion is entirely client-side and nothing is uploaded.
+- [Terms of Use](https://md2word.app/terms/): The terms governing use of the converter, provided as-is without warranty.
+
+## About
+
+- [Source code](https://github.com/benbalter/markdown-to-word-js): Open-source on GitHub.
+- [Word to Markdown](https://word2md.com/): The sibling converter, Word (.docx) to Markdown.
+- Author: [Ben Balter](https://ben.balter.com)
