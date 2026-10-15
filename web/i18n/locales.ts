@@ -7,12 +7,13 @@
 // Cloudflare Worker bundle, and Vitest, none of which share Astro's runtime.
 
 export interface LocaleMeta {
-  /** <html lang> and hreflang value. */
+  /**
+   * <html lang> and the hreflang value, in the head AND the sitemap. One tag
+   * for both: search engines treat conflicting hreflang signals as an error.
+   */
   htmlLang: string;
   /** og:locale value. */
   ogLocale: string;
-  /** Language tag for the sitemap's hreflang alternates. */
-  sitemapLocale: string;
   /** Endonym (the language's own name) for the switcher — never a flag. */
   name: string;
   /** Writing direction, when right-to-left. Omitted means LTR. */
@@ -31,12 +32,12 @@ export interface LocaleMeta {
 // the root. To add a language, add its entry here (see web/i18n/README.md).
 // prettier-ignore
 export const localeMeta = {
-  en: { htmlLang: 'en', ogLocale: 'en_US', sitemapLocale: 'en-US', name: 'English' },
-  id: { htmlLang: 'id', ogLocale: 'id_ID', sitemapLocale: 'id-ID', name: 'Bahasa Indonesia', countries: ['ID'] },
-  vi: { htmlLang: 'vi', ogLocale: 'vi_VN', sitemapLocale: 'vi-VN', name: 'Tiếng Việt', countries: ['VN'] },
-  pt: { htmlLang: 'pt-BR', ogLocale: 'pt_BR', sitemapLocale: 'pt-BR', name: 'Português' },
-  es: { htmlLang: 'es', ogLocale: 'es_ES', sitemapLocale: 'es', name: 'Español' },
-  zh: { htmlLang: 'zh-Hans', ogLocale: 'zh_CN', sitemapLocale: 'zh-CN', name: '简体中文' },
+  en: { htmlLang: 'en', ogLocale: 'en_US', name: 'English' },
+  id: { htmlLang: 'id', ogLocale: 'id_ID', name: 'Bahasa Indonesia', countries: ['ID'] },
+  vi: { htmlLang: 'vi', ogLocale: 'vi_VN', name: 'Tiếng Việt', countries: ['VN'] },
+  pt: { htmlLang: 'pt-BR', ogLocale: 'pt_BR', name: 'Português' },
+  es: { htmlLang: 'es', ogLocale: 'es_ES', name: 'Español' },
+  zh: { htmlLang: 'zh-Hans', ogLocale: 'zh_CN', name: '简体中文' },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof localeMeta;
