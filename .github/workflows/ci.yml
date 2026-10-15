@@ -34,6 +34,23 @@ jobs:
       - run: npm run build
       - run: npm test
 
+      # Pack the npm package as `npm publish` would, install it into an empty
+      # project, and convert with it in plain Node: this catches a missing file
+      # in `files`, a broken `exports` map, or a Node shim regression before a
+      # release does.
+      - name: Smoke-test the npm package
+        run: |
+          npm pack --pack-destination "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP"
+          npm init -y > /dev/null
+          npm install ./markdown-to-word-*.tgz
+          node --input-type=module -e "
+            import { convertMarkdownToWord } from 'markdown-to-word';
+            const blob = await convertMarkdownToWord('# Hello\n\n| A |\n| - |\n| 1 |');
+            if (!blob.size) throw new Error('empty document');
+            console.log('Converted to a', blob.size, 'byte .docx');
+          "
+
       # Validate wrangler.jsonc and the assets bundle without deploying.
       - name: Wrangler dry run
         run: npx wrangler deploy --dry-run

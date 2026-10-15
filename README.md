@@ -55,8 +55,7 @@ The preset covers fonts, sizes and spacing only. It doesn't yet set A4 paper, th
 Programmatically:
 
 ```ts
-import { convertMarkdownToWord } from './src/converter.js';
-import { CHINESE_OFFICIAL_DOC_FONTS } from './src/font-presets.js';
+import { convertMarkdownToWord, CHINESE_OFFICIAL_DOC_FONTS } from 'markdown-to-word';
 
 const blob = await convertMarkdownToWord(markdown, {
   fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
@@ -73,6 +72,32 @@ Conversion happens entirely in your browser: your Markdown and the Word document
 - Complex raw HTML inside Markdown may not convert cleanly, and advanced Word features (comments, tracked changes, page layout) aren't produced.
 - Very large documents can be slow, since everything runs in the browser. Files are limited to 5 MB.
 - The site works in current versions of Chrome, Edge, Firefox, and Safari. The end-to-end tests run in Chrome.
+
+## Use it from code
+
+The converter is also on npm as [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word), for Node 22.12+ and for browsers through a bundler (Vite, webpack, esbuild):
+
+```bash
+npm install markdown-to-word
+```
+
+`convertMarkdownToWord` returns the `.docx` as a `Blob`:
+
+```ts
+import { writeFile } from 'node:fs/promises';
+import { convertMarkdownToWord } from 'markdown-to-word';
+
+const blob = await convertMarkdownToWord('# Hello\n\nFrom **Markdown**.', {
+  pageMargins: { top: 1, right: 1, bottom: 1, left: 1 }, // inches
+});
+await writeFile('hello.docx', Buffer.from(await blob.arrayBuffer()));
+```
+
+In a browser, hand the `Blob` to a download link with `URL.createObjectURL(blob)`.
+
+The converter needs the DOM's `DOMParser` and `XMLSerializer`. Browsers have them; in Node, the package fills them in from [jsdom](https://github.com/jsdom/jsdom) when they're missing, so there's nothing to set up.
+
+The package also exports `parseMarkdownToHtml`, `extractTitle`, the `FONT_PRESETS` (see [Optional Font Presets](#optional-font-presets)), and their TypeScript types.
 
 ## Development
 

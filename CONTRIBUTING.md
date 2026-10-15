@@ -28,7 +28,9 @@ web/                      # The Astro site (srcDir)
 ├── styles/               # Tailwind theme and components (global.css)
 └── site.ts               # The domain and repo URLs, in one place
 src/
-├── index.ts              # Browser entry: wires up Converter.astro
+├── index.ts              # Browser entry: wires up Converter.astro (not published)
+├── main.ts               # npm package entry: the public API
+├── node.ts               # npm package entry for Node: supplies the DOM, then main.ts
 ├── buffer-global.ts      # Buffer polyfill html-to-docx needs for images
 ├── converter.ts          # Word document generation logic
 ├── docx-code-blocks.ts   # Repairs code blocks in an already generated .docx
@@ -46,6 +48,7 @@ scripts/                  # OG image, favicon, translation, and Cloudflare setup
 
 - `npm run dev` - Start the dev server with hot reload
 - `npm run build` - Type-check the site and build it into `dist/`, with SEO and accessibility checks
+- `npm run build:lib` - Build the npm package into `build/` (`npm pack` runs this for you)
 - `npm run lint` - Run ESLint (`npm run lint:fix` applies fixes)
 - `npm run typecheck` - Type-check everything, including tests and scripts
 - `npm test` - Run the unit tests
@@ -82,6 +85,20 @@ Use clear, descriptive commit messages:
 5. Commit your changes: `git commit -m "feat: your feature"`
 6. Push to your fork: `git push origin feature/your-feature`
 7. Create a Pull Request
+
+## Releasing to npm
+
+The site and the npm package ship separately: a push to `main` deploys [md2word.app](https://md2word.app), and a GitHub Release publishes [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word) through [release.yml](.github/workflows/release.yml).
+
+1. Bump `version` in `package.json` (`npm version <patch|minor|major> --no-git-tag-version`), and merge that to `main`.
+2. Check what will ship: `npm pack --dry-run` lists the files, all under `build/`.
+3. Publish a GitHub Release whose tag is `v` plus that version (e.g. `v0.1.0`). The workflow checks that the two match, runs the tests, and publishes with provenance.
+
+The workflow authenticates with npm [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so there's no npm token to store or rotate. npm only lets you add a trusted publisher to a package that already exists, so the first version is published by hand:
+
+1. `npm login`, then `npm publish` from a clean checkout of the release commit. `prepack` builds `build/`.
+2. On npmjs.com, open the package's **Settings → Trusted Publisher** and add GitHub Actions with repository `benbalter/markdown-to-word-js`, workflow `release.yml`, and environment `npm`.
+3. Create the GitHub Release for that version anyway, for the changelog. Its workflow run fails at `npm publish` because the version already exists, which is expected this one time.
 
 ## Feature Requests & Bug Reports
 

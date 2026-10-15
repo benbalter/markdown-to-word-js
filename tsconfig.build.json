@@ -1,0 +1,29 @@
+{
+  // Builds the npm package (src/ minus the browser UI) into build/. The root
+  // tsconfig.json is Astro's, for type-checking the site; it doesn't emit.
+  "compilerOptions": {
+    // package.json engines: Node >= 22.12 runs ES2022 natively.
+    "target": "ES2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    // DOM for the DOMParser/XMLSerializer types; node.ts supplies them in Node.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "rootDir": "./src",
+    "outDir": "build",
+    "strict": true,
+    "declaration": true,
+    // src/ isn't published, so embed the sources in the maps.
+    "sourceMap": true,
+    "inlineSources": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src/**/*.ts"],
+  // The browser UI entry is bundled into the site by Astro, not published.
+  "exclude": ["src/index.ts"]
+}

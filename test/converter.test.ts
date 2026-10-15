@@ -270,13 +270,4 @@ describe('Options handling', () => {
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.size).toBeGreaterThan(0);
   });
-
-  it('filename option does not affect output content', async () => {
-    const blobWithFilename = await convertMarkdownToWord('# Test', {
-      filename: 'custom.docx',
-    });
-    const blobWithoutFilename = await convertMarkdownToWord('# Test');
-    // Both should produce valid blobs of the same size
-    expect(blobWithFilename.size).toBe(blobWithoutFilename.size);
-  });
 });

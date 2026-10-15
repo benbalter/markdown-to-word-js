@@ -1,9 +1,23 @@
 {
   "name": "markdown-to-word",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Convert GitHub Flavored Markdown to Word documents in the browser",
+  "version": "0.1.0",
+  "description": "Convert GitHub Flavored Markdown to Word (.docx) documents in Node or the browser",
   "type": "module",
+  "main": "build/main.js",
+  "types": "build/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/main.d.ts",
+      "node": "./build/node.js",
+      "default": "./build/main.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "build/**/*.js",
+    "build/**/*.js.map",
+    "build/**/*.d.ts"
+  ],
   "engines": {
     "node": ">= 22.12"
   },
@@ -20,7 +34,9 @@
     "gen:og": "node scripts/gen-og.mjs",
     "gen:i18n": "node scripts/translate-i18n.mjs",
     "gen:icons": "sh scripts/gen-icons.sh",
-    "cf:builds": "node scripts/cloudflare-builds.mjs"
+    "cf:builds": "node scripts/cloudflare-builds.mjs",
+    "build:lib": "tsc -p tsconfig.build.json",
+    "prepack": "rm -rf build && npm run build:lib"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
@@ -30,13 +46,13 @@
     "@playwright/test": "^1.63.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "~26",
     "@vitest/coverage-v8": "^5.0.5",
     "astro": "^7.3.5",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
-    "jsdom": "^30.1.3",
     "mammoth": "^1.13.0",
     "prettier": "^3.9.10",
     "tailwindcss": "^4.3.3",
@@ -49,6 +65,7 @@
     "@turbodocx/html-to-docx": "^1.23.1",
     "buffer": "^6.0.3",
     "dompurify": "^3.4.17",
+    "jsdom": "^30.1.3",
     "jszip": "^3.10.2",
     "marked": "^18.1.1"
   },
@@ -57,7 +74,7 @@
   "homepage": "https://md2word.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/benbalter/markdown-to-word-js.git"
+    "url": "git+https://github.com/benbalter/markdown-to-word-js.git"
   },
   "keywords": [
     "markdown",
@@ -65,6 +82,13 @@
     "docx",
     "converter",
     "github-flavored-markdown",
-    "gfm"
-  ]
+    "gfm",
+    "md",
+    "md2word",
+    "markdown-to-word",
+    "markdown-to-docx"
+  ],
+  "bugs": {
+    "url": "https://github.com/benbalter/markdown-to-word-js/issues"
+  }
 }

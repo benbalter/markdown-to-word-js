@@ -3,6 +3,7 @@ test/fixtures/
 
 # Generated output.
 dist/
+build/
 .astro/
 coverage/
 test-results/

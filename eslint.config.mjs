@@ -13,6 +13,7 @@ export default defineConfig(
   {
     ignores: [
       'dist/**',
+      'build/**',
       'coverage/**',
       '.astro/**',
       '.wrangler/**',

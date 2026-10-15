@@ -18,6 +18,7 @@ npm run test:e2e    # Playwright against dist/; build first
 
 - [`web/`](web) is Astro's `srcDir`: pages, layouts, components, styles, and the i18n dictionaries. [`web/site.ts`](web/site.ts) is the single source of truth for the domain.
 - [`src/`](src) is the converter (Markdown → HTML → .docx) plus [`src/index.ts`](src/index.ts), the browser entry that wires up [`Converter.astro`](web/components/home/Converter.astro). Element ids and `data-*` attributes are the contract between those two files.
+- `src/` minus `index.ts` is also the [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word) npm package: [`src/main.ts`](src/main.ts) is its public API, and [`src/node.ts`](src/node.ts) its Node entry, which fills in `DOMParser`/`XMLSerializer` from jsdom. [`tsconfig.build.json`](tsconfig.build.json) builds it into `build/`. Anything exported from `main.ts` is public API, so changing it needs a semver bump.
 - Conversion runs entirely in the browser. Keep it that way, and keep the converter `import()`ed lazily: html-to-docx is the page's biggest chunk.
 
 ## Rules the build enforces
@@ -31,3 +32,4 @@ npm run test:e2e    # Playwright against dist/; build first
 
 - Pushing to `main` is a production deploy: Workers Builds runs `npm run build && npm test`, then `wrangler deploy`. Branches get preview URLs. See [docs/cloudflare.md](docs/cloudflare.md).
 - Push or merge to `main` only when the owner says to, and never run `wrangler deploy` yourself.
+- Publishing a GitHub Release publishes to npm ([release.yml](.github/workflows/release.yml); steps in [CONTRIBUTING.md](CONTRIBUTING.md#releasing-to-npm)). Never create a release, a `v*` tag, or run `npm publish` without the owner's OK.
