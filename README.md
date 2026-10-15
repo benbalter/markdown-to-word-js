@@ -1,44 +1,48 @@
-# Markdown to Word Converter
+# Markdown to Word
 
-Convert GitHub Flavored Markdown to Word documents directly in your browser at **[md2word.app](https://md2word.app)**. No uploads required: everything happens client-side.
+[![CI](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml/badge.svg)](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml)
 
-It's the mirror image of [word2md.com](https://word2md.com) ([word-to-markdown-js](https://github.com/benbalter/word-to-markdown-js)), which goes the other way.
+Convert GitHub Flavored Markdown to a formatted Word (`.docx`) document, entirely in your browser, at **[md2word.app](https://md2word.app)**. Nothing is uploaded.
 
-It's also the successor to [markdown_to_word](https://github.com/benbalter/markdown_to_word), the original Ruby gem and web demo, first published in 2015. That project is archived; this one carries it forward entirely in the browser.
+It's the mirror image of [word2md.com](https://word2md.com) ([word-to-markdown-js](https://github.com/benbalter/word-to-markdown-js)), which goes the other way, and the successor to [markdown_to_word](https://github.com/benbalter/markdown_to_word), the original Ruby gem and web demo, first published in 2015 and now archived.
 
-## Features
+## Usage
 
-- **GitHub Flavored Markdown Support**: Tables, task lists, strikethrough, and more
-- **Client-Side Processing**: No data sent to servers - complete privacy
-- **Drag & Drop**: Drop a `.md` file anywhere on the page, choose one, or paste Markdown
-- **Preview**: See the rendered document next to its Markdown after converting
-- **Copy Formatted Text**: Paste the result straight into Word or Google Docs, formatting included
-- **Optional Chinese Font Preset**: Opt-in 公文 fonts (仿宋 / 方正小标宋 / 黑体 / 楷体) with Times New Roman for Latin text
+1. Go to [md2word.app](https://md2word.app).
+2. Drop a `.md` file anywhere on the page, choose one, or paste Markdown. AI chat responses (ChatGPT, Claude, and others) are Markdown, so they paste in as-is.
+3. A dropped file converts right away. For pasted text, click **Convert to Word**, or press Ctrl/⌘+Enter.
+4. Click **Download .docx**, or **Copy formatted text** to paste straight into Word or Google Docs with the formatting intact.
 
-## Supported Markdown Features
+The document is named after its first heading, which also becomes its title.
 
-- ✅ Headers (H1-H6)
-- ✅ Text formatting (bold, italic, strikethrough)
-- ✅ Links and images
-- ✅ Lists (ordered and unordered)
-- ✅ Task lists with checkboxes
-- ✅ Tables with headers
-- ✅ Code blocks and inline code
-- ✅ Blockquotes
-- ✅ Horizontal rules
-- ✅ Line breaks and paragraphs
+## What converts
+
+| Markdown                                    | In Word                                                                                               |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `#` to `######` headings                    | Heading 1–6 styles                                                                                    |
+| `**bold**`, `*italic*`, `~~strikethrough~~` | The same formatting                                                                                   |
+| Bulleted and numbered lists, nested         | Word lists                                                                                            |
+| `- [x]` task lists                          | ☒ (done) and ☐ (to do) items, since Word can't show checkboxes from HTML                              |
+| Tables                                      | Thin borders, a bold header row that repeats on each page, and the column alignment from the Markdown |
+| `[links](https://example.com)`              | Clickable hyperlinks                                                                                  |
+| `` `inline code` `` and fenced code blocks  | Monospace; code blocks keep their line breaks                                                         |
+| `> block quotes`                            | Indented paragraphs                                                                                   |
+| `---` horizontal rules                      | A line across the page                                                                                |
+| `![images](https://example.com/a.png)`      | Embedded, when the browser can fetch them (see [Limitations](#limitations))                           |
+
+As on GitHub, a single newline inside a paragraph is joined into the same line, so hard-wrapped files convert to normal paragraphs. End a line with two spaces or a backslash to force a line break.
 
 ## Optional Font Presets
 
 Conversions use Word's standard styling by default. Choosing **Chinese official document (公文)** from the **Style** menu rewrites the generated document so each level gets an East Asian face and a 公文 size alongside Times New Roman:
 
-| Level | Font size | Chinese characters | Latin letters and digits |
-| --- | --- | --- | --- |
-| Body | 三号 (16pt) | 仿宋 | Times New Roman |
-| Heading 1 | 二号 (22pt) | 方正小标宋简体 | Times New Roman |
-| Heading 2 | 三号 (16pt) | 黑体 | Times New Roman |
-| Heading 3 | 三号 (16pt) | 楷体 | Times New Roman |
-| Heading 4-6 | 三号 (16pt) | 仿宋 (bold) | Times New Roman |
+| Level       | Font size   | Chinese characters | Latin letters and digits |
+| ----------- | ----------- | ------------------ | ------------------------ |
+| Body        | 三号 (16pt) | 仿宋               | Times New Roman          |
+| Heading 1   | 二号 (22pt) | 方正小标宋简体     | Times New Roman          |
+| Heading 2   | 三号 (16pt) | 黑体               | Times New Roman          |
+| Heading 3   | 三号 (16pt) | 楷体               | Times New Roman          |
+| Heading 4-6 | 三号 (16pt) | 仿宋 (bold)        | Times New Roman          |
 
 The app remembers your choice in this browser, and suggests the preset when the text you paste is mostly Chinese.
 
@@ -59,12 +63,16 @@ const blob = await convertMarkdownToWord(markdown, {
 });
 ```
 
-## Usage
+## Privacy
 
-1. **Visit the app**: Go to [md2word.app](https://md2word.app)
-2. **Add your content**: Drop or choose a `.md` file, or paste your Markdown
-3. **Convert**: A dropped file converts right away; for pasted text, click "Convert to Word" (or press Ctrl/⌘+Enter)
-4. **Download**: Click "Download .docx", or "Copy formatted text" to paste into Word or Google Docs
+Conversion happens entirely in your browser: your Markdown and the Word document never leave your device. Images your Markdown links to load from the sites that host them, like on any web page. md2word.app uses cookie-free Cloudflare Web Analytics; a local or self-hosted copy has no analytics. Raw HTML in the preview is sanitized, so a shared file can't run script. See the [privacy policy](https://md2word.app/privacy/).
+
+## Limitations
+
+- Images are embedded only when the browser can fetch them: `data:` URIs, and web URLs whose server allows cross-origin requests (most image hosts and CDNs do). Other images, images under 1 KB (html-to-docx's minimum), and local file paths are left out.
+- Complex raw HTML inside Markdown may not convert cleanly, and advanced Word features (comments, tracked changes, page layout) aren't produced.
+- Very large documents can be slow, since everything runs in the browser. Files are limited to 5 MB.
+- The site works in current versions of Chrome, Edge, Firefox, and Safari. The end-to-end tests run in Chrome.
 
 ## Development
 
@@ -76,57 +84,20 @@ cd markdown-to-word-js
 npm install
 npm run dev        # http://localhost:4321
 npm run build      # static site in dist/
+npm test           # unit tests; npm run test:e2e for Playwright
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and checks.
 
-## Technology Stack
-
-- **Site**: [Astro](https://astro.build) (static output) with [Tailwind CSS](https://tailwindcss.com), hosted on Cloudflare Workers Static Assets ([docs/cloudflare.md](docs/cloudflare.md))
-- **Language**: TypeScript
-- **Markdown Parser**: [marked](https://marked.js.org/) with GFM support
-- **Word Generation**: [@turbodocx/html-to-docx](https://github.com/TurboDocx/html-to-docx), with JSZip patches for code blocks and font presets
-- **Tests**: Vitest (unit, including .docx round-trips through mammoth) and Playwright (end to end)
-
-## Browser Compatibility
-
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
-
-## Privacy & Security
-
-This tool runs entirely in your browser. No markdown content or generated documents are sent to any server. All processing happens locally on your device.
-
-## Limitations
-
-- Large documents may impact browser performance
-- Complex HTML within markdown may not convert perfectly
-- Some advanced Word features are not supported
-- Images are embedded when the browser can fetch them: `data:` URIs, and web URLs whose server allows cross-origin requests (most image hosts and CDNs do). Other images, images under 1 KB (html-to-docx's minimum), and local file paths are left out
-- Fenced code blocks are monospace with real line breaks, and inline code is monospace too
-- Word can't show checkboxes from HTML, so task list items start with ☒ (done) or ☐ (to do)
-- Tables get thin borders, a bold header row that repeats on each page, and the column alignment from the Markdown
-- Horizontal rules become a line across the page
-- As on GitHub, a single newline inside a paragraph is joined into the same line, so hard-wrapped files convert to normal paragraphs. End a line with two spaces or a backslash to force a line break
-- Raw HTML in the preview is sanitized, so scripts and event handlers in a shared file don't run
+- **Site:** [Astro](https://astro.build) with [Tailwind CSS](https://tailwindcss.com), sharing word2md.com's design system.
+- **Conversion:** [marked](https://marked.js.org/) turns Markdown into HTML, [@turbodocx/html-to-docx](https://github.com/TurboDocx/html-to-docx) builds the `.docx`, and JSZip patches fix up code blocks, rules, table headers, and font presets.
+- **Translations:** the UI is ready for more languages; see [web/i18n/README.md](web/i18n/README.md).
+- **Hosting:** Cloudflare Workers Static Assets. A push to `main` builds, runs the tests, and deploys; see [docs/cloudflare.md](docs/cloudflare.md).
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), and [open an issue](https://github.com/benbalter/markdown-to-word-js/issues) for bugs and feature requests.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Related Projects
-
-- [Word to Markdown](https://word2md.com) ([source](https://github.com/benbalter/word-to-markdown-js)) - Convert Word documents to Markdown (the reverse of this tool)
-- [markdown_to_word](https://github.com/benbalter/markdown_to_word) - The original Ruby gem (2015, archived) this project succeeds
-
-## Support
-
-- 🐛 [Report Issues](https://github.com/benbalter/markdown-to-word-js/issues)
-- 💡 [Request Features](https://github.com/benbalter/markdown-to-word-js/issues)
-- 💬 [Discussions](https://github.com/benbalter/markdown-to-word-js/discussions)
+MIT. See [LICENSE](LICENSE).
