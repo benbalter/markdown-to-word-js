@@ -11,8 +11,14 @@ vi.mock('../src/docx-font-preset.js', () => ({
     .fn()
     .mockRejectedValue(new Error('font preset patch failed')),
 }));
+vi.mock('../src/docx-structure.js', () => ({
+  patchStructure: vi
+    .fn()
+    .mockRejectedValue(new Error('structure patch failed')),
+}));
 
 import { convertMarkdownToWord } from '../src/converter';
+import { RULE_TEXT } from '../src/docx-html';
 import { CHINESE_OFFICIAL_DOC_FONTS } from '../src/font-presets';
 
 describe('when a post-generation patch fails', () => {
@@ -33,5 +39,17 @@ describe('when a post-generation patch fails', () => {
     expect(html).toContain('<h1>Title</h1>');
     expect(html).toContain('code');
     expect(warn).toHaveBeenCalledTimes(2);
+  });
+
+  it('leaves a readable section break where a rule could not be drawn', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const blob = await convertMarkdownToWord('Above\n\n---\n\nBelow\n');
+    const { value: text } = await mammoth.extractRawText({
+      buffer: Buffer.from(await blob.arrayBuffer()),
+    });
+
+    expect(text.split('\n').filter(Boolean)).toEqual(['Above', RULE_TEXT, 'Below']);
+    expect(warn).toHaveBeenCalledTimes(1);
   });
 });
