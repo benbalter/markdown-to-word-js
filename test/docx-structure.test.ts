@@ -4,12 +4,13 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { convertMarkdownToWord } from '../src/converter';
-import { RULE_TEXT } from '../src/docx-html';
+import { CODE_FONT, RULE_TEXT } from '../src/docx-html';
+import { CHINESE_OFFICIAL_DOC_FONTS } from '../src/font-presets';
 
 const fixtureRoot = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
-async function documentXml(markdown: string): Promise<string> {
-  const blob = await convertMarkdownToWord(markdown);
+async function documentXml(markdown: string, options = {}): Promise<string> {
+  const blob = await convertMarkdownToWord(markdown, options);
   const zip = await JSZip.loadAsync(await blob.arrayBuffer());
   return zip.file('word/document.xml')!.async('string');
 }
@@ -73,5 +74,22 @@ describe('tables', () => {
     for (const tbl of xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g) ?? []) {
       expect(tbl.indexOf('<w:tblGrid>')).toBeLessThan(tbl.indexOf('<w:tr>'));
     }
+  });
+});
+
+describe('with the font preset', () => {
+  it('keeps rules, header rows, task boxes and inline code after the preset runs', async () => {
+    const xml = await documentXml(
+      '- [x] 完成\n\n运行 `npm test`。\n\n---\n\n| 名称 | 数量 |\n| - | -: |\n| 甲 | 1 |\n',
+      { fontPreset: CHINESE_OFFICIAL_DOC_FONTS }
+    );
+
+    expect(xml).toContain('☒ 完成');
+    expect(xml).toMatch(
+      new RegExp(`<w:rFonts w:ascii="${CODE_FONT}"[^>]*/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`)
+    );
+    expect(paragraphs(xml)).toContain('<rule>');
+    expect(xml).toContain('<w:tblHeader/>');
+    expect(xml).toContain('<w:tblBorders>');
   });
 });
