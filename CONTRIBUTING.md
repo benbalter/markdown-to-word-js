@@ -96,7 +96,7 @@ The site and the npm package ship separately: a push to `main` deploys [md2word.
 
 The workflow authenticates with npm [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so there's no npm token to store or rotate. npm only lets you add a trusted publisher to a package that already exists, so the first version is published by hand:
 
-1. `npm login`, then `npm publish` from a clean checkout of the release commit. `prepack` builds `build/`.
+1. From a clean checkout of the release commit, run `npm publish` with an npm token in `NPM_TOKEN` (for example, read from a password manager). Don't use `npm login`, which writes the token into `~/.npmrc`. `prepack` builds `build/`.
 2. On npmjs.com, open the package's **Settings → Trusted Publisher** and add GitHub Actions with repository `benbalter/markdown-to-word-js`, workflow `release.yml`, and environment `npm`.
 3. Create the GitHub Release for that version anyway, for the changelog. Its workflow run fails at `npm publish` because the version already exists, which is expected this one time.
 

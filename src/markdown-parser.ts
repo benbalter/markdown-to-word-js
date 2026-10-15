@@ -1,9 +1,11 @@
 import DOMPurify from 'dompurify';
-import { marked, type Token } from 'marked';
+import { Marked, type Token } from 'marked';
 
+// Our own instance, not marked's shared default: as an npm package, configuring
+// that one would change how the consumer's own copy of marked renders.
 // GitHub Flavored Markdown as GitHub renders .md files: tables and task lists,
 // and a single newline inside a paragraph is a space, not a line break.
-marked.setOptions({ gfm: true });
+const marked = new Marked({ gfm: true });
 
 // marked's default code renderer keeps the block's trailing newline, which the
 // .docx code block patch would turn into a blank last line in Word.

@@ -95,9 +95,11 @@ await writeFile('hello.docx', Buffer.from(await blob.arrayBuffer()));
 
 In a browser, hand the `Blob` to a download link with `URL.createObjectURL(blob)`.
 
-The converter needs the DOM's `DOMParser` and `XMLSerializer`. Browsers have them; in Node, the package fills them in from [jsdom](https://github.com/jsdom/jsdom) when they're missing, so there's nothing to set up.
+The converter needs the DOM's `DOMParser` and `XMLSerializer`. Browsers have them; in Node, the package sets them as globals from [jsdom](https://github.com/jsdom/jsdom) when they're missing, so there's nothing to set up.
 
-The package also exports `parseMarkdownToHtml`, `extractTitle`, the `FONT_PRESETS` (see [Optional Font Presets](#optional-font-presets)), and their TypeScript types.
+The package also exports `parseMarkdownToHtml`, `extractTitle`, the `FONT_PRESETS` (see [Optional Font Presets](#optional-font-presets)), and their TypeScript types. `parseMarkdownToHtml` passes raw HTML through unsanitized, so sanitize its output (for example with [DOMPurify](https://github.com/cure53/DOMPurify)) before putting it in a page.
+
+On a server, treat Markdown from users as untrusted: the converter downloads each remote image (`![](https://…)`) to embed it, so the request comes from your server. Strip or allowlist image URLs first if the server can reach internal addresses.
 
 ## Development
 

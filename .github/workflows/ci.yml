@@ -40,10 +40,13 @@ jobs:
       # release does.
       - name: Smoke-test the npm package
         run: |
-          npm pack --pack-destination "$RUNNER_TEMP"
-          cd "$RUNNER_TEMP"
+          mkdir "$RUNNER_TEMP/consumer"
+          npm pack --pack-destination "$RUNNER_TEMP/consumer"
+          cd "$RUNNER_TEMP/consumer"
           npm init -y > /dev/null
           npm install ./markdown-to-word-*.tgz
+          # CommonJS too: Node 22.12+ can require() this ES module.
+          node -e "require('markdown-to-word')"
           node --input-type=module -e "
             import { convertMarkdownToWord } from 'markdown-to-word';
             const blob = await convertMarkdownToWord('# Hello\n\n| A |\n| - |\n| 1 |');
