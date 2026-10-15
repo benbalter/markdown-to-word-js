@@ -11,7 +11,8 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const FONT_PRESET_STORAGE_KEY = 'markdown-to-word:font-preset';
 
 // The converter (html-to-docx, JSZip) is the heavy part of the page, so it's
-// loaded on demand: on intent, at idle, or on the first conversion.
+// loaded on demand: on intent or on the first conversion. Not at idle: it's
+// roughly half a megabyte compressed, and many visitors only read the page.
 // Each loader memoizes its promise, so a prefetch and a conversion share one.
 type ConverterModule = typeof import('./converter.js');
 type ParserModule = typeof import('./markdown-parser.js');
@@ -63,7 +64,7 @@ function byId<T extends HTMLElement = HTMLElement>(id: string): T | null {
 }
 
 // Speculatively warm the converter chunks so the first conversion resolves
-// from cache. Runs at most once, on intent or idle, never on initial paint.
+// from cache. Runs at most once, on intent, never on initial paint.
 let converterWarmed = false;
 function prefetchConverter(): void {
   if (converterWarmed) return;
@@ -117,7 +118,7 @@ function showError(message: string, fileName?: string): void {
     alert.id = 'error-alert';
     alert.setAttribute('role', 'alert');
     alert.className =
-      'relative mb-4 flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-start text-sm text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-200';
+      'relative mb-4 flex items-start gap-3 rounded-lg border border-danger-rule bg-danger-wash px-4 py-3 text-start text-sm text-danger dark:border-danger-bright/40 dark:bg-danger-bright/10 dark:text-danger-bright';
 
     const body = document.createElement('div');
     body.className = 'flex-1';
@@ -134,7 +135,7 @@ function showError(message: string, fileName?: string): void {
     closeButton.type = 'button';
     closeButton.setAttribute('aria-label', uiString('dismiss', 'Dismiss'));
     closeButton.className =
-      '-m-1 shrink-0 p-1 leading-none text-red-700 transition-colors hover:text-red-900 dark:text-red-200 dark:hover:text-red-50';
+      '-m-1 shrink-0 p-1 leading-none text-danger transition-colors hover:text-navy dark:text-danger-bright dark:hover:text-snow';
     closeButton.innerHTML =
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
     const created = alert;
@@ -375,6 +376,14 @@ function showResults(markdown: string, previewHtml: string): void {
       link.setAttribute('target', '_blank');
       link.setAttribute('rel', 'noopener noreferrer');
     }
+    // GFM task-list checkboxes come out unlabelled; name each one after its
+    // item so a screen reader says what's checked, not just "checkbox".
+    for (const box of rendered.querySelectorAll<HTMLInputElement>(
+      'li > input[type="checkbox"]'
+    )) {
+      const label = taskItemText(box);
+      if (label) box.setAttribute('aria-label', label);
+    }
   }
   const filename = byId('filename');
   if (filename) filename.textContent = lastFilename;
@@ -404,6 +413,20 @@ function showResults(markdown: string, previewHtml: string): void {
   byId('download-button')?.focus({ preventScroll: true });
   replayClass(document.querySelector('#results .md-panel'), 'is-lit');
   replayClass(filename, 'is-lit');
+}
+
+// The text of a task-list item, up to any nested list.
+function taskItemText(checkbox: Element): string {
+  let text = '';
+  for (
+    let node = checkbox.nextSibling;
+    node &&
+    !(node instanceof HTMLUListElement || node instanceof HTMLOListElement);
+    node = node.nextSibling
+  ) {
+    text += node.textContent ?? '';
+  }
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 // Save a Blob via a temporary object URL and a synthetic <a download> click.
@@ -565,24 +588,6 @@ function init(): void {
         once: true,
         passive: true,
       });
-    }
-  }
-
-  // Warm the converter at idle, unless the visitor is on a metered or slow
-  // connection (don't spend their data speculatively).
-  const connection = (
-    navigator as Navigator & {
-      connection?: { saveData?: boolean; effectiveType?: string };
-    }
-  ).connection;
-  const lowData =
-    connection?.saveData === true ||
-    /(^|-)2g$/.test(connection?.effectiveType ?? '');
-  if (!lowData) {
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(prefetchConverter, { timeout: 4000 });
-    } else {
-      window.setTimeout(prefetchConverter, 2000);
     }
   }
 

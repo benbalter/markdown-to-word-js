@@ -61,11 +61,13 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
         </svg>
       </span>
       {/* "Drop" is the wrong verb on a phone: touch screens get "Choose a .md
-           file" and lose the "or click to choose" line. The touch title is
-           also the file input's accessible name on every device. */}
+           file" and lose the "or click to choose" line. The input takes its
+           name from this <label>'s visible text, so the name matches what each
+           device shows (the display:none variant drops out) and voice-control
+           users can say what they see. */}
       <span class="font-display text-xl font-medium text-navy dark:text-snow">
         <span class="pointer-coarse:hidden">{t.dropzoneTitle}</span>
-        <span id="dropzone-title" class="hidden pointer-coarse:inline"
+        <span class="hidden pointer-coarse:inline"
           >{t.dropzoneTitleTouch}</span
         >
       </span>
@@ -77,9 +79,12 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
           >{t.dropzoneBrowseLink}</span
         >
       </span>
-      {/* Reassurance at the moment of handing over a possibly sensitive file. */}
+      {/* Reassurance at the moment of handing over a possibly sensitive file.
+           aria-hidden keeps it out of the input's name; aria-describedby
+           still reads it as the description. */}
       <span
         id="dropzone-note"
+        aria-hidden="true"
         class="mt-5 block max-w-xs font-mono text-[0.72rem] tracking-wide text-balance text-navy-soft sm:max-w-none rtl:font-sans rtl:tracking-normal dark:text-mist"
       >
         <svg
@@ -103,7 +108,6 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
       <input
         type="file"
         id="file"
-        aria-labelledby="dropzone-title"
         aria-describedby="dropzone-note"
         accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain"
         class="sr-only"
@@ -121,7 +125,7 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
     </div>
 
     <div
-      class="md-panel relative mt-4 overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
+      class="md-panel panel-focus relative mt-4 overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
     >
       <div
         class="flex items-center gap-2 border-b border-rule-light px-4 py-2 dark:border-rule-dark"
@@ -139,12 +143,12 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
         dir="ltr"
         spellcheck="false"
         placeholder={t.pastePlaceholder}
-        class="block w-full resize-y bg-transparent px-4 py-3 font-mono text-[0.82rem] leading-relaxed text-navy placeholder:text-navy-soft/70 focus:outline-none dark:text-snow dark:placeholder:text-mist/70"
+        class="block w-full resize-y bg-transparent px-4 py-3 font-mono text-[0.82rem] leading-relaxed text-navy placeholder:text-navy-soft dark:text-snow dark:placeholder:text-mist"
       ></textarea>
     </div>
 
     <div
-      class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+      class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
     >
       <div class="flex flex-col gap-1 text-start">
         <label
@@ -155,7 +159,7 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
         <select
           id="font-preset"
           aria-describedby="font-preset-hint"
-          class="rounded-lg border border-rule-light bg-paper-card px-3 py-2 text-sm text-navy focus-visible:outline-2 dark:border-rule-dark dark:bg-ink-card dark:text-snow"
+          class="min-h-11 rounded-lg border border-rule-light bg-paper-card px-3 py-2 text-sm text-navy focus-visible:outline-2 dark:border-rule-dark dark:bg-ink-card dark:text-snow"
         >
           <option value="">{t.styleDefault}</option>
           <option value="chinese-official">{t.styleChineseOfficial}</option>
@@ -315,7 +319,7 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
       {/* The Preview panel is the "output" here, so it gets the lit diff
            wash on conversion (see .md-panel in global.css). */}
       <div
-        class="overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
+        class="panel-focus overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
       >
         <div
           class="flex items-center gap-2 border-b border-rule-light px-4 py-2 dark:border-rule-dark"
@@ -335,7 +339,7 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
       </div>
 
       <div
-        class="md-panel relative overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
+        class="md-panel panel-focus relative overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
       >
         <div
           class="flex items-center gap-2 border-b border-rule-light px-4 py-2 dark:border-rule-dark"
@@ -361,7 +365,7 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
          only ask on the results screen (src/index.ts hides the standalone
          Promo card on success), but it stays quiet: a hairline row with a text
          link, so the filled accent belongs to Download. */}
-    <aside
+    <div
       class="mt-6 flex flex-col gap-1.5 rounded-xl border border-rule-light px-4 py-3 text-start text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4 dark:border-rule-dark"
     >
       <p class="leading-relaxed text-navy-soft dark:text-mist">
@@ -374,6 +378,6 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
         {t.promo.resultsCta}
         <span aria-hidden="true" class="rtl:-scale-x-100">&rarr;</span>
       </a>
-    </aside>
+    </div>
   </div>
 </section>
