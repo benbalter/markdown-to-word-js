@@ -16,6 +16,7 @@ vi.mock('bootstrap/dist/css/bootstrap.min.css', () => ({}));
 
 import { convertMarkdownToWord } from '../src/converter.js';
 import { parseMarkdownToHtml, extractTitle, slugify } from '../src/markdown-parser.js';
+import { CHINESE_OFFICIAL_DOC_FONTS } from '../src/font-presets.js';
 
 const mockedConvert = vi.mocked(convertMarkdownToWord);
 const mockedParseHtml = vi.mocked(parseMarkdownToHtml);
@@ -27,6 +28,7 @@ function setupDOM(): void {
     <div id="input">
       <input type="file" id="file">
       <textarea id="markdown-input"></textarea>
+      <input type="checkbox" id="chinese-fonts">
       <button id="convert-button" disabled>Convert</button>
     </div>
     <div id="results" class="d-none">
@@ -128,8 +130,26 @@ describe('MarkdownToWordApp', () => {
         expect(resultsSection.classList.contains('d-none')).toBe(false);
       });
 
-      expect(mockedConvert).toHaveBeenCalledWith('# Hello World');
+      expect(mockedConvert).toHaveBeenCalledWith('# Hello World', { fontPreset: undefined });
       expect(mockedParseHtml).toHaveBeenCalledWith('# Hello World');
+    });
+
+    it('passes the Chinese font preset when the checkbox is ticked', async () => {
+      await initApp();
+      const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
+      const convertBtn = document.getElementById('convert-button') as HTMLButtonElement;
+      const checkbox = document.getElementById('chinese-fonts') as HTMLInputElement;
+
+      checkbox.checked = true;
+      textarea.value = '# 通知';
+      textarea.dispatchEvent(new Event('input'));
+      convertBtn.click();
+
+      await vi.waitFor(() => {
+        expect(mockedConvert).toHaveBeenCalledWith('# 通知', {
+          fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+        });
+      });
     });
   });
 

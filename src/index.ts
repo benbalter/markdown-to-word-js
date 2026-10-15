@@ -1,5 +1,6 @@
 import { convertMarkdownToWord } from './converter.js';
 import { parseMarkdownToHtml, extractTitle, slugify } from './markdown-parser.js';
+import { CHINESE_OFFICIAL_DOC_FONTS } from './font-presets.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 class MarkdownToWordApp {
@@ -8,6 +9,7 @@ class MarkdownToWordApp {
   private convertButton!: HTMLButtonElement;
   private downloadButton!: HTMLButtonElement;
   private newConversionButton!: HTMLButtonElement;
+  private chineseFonts!: HTMLInputElement;
   private inputSection!: HTMLElement;
   private resultsSection!: HTMLElement;
   private loadingSection!: HTMLElement;
@@ -29,6 +31,7 @@ class MarkdownToWordApp {
     this.convertButton = document.getElementById('convert-button') as HTMLButtonElement;
     this.downloadButton = document.getElementById('download-button') as HTMLButtonElement;
     this.newConversionButton = document.getElementById('new-conversion-button') as HTMLButtonElement;
+    this.chineseFonts = document.getElementById('chinese-fonts') as HTMLInputElement;
     this.inputSection = document.getElementById('input') as HTMLElement;
     this.resultsSection = document.getElementById('results') as HTMLElement;
     this.loadingSection = document.getElementById('loading') as HTMLElement;
@@ -139,7 +142,9 @@ class MarkdownToWordApp {
 
     try {
       // Generate Word document
-      const wordDoc = await convertMarkdownToWord(markdown);
+      const wordDoc = await convertMarkdownToWord(markdown, {
+        fontPreset: this.chineseFonts.checked ? CHINESE_OFFICIAL_DOC_FONTS : undefined,
+      });
       this.currentWordDoc = wordDoc;
 
       // Derive filename from H1 title if available
