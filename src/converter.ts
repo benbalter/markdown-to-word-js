@@ -53,18 +53,48 @@ export async function convertMarkdownToWord(
     // whether or not a font preset is requested.
     let wordDocument = generated;
     if (html.includes('<pre')) {
-      const { formatCodeBlocks } = await import('./docx-code-blocks.js');
-      wordDocument = await formatCodeBlocks(wordDocument);
+      const codeBlocks = codeBlockTexts(html);
+      wordDocument = await patchOrKeep(wordDocument, 'code block', async (document) => {
+        const { formatCodeBlocks } = await import('./docx-code-blocks.js');
+        return formatCodeBlocks(document, codeBlocks);
+      });
     }
 
-    if (options.fontPreset) {
-      const { applyFontPreset } = await import('./docx-font-preset.js');
-      wordDocument = await applyFontPreset(wordDocument, options.fontPreset);
+    const { fontPreset } = options;
+    if (fontPreset) {
+      wordDocument = await patchOrKeep(wordDocument, 'font preset', async (document) => {
+        const { applyFontPreset } = await import('./docx-font-preset.js');
+        return applyFontPreset(document, fontPreset);
+      });
     }
 
     return wordDocument;
   } catch (error) {
     console.error('Word document generation error:', error);
     throw new Error('Failed to generate Word document');
+  }
+}
+
+/** The text of each `<pre>` in `html`, in document order. */
+function codeBlockTexts(html: string): string[] {
+  const dom = new DOMParser().parseFromString(html, 'text/html');
+  return Array.from(dom.querySelectorAll('pre'), (pre) => pre.textContent ?? '');
+}
+
+/**
+ * The patches polish a document html-to-docx already produced, so a failure in
+ * one (including its chunk failing to load) keeps the unpatched document
+ * rather than failing the whole conversion.
+ */
+async function patchOrKeep(
+  wordDocument: Blob,
+  name: string,
+  patch: (wordDocument: Blob) => Promise<Blob>
+): Promise<Blob> {
+  try {
+    return await patch(wordDocument);
+  } catch (error) {
+    console.warn(`Skipped the ${name} patch; keeping the unpatched document:`, error);
+    return wordDocument;
   }
 }

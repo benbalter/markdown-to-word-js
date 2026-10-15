@@ -89,6 +89,53 @@ describe.each([
   });
 });
 
+async function documentXml(blob: Blob): Promise<string> {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  return zip.file('word/document.xml')!.async('string');
+}
+
+function runFonts(xml: string): Record<string, string | null>[] {
+  const dom = new DOMParser().parseFromString(xml, 'application/xml');
+  return Array.from(dom.getElementsByTagNameNS(W_NS, 'r'))
+    .filter((run) => run.getElementsByTagNameNS(W_NS, 't').length > 0)
+    .map((run) => {
+      const rFonts = run.getElementsByTagNameNS(W_NS, 'rFonts')[0];
+      return {
+        ascii: rFonts?.getAttributeNS(W_NS, 'ascii') ?? null,
+        eastAsia: rFonts?.getAttributeNS(W_NS, 'eastAsia') ?? null,
+      };
+    });
+}
+
+describe('code block detection', () => {
+  it('styles a single-line code block, which has no newline to give it away', async () => {
+    const xml = await documentXml(await convertMarkdownToWord('```\nonly line\n```\n'));
+
+    expect(runFonts(xml)).toEqual([{ ascii: CODE_FONT, eastAsia: CODE_FONT }]);
+  });
+
+  it('styles every run of a raw HTML <pre>, including nested markup', async () => {
+    const xml = await documentXml(
+      await convertMarkdownToWord('<pre>first\nsecond <b>bold</b>\nthird</pre>\n')
+    );
+
+    expect(runFonts(xml)).toEqual(Array(3).fill({ ascii: CODE_FONT, eastAsia: CODE_FONT }));
+    expect((xml.match(/<w:br\/>/g) ?? []).length).toBe(2);
+  });
+
+  it('leaves a paragraph alone even when a later code block repeats its text', async () => {
+    const xml = await documentXml(
+      await convertMarkdownToWord('```\nfirst\n```\n\nsame text\n\n```\nsame text\n```\n')
+    );
+
+    expect(runFonts(xml)).toEqual([
+      { ascii: CODE_FONT, eastAsia: CODE_FONT },
+      { ascii: null, eastAsia: null },
+      { ascii: CODE_FONT, eastAsia: CODE_FONT },
+    ]);
+  });
+});
+
 describe('surrounding content', () => {
   it('does not restyle the body paragraph', async () => {
     const blob = await convertMarkdownToWord(MARKDOWN);
@@ -101,6 +148,17 @@ describe('surrounding content', () => {
     );
     expect(bodyRuns).toHaveLength(1);
     expect(bodyRuns[0].getElementsByTagNameNS(W_NS, 'rFonts')).toHaveLength(0);
+  });
+
+  it('leaves an inline font-family that names the generator code font alone', async () => {
+    const blob = await convertMarkdownToWord(
+      '<span style="font-family: Courier">not code</span>\n\n```\ncode\n```\n'
+    );
+    const xml = await documentXml(blob);
+
+    expect(xml).toMatch(
+      /<w:rFonts w:ascii="Courier" w:hAnsi="Courier"\/>\s*<\/w:rPr>\s*<w:t[^>]*>not code</
+    );
   });
 
   it('leaves the blob untouched when the markdown has no code block', async () => {
