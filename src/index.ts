@@ -1,7 +1,10 @@
 import { convertMarkdownToWord } from './converter.js';
 import { parseMarkdownToHtml, extractTitle, slugify } from './markdown-parser.js';
-import { CHINESE_OFFICIAL_DOC_FONTS } from './font-presets.js';
+import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+/** localStorage key for the last chosen style, so regular users pick it once. */
+const FONT_PRESET_STORAGE_KEY = 'markdown-to-word:font-preset';
 
 class MarkdownToWordApp {
   private fileInput!: HTMLInputElement;
@@ -9,7 +12,8 @@ class MarkdownToWordApp {
   private convertButton!: HTMLButtonElement;
   private downloadButton!: HTMLButtonElement;
   private newConversionButton!: HTMLButtonElement;
-  private chineseFonts!: HTMLInputElement;
+  private fontPreset!: HTMLSelectElement;
+  private fontPresetHint!: HTMLElement;
   private inputSection!: HTMLElement;
   private resultsSection!: HTMLElement;
   private loadingSection!: HTMLElement;
@@ -22,6 +26,7 @@ class MarkdownToWordApp {
 
   constructor() {
     this.initializeElements();
+    this.restoreFontPreset();
     this.attachEventListeners();
   }
 
@@ -31,7 +36,8 @@ class MarkdownToWordApp {
     this.convertButton = document.getElementById('convert-button') as HTMLButtonElement;
     this.downloadButton = document.getElementById('download-button') as HTMLButtonElement;
     this.newConversionButton = document.getElementById('new-conversion-button') as HTMLButtonElement;
-    this.chineseFonts = document.getElementById('chinese-fonts') as HTMLInputElement;
+    this.fontPreset = document.getElementById('font-preset') as HTMLSelectElement;
+    this.fontPresetHint = document.getElementById('font-preset-hint') as HTMLElement;
     this.inputSection = document.getElementById('input') as HTMLElement;
     this.resultsSection = document.getElementById('results') as HTMLElement;
     this.loadingSection = document.getElementById('loading') as HTMLElement;
@@ -55,6 +61,9 @@ class MarkdownToWordApp {
     
     // Real-time preview for text input
     this.textInput.addEventListener('input', this.handleTextInputChange.bind(this));
+
+    // Style
+    this.fontPreset.addEventListener('change', this.handleFontPresetChange.bind(this));
     
     // Drag and drop for file input
     this.setupDragAndDrop();
@@ -117,8 +126,36 @@ class MarkdownToWordApp {
     });
   }
 
+  private restoreFontPreset(): void {
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(FONT_PRESET_STORAGE_KEY);
+    } catch {
+      // Storage can be unavailable, e.g. in a private window; keep the default.
+    }
+    if (saved && saved in FONT_PRESETS) {
+      this.fontPreset.value = saved;
+    }
+  }
+
+  private handleFontPresetChange(): void {
+    try {
+      localStorage.setItem(FONT_PRESET_STORAGE_KEY, this.fontPreset.value);
+    } catch {
+      // Remembering the choice is a convenience; the conversion still uses it.
+    }
+    this.updateFontPresetHint();
+  }
+
+  /** Suggests the Chinese preset when the text is mostly Chinese and no style is chosen. */
+  private updateFontPresetHint(): void {
+    const suggest = this.fontPreset.value === '' && isMostlyChinese(this.textInput.value);
+    this.fontPresetHint.classList.toggle('d-none', !suggest);
+  }
+
   private handleTextInputChange(): void {
     const markdown = this.textInput.value.trim();
+    this.updateFontPresetHint();
     
     if (markdown) {
       this.convertButton.disabled = false;
@@ -143,7 +180,7 @@ class MarkdownToWordApp {
     try {
       // Generate Word document
       const wordDoc = await convertMarkdownToWord(markdown, {
-        fontPreset: this.chineseFonts.checked ? CHINESE_OFFICIAL_DOC_FONTS : undefined,
+        fontPreset: FONT_PRESETS[this.fontPreset.value],
       });
       this.currentWordDoc = wordDoc;
 

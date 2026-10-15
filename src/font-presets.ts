@@ -66,3 +66,21 @@ export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
   ],
   paragraph: { beforePt: 0, afterPt: 0, lineSpacing: 'single' },
 };
+
+/** The presets offered in the UI, keyed by the value of their `<option>`. */
+export const FONT_PRESETS: Record<string, FontPreset> = {
+  'chinese-official': CHINESE_OFFICIAL_DOC_FONTS,
+};
+
+/**
+ * Whether most of the letters in `text` are Chinese characters, used to suggest
+ * the Chinese preset. Kana means Japanese, which also uses Han characters, so
+ * text with a meaningful share of kana does not count.
+ */
+export function isMostlyChinese(text: string): boolean {
+  const letters = text.match(/\p{L}/gu)?.length ?? 0;
+  const han = text.match(/\p{Script=Han}/gu)?.length ?? 0;
+  const kana = text.match(/[\p{Script=Hiragana}\p{Script=Katakana}]/gu)?.length ?? 0;
+
+  return han >= 10 && han / letters >= 0.5 && kana < han / 10;
+}

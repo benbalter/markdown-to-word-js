@@ -10,7 +10,7 @@ Convert GitHub Flavored Markdown to Word documents directly in your browser. No 
 - **Live Preview**: See how your markdown will render
 - **Modern Interface**: Clean, responsive design built with Bootstrap 5
 - **Multiple Input Methods**: Upload `.md` files or paste markdown text directly
-- **Optional Chinese Font Preset**: Opt-in 公文 styling (仿宋 / 方正小标宋 / 黑体 / 楷体) with Times New Roman for Latin text
+- **Optional Chinese Font Preset**: Opt-in 公文 fonts (仿宋 / 方正小标宋 / 黑体 / 楷体) with Times New Roman for Latin text
 
 ## Supported Markdown Features
 
@@ -27,7 +27,7 @@ Convert GitHub Flavored Markdown to Word documents directly in your browser. No 
 
 ## Optional Font Presets
 
-Conversions use Word's standard styling by default. Ticking **Chinese official document fonts** (中文公文) rewrites the generated document so each level gets an East Asian face and a 公文 size alongside Times New Roman:
+Conversions use Word's standard styling by default. Choosing **Chinese official document (公文)** from the **Style** menu rewrites the generated document so each level gets an East Asian face and a 公文 size alongside Times New Roman:
 
 | Level | Font size | Chinese characters | Latin letters and digits |
 | --- | --- | --- | --- |
@@ -37,9 +37,13 @@ Conversions use Word's standard styling by default. Ticking **Chinese official d
 | Heading 3 | 三号 (16pt) | 楷体 | Times New Roman |
 | Heading 4-6 | 三号 (16pt) | 仿宋 (bold) | Times New Roman |
 
+The app remembers your choice in this browser, and suggests the preset when the text you paste is mostly Chinese.
+
 Word resolves a typeface per character class, so English words and numbers inside a Chinese sentence stay in Times New Roman. The fonts must be installed on the machine that opens the document.
 
 Every level also drops to 段前段后 0 行. The preset also pins 单倍行距 (`w:lineRule="auto"`) on the body and heading styles rather than relying on the converter default of 最小值 12 磅.
+
+The preset covers fonts, sizes and spacing only. It doesn't yet set A4 paper, the GB/T 9704-2012 margins or the 22-line page, so documents are 公文-styled rather than compliant; see [#106](https://github.com/benbalter/markdown-to-word-js/issues/106).
 
 Programmatically:
 
