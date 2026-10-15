@@ -26,11 +26,9 @@ async function codeRun(blob: Blob): Promise<CodeRun> {
   const zip = await JSZip.loadAsync(await blob.arrayBuffer());
   const xml = await zip.file('word/document.xml')!.async('string');
   const dom = new DOMParser().parseFromString(xml, 'application/xml');
+  // Inline code is monospace too, so find the block's run by its text.
   const run = Array.from(dom.getElementsByTagNameNS(W_NS, 'r')).find((candidate) =>
-    candidate
-      .getElementsByTagNameNS(W_NS, 'rFonts')[0]
-      ?.getAttributeNS(W_NS, 'ascii')
-      ?.includes('Courier')
+    candidate.getElementsByTagNameNS(W_NS, 't')[0]?.textContent?.startsWith('def f():')
   )!;
 
   return {
@@ -121,6 +119,15 @@ describe('code block detection', () => {
 
     expect(runFonts(xml)).toEqual(Array(3).fill({ ascii: CODE_FONT, eastAsia: CODE_FONT }));
     expect((xml.match(/<w:br\/>/g) ?? []).length).toBe(2);
+  });
+
+  it('tells an inline-code-only paragraph from a code block with the same text', async () => {
+    const xml = await documentXml(await convertMarkdownToWord('`x = 1`\n\n```\nx = 1\n```\n'));
+
+    expect(runFonts(xml)).toEqual([
+      { ascii: CODE_FONT, eastAsia: null },
+      { ascii: CODE_FONT, eastAsia: CODE_FONT },
+    ]);
   });
 
   it('leaves a paragraph alone even when a later code block repeats its text', async () => {

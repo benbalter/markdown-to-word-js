@@ -1,4 +1,5 @@
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
+import { prepareHtmlForDocx } from './docx-html.js';
 import type { FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
 
@@ -24,7 +25,12 @@ export async function convertMarkdownToWord(
   try {
     const html = parseMarkdownToHtml(markdown);
 
-    const documentOptions: HTMLtoDOCX.DocumentOptions = {};
+    const documentOptions: HTMLtoDOCX.DocumentOptions = {
+      // The generator's default border size is 0, so tables had no grid lines.
+      // A thin light gray rule (size in eighths of a point) matches how
+      // GitHub draws tables.
+      table: { borderOptions: { size: 4, stroke: 'single', color: 'BFBFBF' } },
+    };
 
     const title = extractTitle(markdown);
     if (title) {
@@ -41,7 +47,7 @@ export async function convertMarkdownToWord(
       };
     }
 
-    const result = await HTMLtoDOCX(html, null, documentOptions);
+    const result = await HTMLtoDOCX(prepareHtmlForDocx(html), null, documentOptions);
 
     // HTMLtoDOCX returns Blob in browser, Buffer/ArrayBuffer in Node.js
     const generated = result instanceof Blob ? result : new Blob([result]);

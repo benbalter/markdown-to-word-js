@@ -123,7 +123,9 @@ This tool runs entirely in your browser. No markdown content or generated docume
 - Complex HTML within markdown may not convert perfectly
 - Some advanced Word features are not supported
 - Images must be web-accessible URLs (local images are not embedded)
-- Fenced code blocks are monospace with real line breaks; inline code spans keep the body font
+- Fenced code blocks are monospace with real line breaks, and inline code is monospace too
+- Word can't show checkboxes from HTML, so task list items start with ☒ (done) or ☐ (to do)
+- Tables get thin borders, a bold header row, and the column alignment from the Markdown
 - As on GitHub, a single newline inside a paragraph is joined into the same line, so hard-wrapped files convert to normal paragraphs. End a line with two spaces or a backslash to force a line break
 - Raw HTML in the preview is sanitized, so scripts and event handlers in a shared file don't run
 

@@ -24,6 +24,7 @@ src/
 ├── converter.ts          # Word document generation logic
 ├── docx-code-blocks.ts   # Repairs code blocks in an already generated .docx
 ├── docx-font-preset.ts   # Rewrites fonts in an already generated .docx
+├── docx-html.ts          # Adjusts the HTML handed to html-to-docx
 ├── font-presets.ts       # Font preset definitions
 ├── markdown-parser.ts    # Markdown parsing utilities
 └── xml-part.ts           # Shared helpers for the XML parts of a .docx

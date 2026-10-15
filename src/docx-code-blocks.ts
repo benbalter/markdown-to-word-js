@@ -1,8 +1,8 @@
 import JSZip from 'jszip';
+import { CODE_FONT } from './docx-html.js';
 import { keepXmlDeclaration, WORDPROCESSING_NS as W_NS, XML_NS } from './xml-part.js';
 
-/** A monospace face that ships with Windows, so Chinese comments stay aligned. */
-export const CODE_FONT = 'Courier New';
+export { CODE_FONT };
 
 /** Theme slots WinWord prefers over explicitly named fonts. */
 const THEME_FONT_ATTRIBUTES = ['asciiTheme', 'eastAsiaTheme', 'hAnsiTheme', 'cstheme'];
@@ -51,6 +51,8 @@ export function formatDocumentXml(documentXml: string, codeBlocks: string[]): st
   // Whitespace is ignored because the generator may trim or collapse it. A
   // plain paragraph can repeat a code block's text, so a match also needs every
   // run to name a font, as the generator does for <pre> but not for body text.
+  // Inline code names CODE_FONT itself (see prepareHtmlForDocx), which the
+  // generator never uses for <pre>, so those runs don't count.
   const pending = codeBlocks.map(compact).filter((text) => text !== '');
   for (const paragraph of Array.from(dom.getElementsByTagNameNS(W_NS, 'p'))) {
     if (pending.length === 0) {
@@ -86,7 +88,8 @@ function paragraphText(paragraph: Element): string {
 function hasExplicitFonts(paragraph: Element): boolean {
   return textRuns(paragraph).every((run) => {
     const rFonts = firstChild(run, 'rPr')?.getElementsByTagNameNS(W_NS, 'rFonts')[0];
-    return Boolean(rFonts?.getAttributeNS(W_NS, 'ascii'));
+    const font = rFonts?.getAttributeNS(W_NS, 'ascii');
+    return Boolean(font) && font !== CODE_FONT;
   });
 }
 
