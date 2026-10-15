@@ -6,8 +6,8 @@ import type { DocumentStructure } from './docx-structure.js';
 import type { FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
 
-interface ConversionOptions {
-  filename?: string;
+export interface ConversionOptions {
+  /** Page margins in inches. */
   pageMargins?: {
     top: number;
     right: number;
