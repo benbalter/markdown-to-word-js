@@ -1,4 +1,6 @@
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
+import { applyFontPreset } from './docx-font-preset.js';
+import type { FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
 
 interface ConversionOptions {
@@ -9,6 +11,8 @@ interface ConversionOptions {
     bottom: number;
     left: number;
   };
+  /** Rewrites the document fonts. Omit to keep the default styling. */
+  fontPreset?: FontPreset;
 }
 
 /**
@@ -41,10 +45,11 @@ export async function convertMarkdownToWord(
     const result = await HTMLtoDOCX(html, null, documentOptions);
 
     // HTMLtoDOCX returns Blob in browser, Buffer/ArrayBuffer in Node.js
-    if (result instanceof Blob) {
-      return result;
-    }
-    return new Blob([result]);
+    const wordDocument = result instanceof Blob ? result : new Blob([result]);
+
+    return options.fontPreset
+      ? applyFontPreset(wordDocument, options.fontPreset)
+      : wordDocument;
   } catch (error) {
     console.error('Word document generation error:', error);
     throw new Error('Failed to generate Word document');
