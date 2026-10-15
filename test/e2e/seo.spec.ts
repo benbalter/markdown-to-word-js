@@ -26,6 +26,30 @@ test.describe('SEO', () => {
     expect(og.status()).toBe(200);
   });
 
+  test('the sitemap and the head agree on every hreflang', async ({ page }) => {
+    // Conflicting hreflang signals make search engines ignore both.
+    await page.goto('/');
+    const head = await page
+      .locator('link[rel="alternate"][hreflang]')
+      .evaluateAll((links) =>
+        links
+          .map((l) => `${l.getAttribute('hreflang')} ${l.getAttribute('href')}`)
+          .filter((pair) => !pair.startsWith('x-default'))
+          .sort()
+      );
+    const xml = await (await page.request.get('/sitemap-0.xml')).text();
+    const home = xml.match(
+      new RegExp(`<url><loc>${SITE_URL}/</loc>(.*?)</url>`)
+    )?.[1];
+    const sitemap = [
+      ...(home ?? '').matchAll(/hreflang="([^"]+)" href="([^"]+)"/g),
+    ]
+      .map(([, lang, href]) => `${lang} ${href}`)
+      .sort();
+    expect(head.length).toBeGreaterThan(1);
+    expect(sitemap).toEqual(head);
+  });
+
   test('structured data describes the app and mirrors the visible FAQ', async ({
     page,
   }) => {

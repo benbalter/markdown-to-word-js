@@ -54,6 +54,7 @@ const structuredData = {
     },
     {
       '@type': 'FAQPage',
+      inLanguage: meta.htmlLang,
       mainEntity: t.faqs.map((f) => ({
         '@type': 'Question',
         name: f.q,
