@@ -5,6 +5,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "markdown-to-word-js",
+  // The account that owns the md2word.app zone. Pinned so a local deploy from
+  // a login with several accounts can't land in the wrong one (not a secret).
+  "account_id": "257c6aae4bebbdcd5bbe1d9136c08f1a",
   "compatibility_date": "2026-10-01",
   // Serve only on the custom domain; branch builds get preview URLs.
   "workers_dev": false,
