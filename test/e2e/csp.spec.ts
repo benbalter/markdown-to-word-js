@@ -78,7 +78,7 @@ test.describe('Content-Security-Policy', () => {
     expect(csp).not.toContain('unsafe-eval');
   });
 
-  for (const url of ['/', '/privacy/', '/terms/']) {
+  for (const url of ['/', '/zh/', '/privacy/', '/terms/']) {
     test(`${url} loads without CSP violations`, async ({ page }) => {
       const violations = await trackViolations(page);
       await page.goto(url);
