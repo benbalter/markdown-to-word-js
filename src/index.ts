@@ -1,5 +1,5 @@
 import { convertMarkdownToWord } from './converter.js';
-import { parseMarkdownToHtml, extractTitle, slugify } from './markdown-parser.js';
+import { renderPreviewHtml, extractTitle, slugify } from './markdown-parser.js';
 import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -192,7 +192,7 @@ class MarkdownToWordApp {
       }
       
       // Generate HTML preview
-      const htmlPreview = parseMarkdownToHtml(markdown);
+      const htmlPreview = renderPreviewHtml(markdown);
       
       // Show results
       this.showResults(markdown, htmlPreview);

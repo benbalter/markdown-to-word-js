@@ -124,6 +124,8 @@ This tool runs entirely in your browser. No markdown content or generated docume
 - Some advanced Word features are not supported
 - Images must be web-accessible URLs (local images are not embedded)
 - Fenced code blocks are monospace with real line breaks; inline code spans keep the body font
+- As on GitHub, a single newline inside a paragraph is joined into the same line, so hard-wrapped files convert to normal paragraphs. End a line with two spaces or a backslash to force a line break
+- Raw HTML in the preview is sanitized, so scripts and event handlers in a shared file don't run
 
 ## Contributing
 

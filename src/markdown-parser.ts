@@ -1,56 +1,20 @@
-import { marked, Tokens } from 'marked';
+import DOMPurify from 'dompurify';
+import { marked, type Token } from 'marked';
 
-interface TaskListToken extends Tokens.Generic {
-  checked: boolean;
-}
+// GitHub Flavored Markdown as GitHub renders .md files: tables and task lists,
+// and a single newline inside a paragraph is a space, not a line break.
+marked.setOptions({ gfm: true });
 
-// Configure marked for GitHub Flavored Markdown
-marked.setOptions({
-  gfm: true,
-  breaks: true,
-});
-
-// Add custom renderer for code blocks
+// marked's default code renderer keeps the block's trailing newline, which the
+// .docx code block patch would turn into a blank last line in Word.
 marked.use({
   renderer: {
-    code(code: string, language: string | undefined) {
-      const lang = language || '';
-      return `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
-    }
-  }
-});
-
-// Add support for task lists
-marked.use({
-  extensions: [{
-    name: 'taskList',
-    level: 'inline',
-    start(src: string) {
-      const match = src.match(/^\s*- \[[ xX]\]/);
-      return match ? match.index : undefined;
+    code({ text, lang }) {
+      const language = lang?.match(/^\S*/)?.[0];
+      const className = language ? ` class="language-${escapeHtml(language)}"` : '';
+      return `<pre><code${className}>${escapeHtml(text)}</code></pre>\n`;
     },
-    tokenizer(src: string) {
-      const rule = /^(\s*)- \[( |x|X)\] (.+)/;
-      const match = rule.exec(src);
-      if (match) {
-        return {
-          type: 'taskList',
-          raw: match[0],
-          checked: match[2] !== ' ',
-          text: match[3].trim(),
-          tokens: this.lexer.inlineTokens(match[3].trim())
-        };
-      }
-    },
-    renderer(token: Tokens.Generic) {
-      const taskToken = token as TaskListToken;
-      const checked = taskToken.checked ? 'checked' : '';
-      return `<li class="task-list-item">
-        <input type="checkbox" ${checked} disabled> 
-        ${this.parser.parseInline(taskToken.tokens ?? [])}
-      </li>`;
-    }
-  }]
+  },
 });
 
 /**
@@ -66,17 +30,40 @@ export function parseMarkdownToHtml(markdown: string): string {
 }
 
 /**
- * Extract the first H1 heading text from markdown content.
+ * Parse markdown into HTML that is safe to put in the page with innerHTML.
+ * marked passes raw HTML through, so a shared .md file could otherwise run
+ * script (e.g. `<img src=x onerror=...>`). The .docx path doesn't need this,
+ * since html-to-docx never executes the HTML.
+ */
+export function renderPreviewHtml(markdown: string): string {
+  return DOMPurify.sanitize(parseMarkdownToHtml(markdown));
+}
+
+/**
+ * Extract the first H1 heading from markdown content as plain text, without
+ * inline markup, since it becomes the Word document's title.
  * Returns null if no H1 heading is found.
  */
 export function extractTitle(markdown: string): string | null {
   const tokens = marked.lexer(markdown);
   for (const token of tokens) {
     if (token.type === 'heading' && token.depth === 1) {
-      return token.text;
+      return plainText(token.tokens ?? []).trim();
     }
   }
   return null;
+}
+
+/** The text of inline tokens with their markup (emphasis, links, code) removed. */
+function plainText(tokens: Token[]): string {
+  return tokens
+    .map((token) => {
+      if ('tokens' in token && token.tokens) return plainText(token.tokens);
+      if (token.type === 'br') return ' ';
+      if (token.type === 'html') return '';
+      return 'text' in token ? token.text : '';
+    })
+    .join('');
 }
 
 /**
@@ -96,11 +83,15 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-/**
- * Escape HTML entities
- */
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/** Escape text for HTML without needing a DOM, so parsing works outside a browser. */
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  return text.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
 }

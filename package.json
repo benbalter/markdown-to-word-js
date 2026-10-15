@@ -18,7 +18,6 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/file-saver": "^2.0.7",
-    "@types/marked": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.71.2",
     "@typescript-eslint/parser": "^8.71.2",
     "@vitest/coverage-v8": "^5.0.5",
@@ -36,9 +35,10 @@
     "@turbodocx/html-to-docx": "^1.23.1",
     "bootstrap": "^5.3.8",
     "clipboard": "^2.0.11",
+    "dompurify": "^3.4.17",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.2",
-    "marked": "^11.1.1"
+    "marked": "^18.1.1"
   },
   "author": "Ben Balter <ben@balter.com>",
   "license": "MIT",
