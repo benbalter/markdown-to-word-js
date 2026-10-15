@@ -122,7 +122,7 @@ This tool runs entirely in your browser. No markdown content or generated docume
 - Large documents may impact browser performance
 - Complex HTML within markdown may not convert perfectly
 - Some advanced Word features are not supported
-- Images must be web-accessible URLs (local images are not embedded)
+- Images are embedded when the browser can fetch them: `data:` URIs, and web URLs whose server allows cross-origin requests (most image hosts and CDNs do). Other images, and local file paths, are left out
 - Fenced code blocks are monospace with real line breaks, and inline code is monospace too
 - Word can't show checkboxes from HTML, so task list items start with ☒ (done) or ☐ (to do)
 - Tables get thin borders, a bold header row that repeats on each page, and the column alignment from the Markdown
