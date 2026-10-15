@@ -27,7 +27,7 @@
   "panelPreview": "Vista previa",
   "steps": [
     {
-      "t": "Pega o suelta",
+      "t": "Pegar o soltar",
       "d": "Pega Markdown, o arrastra un archivo .md o elige uno."
     },
     {
@@ -49,7 +49,7 @@
     "Listas con viñetas y numeradas",
     "Elementos de lista de tareas ☒ / ☐",
     "Tablas con bordes y fila de encabezado que se repite",
-    "Enlaces en los que se puede hacer clic",
+    "Enlaces activos",
     "Código en fuente monoespaciada",
     "Citas con sangría",
     "Una línea a lo ancho de la página"
@@ -73,7 +73,7 @@
     },
     {
       "q": "¿Cómo convierto una respuesta de ChatGPT o Claude en un documento de Word?",
-      "a": "Las apps de chat con IA responden en Markdown. Usa el botón de copiar de la respuesta, pégala aquí y conviértela. Los títulos, las listas, las tablas y el código llegan como formato real de Word, no como asteriscos y almohadillas sueltos."
+      "a": "Las apps de chat con IA responden en Markdown. Usa el botón de copiar de la respuesta, pégala aquí y conviértela. Los títulos, las listas, las tablas y el código llegan como formato real de Word, no como asteriscos y símbolos # sueltos."
     },
     {
       "q": "¿Qué Markdown se admite?",
@@ -120,13 +120,13 @@
   "readError": "No se pudo leer ese archivo. Intenta elegirlo de nuevo.",
   "emptyError": "Primero pega algo de Markdown o elige un archivo .md.",
   "copyFailed": "No se pudo copiar automáticamente. Selecciona la vista previa y cópiala con Ctrl+C (⌘C en Mac).",
-  "onlyFirstFile": "Solo se convirtió el primer archivo. Añade los demás de uno en uno.",
+  "onlyFirstFile": "Solo se convirtió el primer archivo. Agrega los demás uno por uno.",
   "conversionAnnouncement": "Conversión completada. Tu documento de Word está listo para descargar.",
   "convertingStatus": "Convirtiendo…",
-  "dismiss": "Descartar",
+  "dismiss": "Cerrar",
   "suggestLanguage": "También disponible en español",
   "promo": {
-    "label": "De quien lo creó",
+    "label": "Del creador",
     "body": "Creé esta herramienta gratuita — y escribí el libro sobre trabajar en abierto. <strong>Open &amp; Async</strong> es la guía probada en GitHub para equipos remotos y distribuidos.",
     "cta": "Cómpralo ya",
     "coverAlt": "Portada del libro Open and Async",

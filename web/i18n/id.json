@@ -43,7 +43,7 @@
   "conversionColInput": "Markdown",
   "conversionColOutput": "Di Word",
   "conversionRows": [
-    "Gaya Heading 1–6",
+    "Gaya Judul 1–6",
     "Tebal dan miring",
     "Coret",
     "Daftar berpoin dan bernomor",
@@ -89,7 +89,7 @@
     },
     {
       "q": "Apa bedanya dengan Pandoc?",
-      "a": "Pandoc adalah pengonversi baris perintah yang andal, tetapi harus dipasang dan dikonfigurasi terlebih dahulu. Markdown to Word langsung berjalan di peramban Anda tanpa perlu memasang apa pun."
+      "a": "Pandoc adalah pengonversi baris perintah yang canggih, tetapi harus dipasang dan dikonfigurasi terlebih dahulu. Markdown to Word langsung berjalan di peramban Anda tanpa perlu memasang apa pun."
     }
   ],
   "footer": {
@@ -127,7 +127,7 @@
   "suggestLanguage": "Juga tersedia dalam Bahasa Indonesia",
   "promo": {
     "label": "Dari pembuatnya",
-    "body": "Saya membuat alat gratis ini — dan saya menulis buku tentang bekerja secara terbuka. <strong>Open &amp; Async</strong> adalah panduan teruji-GitHub untuk tim jarak jauh dan terdistribusi.",
+    "body": "Saya membuat alat gratis ini — dan saya menulis buku tentang bekerja secara terbuka. <strong>Open &amp; Async</strong> adalah panduan yang sudah teruji di GitHub untuk tim jarak jauh dan terdistribusi.",
     "cta": "Beli sekarang",
     "coverAlt": "Sampul buku Open and Async",
     "resultsLead": "Bagus — satu dokumen lagi dari Markdown ke Word. Saya menulis panduan untuk cara kerja yang serba tertulis seperti ini:",

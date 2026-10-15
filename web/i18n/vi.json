@@ -20,9 +20,9 @@
   "convertedLabel": "Đã chuyển đổi",
   "downloadButton": "Tải xuống .docx",
   "downloadedButton": "Đã tải xuống",
-  "copyButton": "Sao chép văn bản có định dạng",
+  "copyButton": "Sao chép có định dạng",
   "copiedButton": "Đã sao chép!",
-  "convertAnother": "Chuyển đổi tệp khác",
+  "convertAnother": "Chuyển đổi tài liệu khác",
   "panelMarkdown": "Markdown",
   "panelPreview": "Xem trước",
   "steps": [
@@ -81,7 +81,7 @@
     },
     {
       "q": "Tôi có thể dán kết quả vào Google Docs không?",
-      "a": "Có. Nhấp Sao chép văn bản có định dạng rồi dán vào Google Docs hoặc Word, định dạng sẽ được giữ nguyên. Bạn cũng có thể tải tệp .docx xuống và mở trong Google Docs."
+      "a": "Có. Nhấp Sao chép có định dạng rồi dán vào Google Docs hoặc Word, định dạng sẽ được giữ nguyên. Bạn cũng có thể tải tệp .docx xuống và mở trong Google Docs."
     },
     {
       "q": "Công cụ có định dạng được công văn tiếng Trung (公文) không?",
@@ -124,13 +124,13 @@
   "conversionAnnouncement": "Đã chuyển đổi xong. Tài liệu Word của bạn đã sẵn sàng để tải xuống.",
   "convertingStatus": "Đang chuyển đổi…",
   "dismiss": "Đóng",
-  "suggestLanguage": "Trang này cũng có bằng tiếng Việt",
+  "suggestLanguage": "Trang này cũng có bản tiếng Việt",
   "promo": {
     "label": "Từ người tạo ra công cụ",
-    "body": "Tôi đã xây dựng công cụ miễn phí này — và tôi đã viết cuốn sách về cách làm việc cởi mở. <strong>Open &amp; Async</strong> là cẩm nang đã được kiểm chứng trên GitHub dành cho các nhóm làm việc từ xa và phân tán.",
+    "body": "Tôi đã xây dựng công cụ miễn phí này — và tôi đã viết cuốn sách về cách làm việc minh bạch, công khai. <strong>Open &amp; Async</strong> là cẩm nang đã được kiểm chứng trên GitHub dành cho các nhóm làm việc từ xa và phân tán.",
     "cta": "Mua ngay",
     "coverAlt": "Bìa sách Open and Async",
-    "resultsLead": "Tuyệt — thêm một tài liệu nữa từ Markdown sang Word. Tôi đã viết cẩm nang cho cách làm việc ghi chép mọi thứ thành văn bản như thế này:",
+    "resultsLead": "Tuyệt — thêm một tài liệu nữa từ Markdown sang Word. Tôi đã viết cẩm nang về cách làm việc bằng văn bản như thế này:",
     "resultsCta": "Xem Open & Async"
   }
 }

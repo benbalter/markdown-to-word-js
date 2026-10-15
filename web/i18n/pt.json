@@ -27,7 +27,7 @@
   "panelPreview": "Visualização",
   "steps": [
     {
-      "t": "Cole ou solte",
+      "t": "Colar ou soltar",
       "d": "Cole Markdown, ou arraste um arquivo .md ou escolha um."
     },
     {
@@ -88,7 +88,7 @@
       "a": "Sim. Escolha o estilo Documento oficial chinês (公文) antes de converter. O corpo do texto usa FangSong e os títulos usam FZXiaoBiaoSong, SimHei e KaiTi nos tamanhos de costume, com Times New Roman para o texto latino. Essas fontes precisam estar instaladas onde o documento for aberto."
     },
     {
-      "q": "Qual a diferença para o Pandoc?",
+      "q": "Qual a diferença em relação ao Pandoc?",
       "a": "O Pandoc é um conversor de linha de comando poderoso, mas precisa ser instalado e configurado antes. O Markdown to Word funciona na hora no seu navegador, sem instalar nada."
     }
   ],
@@ -123,10 +123,10 @@
   "onlyFirstFile": "Apenas o primeiro arquivo foi convertido. Adicione os outros um de cada vez.",
   "conversionAnnouncement": "Conversão concluída. Seu documento do Word está pronto para baixar.",
   "convertingStatus": "Convertendo…",
-  "dismiss": "Dispensar",
+  "dismiss": "Fechar",
   "suggestLanguage": "Também disponível em português",
   "promo": {
-    "label": "De quem criou",
+    "label": "Do criador",
     "body": "Eu criei esta ferramenta gratuita — e escrevi o livro sobre trabalhar de forma aberta. <strong>Open &amp; Async</strong> é o guia testado no GitHub para equipes remotas e distribuídas.",
     "cta": "Compre agora",
     "coverAlt": "Capa do livro Open and Async",
