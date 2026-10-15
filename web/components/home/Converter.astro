@@ -1,5 +1,5 @@
 ---
-// Converter: the input (dropzone, paste box, style) and the post-conversion
+// Converter: the input (paste box, style, dropzone) and the post-conversion
 // results panels. The element ids and data-* attributes here are the contract
 // with the browser logic in src/index.ts — keep them in sync with that module.
 import { useTranslations } from '../../i18n';
@@ -33,10 +33,97 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
     data-downloaded={t.downloadedButton}
     data-dismiss={t.dismiss}
   >
+    <div
+      class="md-panel panel-focus relative overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
+    >
+      <div
+        class="flex items-center gap-2 border-b border-rule-light px-4 py-2 dark:border-rule-dark"
+      >
+        <span class="h-2.5 w-2.5 rounded-full bg-navy-soft dark:bg-mist"></span>
+        <label
+          for="markdown-input"
+          class="font-mono text-xs font-medium tracking-wide text-navy-soft uppercase rtl:font-sans rtl:tracking-normal dark:text-mist"
+          >{t.panelMarkdown}</label
+        >
+      </div>
+      <textarea
+        id="markdown-input"
+        rows="9"
+        dir="ltr"
+        spellcheck="false"
+        placeholder={t.pastePlaceholder}
+        class="block w-full resize-y bg-transparent px-4 py-3 font-mono text-[0.82rem] leading-relaxed text-navy placeholder:text-navy-soft dark:text-snow dark:placeholder:text-mist"
+      ></textarea>
+    </div>
+
+    <div
+      class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
+    >
+      <div class="flex flex-col gap-1 text-start">
+        <label
+          for="font-preset"
+          class="font-mono text-[0.72rem] font-medium tracking-wide text-navy-soft uppercase rtl:font-sans rtl:tracking-normal dark:text-mist"
+          >{t.styleLabel}</label
+        >
+        <select
+          id="font-preset"
+          aria-describedby="font-preset-hint"
+          class="min-h-11 rounded-lg border border-rule-light bg-paper-card px-3 py-2 text-sm text-navy focus-visible:outline-2 dark:border-rule-dark dark:bg-ink-card dark:text-snow"
+        >
+          <option value="">{t.styleDefault}</option>
+          <option value="chinese-official">{t.styleChineseOfficial}</option>
+        </select>
+      </div>
+      <button
+        id="convert-button"
+        type="button"
+        class="btn btn-accent disabled:cursor-not-allowed disabled:opacity-60"
+        disabled
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="rtl:-scale-x-100"
+          aria-hidden="true"
+        >
+          <path d="M5 12h14" />
+          <path d="m12 5 7 7-7 7" />
+        </svg>
+        <span id="convert-label">{t.convertButton}</span>
+      </button>
+    </div>
+    {/* Suggests the 公文 preset when the text is mostly Chinese and no style
+         is chosen; src/index.ts toggles it. */}
+    <p
+      id="font-preset-hint"
+      class="mt-2 hidden text-start text-sm text-navy-soft dark:text-mist"
+    >
+      {t.styleChineseHint}
+    </p>
+
+    {/* The other way in: a file. It converts as soon as it lands, so it sits
+         below the Convert button that only the paste box needs, and below
+         the style picker that applies to both. */}
+    <div class="mt-8 flex items-center gap-3" aria-hidden="true">
+      <span class="rule flex-1"></span>
+      <span
+        class="font-mono text-[0.72rem] tracking-[0.18em] text-navy-soft uppercase rtl:font-sans rtl:tracking-normal dark:text-mist"
+        >{t.orFile}</span
+      >
+      <span class="rule flex-1"></span>
+    </div>
+
     <label
       for="file"
       id="dropzone"
-      class="dropzone group flex cursor-pointer flex-col items-center rounded-2xl px-6 py-12 text-center backdrop-blur-sm"
+      class="dropzone group mt-4 flex cursor-pointer flex-col items-center rounded-2xl px-6 py-10 text-center backdrop-blur-sm"
     >
       <span
         class="dropzone-icon mb-5 inline-flex h-14 w-14 items-center justify-center rounded-full border border-chartreuse/40 bg-chartreuse/10 text-chartreuse-deep transition-transform dark:text-chartreuse"
@@ -113,91 +200,6 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
         class="sr-only"
       />
     </label>
-
-    {/* The other way in: paste. Same panel chrome as the Markdown result. */}
-    <div class="mt-6 flex items-center gap-3" aria-hidden="true">
-      <span class="rule flex-1"></span>
-      <span
-        class="font-mono text-[0.72rem] tracking-[0.18em] text-navy-soft uppercase rtl:font-sans rtl:tracking-normal dark:text-mist"
-        >{t.orPaste}</span
-      >
-      <span class="rule flex-1"></span>
-    </div>
-
-    <div
-      class="md-panel panel-focus relative mt-4 overflow-hidden rounded-xl border border-rule-light bg-paper-card dark:border-rule-dark dark:bg-ink-card"
-    >
-      <div
-        class="flex items-center gap-2 border-b border-rule-light px-4 py-2 dark:border-rule-dark"
-      >
-        <span class="h-2.5 w-2.5 rounded-full bg-navy-soft dark:bg-mist"></span>
-        <label
-          for="markdown-input"
-          class="font-mono text-xs font-medium tracking-wide text-navy-soft uppercase rtl:font-sans rtl:tracking-normal dark:text-mist"
-          >{t.panelMarkdown}</label
-        >
-      </div>
-      <textarea
-        id="markdown-input"
-        rows="9"
-        dir="ltr"
-        spellcheck="false"
-        placeholder={t.pastePlaceholder}
-        class="block w-full resize-y bg-transparent px-4 py-3 font-mono text-[0.82rem] leading-relaxed text-navy placeholder:text-navy-soft dark:text-snow dark:placeholder:text-mist"
-      ></textarea>
-    </div>
-
-    <div
-      class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
-    >
-      <div class="flex flex-col gap-1 text-start">
-        <label
-          for="font-preset"
-          class="font-mono text-[0.72rem] font-medium tracking-wide text-navy-soft uppercase rtl:font-sans rtl:tracking-normal dark:text-mist"
-          >{t.styleLabel}</label
-        >
-        <select
-          id="font-preset"
-          aria-describedby="font-preset-hint"
-          class="min-h-11 rounded-lg border border-rule-light bg-paper-card px-3 py-2 text-sm text-navy focus-visible:outline-2 dark:border-rule-dark dark:bg-ink-card dark:text-snow"
-        >
-          <option value="">{t.styleDefault}</option>
-          <option value="chinese-official">{t.styleChineseOfficial}</option>
-        </select>
-      </div>
-      <button
-        id="convert-button"
-        type="button"
-        class="btn btn-accent disabled:cursor-not-allowed disabled:opacity-60"
-        disabled
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="rtl:-scale-x-100"
-          aria-hidden="true"
-        >
-          <path d="M5 12h14" />
-          <path d="m12 5 7 7-7 7" />
-        </svg>
-        <span id="convert-label">{t.convertButton}</span>
-      </button>
-    </div>
-    {/* Suggests the 公文 preset when the text is mostly Chinese and no style
-         is chosen; src/index.ts toggles it. */}
-    <p
-      id="font-preset-hint"
-      class="mt-2 hidden text-start text-sm text-navy-soft dark:text-mist"
-    >
-      {t.styleChineseHint}
-    </p>
   </div>
 
   {/* Results (revealed after a successful conversion) */}

@@ -9,7 +9,7 @@
   "dropzoneBrowsePrefix": "or ",
   "dropzoneBrowseLink": "click to choose a file",
   "dropzoneNote": "Up to 5 MB · Converted on this device, never uploaded",
-  "orPaste": "or paste Markdown",
+  "orFile": "or use a file",
   "pastePlaceholder": "# My document\n\nPaste or type **Markdown** here, then convert it to Word.",
   "styleLabel": "Style",
   "styleDefault": "Default",
@@ -27,8 +27,8 @@
   "panelPreview": "Preview",
   "steps": [
     {
-      "t": "Drop or paste",
-      "d": "Drag in a .md file, choose one, or paste Markdown."
+      "t": "Paste or drop",
+      "d": "Paste Markdown, or drag in a .md file or choose one."
     },
     {
       "t": "Convert",
@@ -61,7 +61,7 @@
   "faqs": [
     {
       "q": "How do I convert Markdown to Word?",
-      "a": "Drop a .md file onto the page, choose one, or paste your Markdown, then click Convert to Word. Download the .docx, or copy the formatted text and paste it into Word."
+      "a": "Paste your Markdown and click Convert to Word, or drop a .md file onto the page (or choose one) to convert it right away. Download the .docx, or copy the formatted text and paste it into Word."
     },
     {
       "q": "Is Markdown to Word free?",

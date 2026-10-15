@@ -41,7 +41,7 @@ export interface UIStrings {
   /** Line inside the dropzone: size limit + "never uploaded" reassurance. */
   dropzoneNote: string;
   /** Divider between the dropzone and the paste box. */
-  orPaste: string;
+  orFile: string;
   pastePlaceholder: string;
   /** Label for the document style (font preset) menu. */
   styleLabel: string;
