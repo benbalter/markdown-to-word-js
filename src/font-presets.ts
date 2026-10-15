@@ -11,16 +11,16 @@ export interface LevelStyle {
   latin: string;
   /** Typeface for Chinese characters. */
   eastAsia: string;
-  /** Font size in points; Chinese sizes map to 二号 = 22, 三号 = 16. */
+  /** Font size in points. Chinese named sizes: size 2 (二号) = 22pt, size 3 (三号) = 16pt. */
   sizePt: number;
   bold: boolean;
 }
 
-/** Word 行距规则。预设目前只需要单倍。 */
+/** Word line spacing rule. The presets only need single spacing so far. */
 export type LineSpacing = 'single';
 
 export interface ParagraphStyle {
-  /** 段前/段后间距 in points. */
+  /** Paragraph spacing before and after, in points. */
   beforePt: number;
   afterPt: number;
   lineSpacing: LineSpacing;
@@ -37,15 +37,22 @@ export interface FontPreset {
 const LATIN_FONT = 'Times New Roman';
 const BODY_FONT = '仿宋';
 
-/** 二号 */
+/** Chinese size 2 (二号). */
 const SIZE_ER = 22;
-/** 三号 */
+/** Chinese size 3 (三号). */
 const SIZE_SAN = 16;
 
 /**
- * Fonts and sizes for Chinese official documents (公文): 正文仿宋三号,
- * 一级标题方正小标宋简体二号, 二级标题黑体三号, 三级标题楷体三号,
- * 四级及以下标题为加粗仿宋三号. 各级均为段前段后 0 行、单倍行距.
+ * Fonts and sizes for Chinese official documents (公文):
+ *
+ * - Body: FangSong (仿宋), size 3
+ * - Heading 1: FZXiaoBiaoSong (方正小标宋简体), size 2
+ * - Heading 2: SimHei (黑体), size 3
+ * - Heading 3: KaiTi (楷体), size 3
+ * - Heading 4 and below: bold FangSong, size 3
+ *
+ * Every level uses Times New Roman for Latin text, no space before or after
+ * paragraphs, and single line spacing.
  */
 export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
   body: { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: false },
