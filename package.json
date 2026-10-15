@@ -38,7 +38,7 @@
     "clipboard": "^2.0.11",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.2",
-    "marked": "^11.1.1"
+    "marked": "^18.0.0"
   },
   "author": "Ben Balter <ben@balter.com>",
   "license": "MIT",
