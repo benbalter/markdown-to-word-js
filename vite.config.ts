@@ -37,14 +37,6 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['@turbodocx/html-to-docx', 'marked', 'file-saver'],
-          ui: ['bootstrap', 'clipboard']
-        }
-      }
-    }
   },
   server: {
     port: 3000,

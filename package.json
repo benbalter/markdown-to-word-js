@@ -10,11 +10,13 @@
     "dev": "npx vite dev --host",
     "build": "npx tsc && npx vite build",
     "preview": "npx vite preview",
-    "lint": "npx eslint . --ext .ts --fix",
+    "lint": "eslint .",
     "format": "npx prettier --write .",
-    "test": "npx vitest run"
+    "test": "npx vitest run",
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/file-saver": "^2.0.7",
     "@types/marked": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.71.2",
@@ -22,10 +24,11 @@
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
     "jsdom": "^30.1.3",
     "mammoth": "^1.13.0",
     "prettier": "^3.9.10",
-    "typescript": "^7.0.2",
+    "typescript": "~6.0.3",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
   },

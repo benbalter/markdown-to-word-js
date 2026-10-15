@@ -71,7 +71,7 @@ export async function convertMarkdownToWord(
     return wordDocument;
   } catch (error) {
     console.error('Word document generation error:', error);
-    throw new Error('Failed to generate Word document');
+    throw new Error('Failed to generate Word document', { cause: error });
   }
 }
 
