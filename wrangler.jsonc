@@ -20,4 +20,7 @@
     "not_found_handling": "404-page",
   },
   "observability": { "enabled": true },
+  // Branch builds run `wrangler preview` (Worker Previews), which refuses to
+  // run without this block. Empty: previews reuse the top-level settings.
+  "previews": {},
 }

@@ -19,7 +19,7 @@ The site is static: `npm run build` writes `dist/`, and Cloudflare [Workers Stat
 [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) watches the GitHub repo:
 
 - **Push to `main`:** runs `npm run build && npm test`, then `npx wrangler deploy`. That's a production deploy, and failing tests stop it.
-- **Push to any other branch:** the same build, then `npx wrangler versions upload`, which publishes a preview URL without touching production.
+- **Push to any other branch:** the same build, then `npx wrangler preview`, which publishes a [Worker Preview](https://developers.cloudflare.com/workers/previews/) URL without touching production. It needs the empty `previews` block in `wrangler.jsonc`.
 - Pushes that only touch `.github/`, `docs/`, the e2e specs, or the top-level docs don't start a build.
 
 GitHub Actions ([`ci.yml`](../.github/workflows/ci.yml)) runs lint, typecheck, the build, unit and e2e tests, and `wrangler deploy --dry-run`, but never deploys.
