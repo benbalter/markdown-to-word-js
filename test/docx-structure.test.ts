@@ -15,12 +15,22 @@ async function documentXml(markdown: string, options = {}): Promise<string> {
   return zip.file('word/document.xml')!.async('string');
 }
 
+function stripXmlTagsSafely(input: string): string {
+  let current = input;
+  let previous: string;
+  do {
+    previous = current;
+    current = current.replace(/<[^>]+>/g, '');
+  } while (current !== previous);
+  return current;
+}
+
 /** Each body paragraph as its text, or `<rule>` for an empty bordered one. */
 function paragraphs(xml: string): string[] {
   const body = xml.slice(xml.lastIndexOf('</w:sectPr>'));
   return (body.match(/<w:p>[\s\S]*?<\/w:p>/g) ?? []).map((p) => {
     const text = (p.match(/<w:t[^>]*>[^<]*<\/w:t>/g) ?? [])
-      .map((t) => t.replace(/<[^>]+>/g, ''))
+      .map((t) => stripXmlTagsSafely(t))
       .join('');
     return text === '' && /<w:pBdr>\s*<w:bottom w:val="single"/.test(p) ? '<rule>' : text;
   });
