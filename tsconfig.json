@@ -1,22 +1,22 @@
 {
+  // Astro's strict preset, covering the site (web/), the converter (src/), the
+  // tests, and the config files, so `npm run typecheck` checks all of them.
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "declaration": true,
-    "outDir": "build",
-    "rootDir": "src"
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "build"]
+  "include": [
+    ".astro/types.d.ts",
+    "web/**/*",
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "*.ts",
+    "*.mjs"
+  ],
+  "exclude": ["dist", "node_modules"]
 }

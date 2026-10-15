@@ -1,0 +1,85 @@
+---
+// Home page shell. Composes the page from focused section components (see
+// ./home/*) and owns only what spans them: the schema.org structured data and
+// the client script that wires up the converter. Each section resolves its own
+// translations from the route's locale (Astro.currentLocale).
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+import Layout from '../layouts/Layout.astro';
+import { asLocale, localeMeta, useTranslations } from '../i18n';
+import Hero from './home/Hero.astro';
+import Converter from './home/Converter.astro';
+import Promo from './home/Promo.astro';
+import HowItWorks from './home/HowItWorks.astro';
+import ConversionTable from './home/ConversionTable.astro';
+import ReverseCallout from './home/ReverseCallout.astro';
+import Faq from './home/Faq.astro';
+
+const locale = asLocale(Astro.currentLocale);
+const meta = localeMeta[locale];
+const t = useTranslations(locale);
+
+// Structured data (schema.org) for rich results: the app entity + the FAQ.
+// `inLanguage` and the human-readable copy follow the active locale. It spans
+// multiple sections (FAQ copy lives in Faq.astro), so it stays here at the shell.
+// URLs derive from `site` so the localized page describes its own URL and card.
+const image = `/og/${locale}.png`;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: 'Markdown to Word Converter',
+      alternateName: 'md2word',
+      url: getAbsoluteLocaleUrl(locale, '/'),
+      description: t.schemaDescription,
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires JavaScript',
+      inLanguage: meta.htmlLang,
+      image: new URL(image, Astro.site).href,
+      isAccessibleForFree: true,
+      featureList: t.schemaFeatureList,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      author: {
+        '@type': 'Person',
+        name: 'Ben Balter',
+        url: 'https://ben.balter.com',
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: t.faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+};
+---
+
+<Layout
+  title={t.metaTitle}
+  description={t.metaDescription}
+  image={image}
+  structuredData={structuredData}
+  i18nPath="/"
+>
+  <Hero />
+  <Converter />
+  {/* Everything below the converter is for visitors who haven't converted
+       yet. Once a result shows, src/index.ts hides this block so the page is
+       just the output; "Convert another" brings it back. Without JS it
+       never hides. */}
+  <div id="pre-result">
+    <HowItWorks />
+    <Promo />
+    <ConversionTable />
+    <ReverseCallout />
+    <Faq />
+  </div>
+</Layout>
+
+<script>
+  import '../../src/index.ts';
+</script>

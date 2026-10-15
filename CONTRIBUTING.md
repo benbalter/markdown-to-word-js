@@ -5,7 +5,7 @@ Thank you for your interest in contributing to this project! This document provi
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/markdown-to-word.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/markdown-to-word-js.git`
 3. Install dependencies: `npm install`
 4. Start the development server: `npm run dev`
 
@@ -13,14 +13,22 @@ Thank you for your interest in contributing to this project! This document provi
 
 ### Prerequisites
 
-- Node.js 18 or later
-- npm or yarn
+- Node.js 22.12 or later (`.nvmrc` pins the version CI uses)
+- Google Chrome, for the Playwright end-to-end tests
 
 ### Project Structure
 
 ```
+web/                      # The Astro site (srcDir)
+├── pages/                # Routes: home, privacy, terms, 404
+├── layouts/              # Page shell: <head>, SEO tags, header, footer
+├── components/home/      # Home page sections (Converter.astro is the UI)
+├── i18n/                 # UI strings (en.json) and locale config
+├── content/legal/        # Privacy and terms, in Markdown
+├── styles/               # Tailwind theme and components (global.css)
+└── site.ts               # The domain and repo URLs, in one place
 src/
-├── index.ts              # Main application entry point
+├── index.ts              # Browser entry: wires up Converter.astro
 ├── buffer-global.ts      # Buffer polyfill html-to-docx needs for images
 ├── converter.ts          # Word document generation logic
 ├── docx-code-blocks.ts   # Repairs code blocks in an already generated .docx
@@ -30,14 +38,20 @@ src/
 ├── font-presets.ts       # Font preset definitions
 ├── markdown-parser.ts    # Markdown parsing utilities
 └── xml-part.ts           # Shared helpers for the XML parts of a .docx
+test/                     # Vitest unit tests; test/e2e/ holds Playwright specs
+scripts/                  # OG image, favicon, translation, and Cloudflare setup scripts
 ```
 
 ### Available Scripts
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm run lint` - Run ESLint (`npm run lint:fix` to apply automatic fixes)
+- `npm run dev` - Start the dev server with hot reload
+- `npm run build` - Type-check the site and build it into `dist/`, with SEO and accessibility checks
+- `npm run lint` - Run ESLint (`npm run lint:fix` applies fixes)
+- `npm run typecheck` - Type-check everything, including tests and scripts
+- `npm test` - Run the unit tests
+- `npm run test:e2e` - Run the Playwright tests against `dist/` (build first)
 - `npm run format` - Format code with Prettier
+- `npm run gen:og` / `npm run gen:icons` - Regenerate the social card and favicons
 
 ## Contributing Guidelines
 
@@ -47,7 +61,8 @@ This project uses ESLint and Prettier for code formatting. Please ensure your co
 
 ```bash
 npm run lint
-npm run format
+npm run typecheck
+npm test
 ```
 
 ### Commit Messages
@@ -63,7 +78,7 @@ Use clear, descriptive commit messages:
 1. Create a feature branch: `git checkout -b feature/your-feature`
 2. Make your changes
 3. Add tests if applicable
-4. Ensure code passes linting: `npm run lint`
+4. Ensure the checks pass: `npm run lint && npm run typecheck && npm test && npm run build`
 5. Commit your changes: `git commit -m "feat: your feature"`
 6. Push to your fork: `git push origin feature/your-feature`
 7. Create a Pull Request
@@ -96,7 +111,6 @@ We welcome contributions in these areas:
 
 ### Medium Priority
 
-- Dark mode improvements
 - Better error handling and user feedback
 - Accessibility improvements
 - Mobile experience enhancements

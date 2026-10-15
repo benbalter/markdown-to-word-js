@@ -1,0 +1,23 @@
+// Cloudflare Workers Static Assets: serves dist/ (from `npm run build`) at the
+// custom domain. There's no Worker script (`main`), so every request is a
+// static asset. Deploys run in Workers Builds on push (see docs/cloudflare.md);
+// don't run `wrangler deploy` by hand.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "markdown-to-word-js",
+  // The account that owns the md2word.app zone. Pinned so a local deploy from
+  // a login with several accounts can't land in the wrong one (not a secret).
+  "account_id": "257c6aae4bebbdcd5bbe1d9136c08f1a",
+  "compatibility_date": "2026-10-01",
+  // Serve only on the custom domain; branch builds get preview URLs.
+  "workers_dev": false,
+  "preview_urls": true,
+  // Must match SITE_HOST in web/site.ts.
+  "routes": [{ "pattern": "md2word.app", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist",
+    // Unknown paths get the branded web/pages/404.astro with a 404 status.
+    "not_found_handling": "404-page",
+  },
+  "observability": { "enabled": true },
+}

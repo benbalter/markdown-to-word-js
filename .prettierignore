@@ -1,0 +1,10 @@
+# Test inputs: the converter must see these bytes exactly as written.
+test/fixtures/
+
+# Generated output.
+dist/
+.astro/
+coverage/
+test-results/
+playwright-report/
+package-lock.json

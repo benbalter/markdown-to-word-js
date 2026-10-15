@@ -52,3 +52,8 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+# Astro, Wrangler, and Playwright output
+.astro/
+.wrangler/
+test-results/
+playwright-report/

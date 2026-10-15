@@ -1,0 +1,9 @@
+# Security contact for md2word.app (RFC 9116). Conversion runs entirely in your
+# browser; no documents are uploaded. Please report vulnerabilities privately
+# through a GitHub security advisory rather than a public issue.
+
+Contact: https://github.com/benbalter/markdown-to-word-js/security/advisories/new
+Contact: mailto:ben@balter.com
+Expires: 2027-10-14T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://md2word.app/.well-known/security.txt
