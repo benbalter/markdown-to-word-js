@@ -103,7 +103,6 @@ export interface UIStrings {
     linksLabel: string;
   };
   footerTagline: string;
-  homeAria: string;
 
   // <head> / SEO
   metaTitle: string;

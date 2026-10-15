@@ -13,7 +13,7 @@ _TL;DR:_ This application is entirely client-side. Your Markdown and the Word do
 
 When you choose, drop, or paste Markdown, it is converted to a Word document entirely within your browser using JavaScript. The contents are never transmitted to this site or any third party. All conversion happens locally on your device.
 
-If your Markdown links to images on other websites (for example `![logo](https://example.com/logo.png)`), your browser loads those images from the sites you linked, the same as any web page with images. Nothing else about your document is sent to them.
+If your Markdown links to images on other websites (for example `![logo](https://example.com/logo.png)`), your browser loads those images from the sites you linked, to show them in the preview and to embed them in the Word document, the same as any web page with images. Nothing else about your document is sent to them.
 
 ### Information stored on your device
 

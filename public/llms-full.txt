@@ -6,7 +6,7 @@
 
 [Markdown to Word](https://md2word.app/) takes Markdown three ways: drop a `.md` file onto the page, choose one with the file picker, or paste Markdown into the text box. It produces a Word document you can download as a `.docx`, and a preview you can copy as formatted text to paste straight into Word or Google Docs.
 
-It supports GitHub Flavored Markdown: headings (as Word's Heading 1–6 styles), bold, italic, strikethrough, bulleted and numbered lists, tables, links, inline code, fenced code blocks (in a monospace font with line breaks kept), and block quotes. The first heading becomes the document's title and file name.
+It supports GitHub Flavored Markdown: headings (as Word's Heading 1–6 styles), bold, italic, strikethrough, bulleted and numbered lists, task lists (as ☒ and ☐ items), tables (bordered, with a header row that repeats on each page), links, inline code and fenced code blocks (in a monospace font, line breaks kept), block quotes, and horizontal rules. The first heading becomes the document's title and file name.
 
 AI chat apps such as ChatGPT and Claude answer in Markdown, so pasting a response here turns it into a properly formatted Word document instead of text full of asterisks and pound signs.
 

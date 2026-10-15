@@ -44,6 +44,15 @@ describe('prepareHtmlForDocx', () => {
     });
   });
 
+  describe('style placeholder', () => {
+    it('renames the CSP-safe placeholder to style in tags only, never in text', () => {
+      const html = prepare('`x` and the words data-docx-style= stay put\n');
+      expect(html).not.toContain('<span data-docx-style=');
+      expect(html).toContain('<span style="font-family: Courier New">');
+      expect(html).toContain('the words data-docx-style= stay put');
+    });
+  });
+
   describe('horizontal rules', () => {
     it('stands in a centered section break that reads fine if the rule patch fails', () => {
       expect(prepare('a\n\n---\n\nb\n')).toContain(

@@ -4,15 +4,15 @@ The site is static: `npm run build` writes `dist/`, and Cloudflare [Workers Stat
 
 ## What lives where
 
-| Setting | Where |
-| --- | --- |
-| Domain | `SITE_HOST` in [`web/site.ts`](../web/site.ts), and `routes` in [`wrangler.jsonc`](../wrangler.jsonc). [`test/site-urls.test.ts`](../test/site-urls.test.ts) checks that the files in `public/` agree. |
-| Assets, 404 handling, preview URLs | [`wrangler.jsonc`](../wrangler.jsonc) |
-| Response headers (`frame-ancestors`, caching) | [`public/_headers`](../public/_headers) |
-| Content-Security-Policy | `security.csp` in [`astro.config.mjs`](../astro.config.mjs), emitted as a `<meta>` tag |
-| Build and deploy (Workers Builds) | [`scripts/cloudflare-builds.mjs`](../scripts/cloudflare-builds.mjs), applied through the API |
-| HSTS | The Cloudflare zone's SSL/TLS settings |
-| Analytics | Cloudflare Web Analytics on the zone, injected at the edge (allowed by the CSP, disclosed on [/privacy/](../web/content/legal/privacy.md)) |
+| Setting                                       | Where                                                                                                                                                                                                  |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Domain                                        | `SITE_HOST` in [`web/site.ts`](../web/site.ts), and `routes` in [`wrangler.jsonc`](../wrangler.jsonc). [`test/site-urls.test.ts`](../test/site-urls.test.ts) checks that the files in `public/` agree. |
+| Assets, 404 handling, preview URLs            | [`wrangler.jsonc`](../wrangler.jsonc)                                                                                                                                                                  |
+| Response headers (`frame-ancestors`, caching) | [`public/_headers`](../public/_headers)                                                                                                                                                                |
+| Content-Security-Policy                       | `security.csp` in [`astro.config.mjs`](../astro.config.mjs), emitted as a `<meta>` tag                                                                                                                 |
+| Build and deploy (Workers Builds)             | [`scripts/cloudflare-builds.mjs`](../scripts/cloudflare-builds.mjs), applied through the API                                                                                                           |
+| HSTS                                          | The Cloudflare zone's SSL/TLS settings                                                                                                                                                                 |
+| Analytics                                     | Cloudflare Web Analytics on the zone, injected at the edge (allowed by the CSP, disclosed on [/privacy/](../web/content/legal/privacy.md))                                                             |
 
 ## Deploys
 
@@ -27,7 +27,7 @@ GitHub Actions ([`ci.yml`](../.github/workflows/ci.yml)) runs lint, typecheck, t
 ## First-time setup
 
 1. Buy the domain through Cloudflare Registrar, so its zone lands in the account.
-2. Create the Worker and attach the domain with a first deploy from a clean checkout of `main`: `npm ci && npm run build && npx wrangler deploy`. That's a production deploy, so do it when the site is ready.
+2. Create the Worker and attach the domain with a first deploy: `npm ci && npm run build && npm test && npx wrangler deploy`. Workers Builds can only attach to a Worker that exists, and a new Worker's first upload [has to be `wrangler deploy`](https://developers.cloudflare.com/workers/versions-and-deployments/deployment-management/#first-upload) (`versions upload` fails), so this is a production deploy. For the initial launch it ran from the branch that added this site, before the domain had any traffic.
 3. Connect Workers Builds:
 
    ```sh

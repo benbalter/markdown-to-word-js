@@ -47,10 +47,12 @@
     "Bold & italic",
     "Strikethrough",
     "Bulleted & numbered lists",
-    "Tables",
+    "☒ / ☐ checklist items",
+    "Bordered tables with a repeating header row",
     "Clickable links",
-    "Code blocks in a monospace font",
-    "Indented block quotes"
+    "Code in a monospace font",
+    "Indented block quotes",
+    "A line across the page"
   ],
   "reverseHeading": "Going the other way?",
   "reverseBody": "To turn a Word or Google Doc into clean Markdown, use word2md.com. Same maker, same promise: it all happens in your browser.",
@@ -75,7 +77,7 @@
     },
     {
       "q": "Which Markdown is supported?",
-      "a": "GitHub Flavored Markdown: headings, bold, italic, strikethrough, bulleted and numbered lists, tables, links, inline code, fenced code blocks, and block quotes. The first heading becomes the document's title and file name."
+      "a": "GitHub Flavored Markdown: headings, bold, italic, strikethrough, bulleted and numbered lists, task lists, tables, links, inline code, fenced code blocks, block quotes, and horizontal rules. The first heading becomes the document's title and file name."
     },
     {
       "q": "Can I paste the result into Google Docs?",
@@ -101,7 +103,6 @@
     "linksLabel": "Site links"
   },
   "footerTagline": "Converted in your browser · nothing is uploaded",
-  "homeAria": "Markdown to Word — home",
   "metaTitle": "Markdown to Word Converter — Free .md to .docx Online",
   "metaDescription": "Free, open-source converter that turns Markdown, including ChatGPT and Claude replies, into formatted Word (.docx) files in your browser. Nothing is uploaded.",
   "schemaDescription": "Free, open-source tool that converts GitHub Flavored Markdown to formatted Word (.docx) documents entirely in your browser.",

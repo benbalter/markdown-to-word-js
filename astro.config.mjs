@@ -35,9 +35,12 @@ export default defineConfig({
   build: { inlineStylesheets: 'always' },
   // Content-Security-Policy, emitted per page as a <meta http-equiv> tag with
   // hashes for Astro's inline scripts and styles. "Nothing is uploaded" is a
-  // promise: connect-src is the same origin plus Cloudflare Web Analytics,
-  // which the privacy policy discloses and which Cloudflare injects at the
-  // edge, so it never appears in dist/. Style *attributes* are blocked once
+  // promise: nothing the page sends carries the document. connect-src allows
+  // https: because html-to-docx fetches the remote images a document links to
+  // in order to embed them (the preview loads the same URLs through img-src),
+  // plus Cloudflare Web Analytics, which the privacy policy discloses and which
+  // Cloudflare injects at the edge, so it never appears in dist/. script-src
+  // stays 'self', so injected code can't run to use that. Style *attributes* are blocked once
   // hashes are present, so markup must not use style="…".
   // frame-ancestors can't be set from a <meta> tag; it's in public/_headers.
   // Shiki highlights with inline style attributes, which the CSP blocks.
@@ -48,7 +51,7 @@ export default defineConfig({
         "default-src 'self'",
         "img-src 'self' data: blob: https:",
         "font-src 'self'",
-        "connect-src 'self' https://cloudflareinsights.com",
+        "connect-src 'self' https:",
         "worker-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",

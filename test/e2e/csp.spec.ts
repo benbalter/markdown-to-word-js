@@ -1,4 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
+import { readFile } from 'fs/promises';
+import JSZip from 'jszip';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // The site ships a strict Content-Security-Policy (astro.config.mjs). These
 // specs fail on any violation, including during a real conversion: the
@@ -26,15 +30,50 @@ async function trackViolations(page: Page): Promise<string[]> {
   return violations;
 }
 
+// A real (if tiny) photo: html-to-docx skips images under 1 KB.
+const PHOTO = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  'fixtures/photo.png'
+);
+
 test.describe('Content-Security-Policy', () => {
-  test('pages ship a CSP that connects only to the same origin', async ({
+  test('a remote image converts without CSP violations', async ({ page }) => {
+    const violations = await trackViolations(page);
+    await page.route('https://images.example/**', (route) =>
+      route.fulfill({
+        path: PHOTO,
+        contentType: 'image/png',
+        headers: { 'access-control-allow-origin': '*' },
+      })
+    );
+    await page.goto('/');
+    await page
+      .locator('#markdown-input')
+      .fill('# Pic\n\n![photo](https://images.example/photo.png)');
+    await page.locator('#convert-button').click();
+    await expect(page.locator('#results')).toBeVisible({ timeout: 15000 });
+    expect(violations).toEqual([]);
+
+    // The image is embedded in the .docx, not just shown in the preview.
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.locator('#download-button').click(),
+    ]);
+    const zip = await JSZip.loadAsync(await readFile((await download.path())!));
+    expect(
+      Object.keys(zip.files).some((f) => f.startsWith('word/media/'))
+    ).toBe(true);
+  });
+
+  test('pages ship a CSP that never allows eval or plugins', async ({
     page,
   }) => {
     await page.goto('/');
     const csp = await page
       .locator('meta[http-equiv="content-security-policy"]')
       .getAttribute('content');
-    expect(csp).toContain("connect-src 'self' https://cloudflareinsights.com;");
+    // https: so html-to-docx can fetch the images a document links to.
+    expect(csp).toContain("connect-src 'self' https:;");
     expect(csp).toContain("object-src 'none'");
     expect(csp).not.toContain('unsafe-eval');
   });

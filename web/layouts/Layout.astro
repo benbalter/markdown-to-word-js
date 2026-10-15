@@ -168,9 +168,11 @@ const footerLinks = [
       <a
         href={homeHref}
         class="group inline-flex items-center gap-2.5 no-underline"
-        aria-label={t.homeAria}
       >
+        {/* The badge is decoration; the visible name is the link's accessible
+             name, so voice-control users can say what they see. */}
         <span
+          aria-hidden="true"
           class="rounded-md border border-chartreuse/50 bg-chartreuse/10 px-1.5 py-0.5 font-mono text-[0.6875rem] font-bold tracking-tight text-chartreuse-deep transition-colors group-hover:border-chartreuse dark:text-chartreuse"
           >md2w</span
         >

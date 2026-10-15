@@ -16,6 +16,15 @@ const CHECKBOX = { checked: '☒', unchecked: '☐' };
 export const RULE_TEXT = '* * *';
 
 /**
+ * Stands in for `style` while the HTML is a live DOM. The page's CSP applies
+ * to DOMParser documents too, and blocks (and reports) `style` attributes set
+ * there. (CSSOM is allowed, but it quotes a font name with a space, which the
+ * generator would read as part of the name.) Renamed back to `style` in the
+ * serialized tags, where the CSP doesn't reach.
+ */
+const STYLE_PLACEHOLDER = 'data-docx-style';
+
+/**
  * Adjusts the parser's HTML for html-to-docx, which drops or flattens some of
  * what the browser preview renders:
  *
@@ -42,9 +51,8 @@ export function prepareHtmlForDocx(html: string): string {
   for (const code of Array.from(dom.querySelectorAll('code'))) {
     if (code.closest('pre')) continue;
     const span = dom.createElement('span');
-    // Set as a raw attribute: `style.fontFamily` quotes a name with a space,
-    // and the generator would take the quote as part of the font name.
-    span.setAttribute('style', `font-family: ${CODE_FONT}`);
+    // A raw attribute, not `style.fontFamily`: see STYLE_PLACEHOLDER.
+    span.setAttribute(STYLE_PLACEHOLDER, `font-family: ${CODE_FONT}`);
     span.append(...Array.from(code.childNodes));
     code.append(span);
   }
@@ -64,10 +72,13 @@ export function prepareHtmlForDocx(html: string): string {
 
   for (const rule of Array.from(dom.querySelectorAll('hr'))) {
     const paragraph = dom.createElement('p');
-    paragraph.setAttribute('style', 'text-align: center');
+    paragraph.setAttribute(STYLE_PLACEHOLDER, 'text-align: center');
     paragraph.textContent = RULE_TEXT;
     rule.replaceWith(paragraph);
   }
 
-  return dom.body.innerHTML;
+  // Only inside tags: text can't contain a raw `<`, so it's never touched.
+  return dom.body.innerHTML.replace(/<[^>]+>/g, (tag) =>
+    tag.replace(` ${STYLE_PLACEHOLDER}=`, ' style='),
+  );
 }
