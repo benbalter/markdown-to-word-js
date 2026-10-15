@@ -14,7 +14,7 @@
   "styleLabel": "样式",
   "styleDefault": "默认",
   "styleChineseOfficial": "公文格式",
-  "styleChineseHint": "这看起来是中文文本。如需公文字体，请选择“公文格式”。",
+  "styleChineseHint": "这看起来是中文文本。如需公文格式，请选择“公文格式”。",
   "convertButton": "转换为 Word",
   "convertSectionAria": "转换文档",
   "convertedLabel": "已转换",
@@ -85,7 +85,7 @@
     },
     {
       "q": "能排版成公文格式吗？",
-      "a": "能。转换前选择“公文格式”样式即可。正文使用仿宋，各级标题使用方正小标宋、黑体和楷体，并采用公文常用字号；西文使用 Times New Roman。打开文档的电脑上需要安装这些字体。"
+      "a": "能。转换前选择“公文格式”样式即可。版式依照 GB/T 9704-2012：正文使用仿宋，各级标题使用方正小标宋、黑体和楷体，并采用公文常用字号，西文使用 Times New Roman；A4 纸张、标准页边距，每页 22 行、每行 28 字，标题居中，段落首行缩进两字。打开文档的电脑上需要安装这些字体。"
     },
     {
       "q": "这和 Pandoc 有什么不同？",
@@ -110,7 +110,7 @@
     "将 Markdown（.md）转换为 Word（.docx）",
     "支持 GitHub Flavored Markdown 表格、列表和代码块",
     "复制带格式文本到 Word 或 Google Docs",
-    "公文字体",
+    "公文格式（依照 GB/T 9704-2012）",
     "100% 客户端运行——不会上传任何内容"
   ],
   "errorGeneric": "转换 Markdown 时出错了。请重试。",

@@ -14,7 +14,7 @@
   "styleLabel": "Kiểu",
   "styleDefault": "Mặc định",
   "styleChineseOfficial": "Công văn tiếng Trung (公文)",
-  "styleChineseHint": "Đây có vẻ là văn bản tiếng Trung. Để dùng phông chữ kiểu 公文, hãy chọn “Công văn tiếng Trung (公文)”.",
+  "styleChineseHint": "Đây có vẻ là văn bản tiếng Trung. Để dùng định dạng 公文, hãy chọn “Công văn tiếng Trung (公文)”.",
   "convertButton": "Chuyển sang Word",
   "convertSectionAria": "Chuyển đổi tài liệu",
   "convertedLabel": "Đã chuyển đổi",
@@ -85,7 +85,7 @@
     },
     {
       "q": "Công cụ có định dạng được công văn tiếng Trung (公文) không?",
-      "a": "Có. Chọn kiểu Công văn tiếng Trung (公文) trước khi chuyển đổi. Phần thân dùng FangSong, các tiêu đề dùng FZXiaoBiaoSong, SimHei và KaiTi theo cỡ chữ thông dụng, cùng Times New Roman cho chữ Latinh. Các phông chữ này cần được cài trên máy mở tài liệu."
+      "a": "Có. Chọn kiểu Công văn tiếng Trung (公文) trước khi chuyển đổi. Kiểu này theo tiêu chuẩn GB/T 9704-2012: phần thân dùng FangSong, các tiêu đề dùng FZXiaoBiaoSong, SimHei và KaiTi theo cỡ chữ thông dụng, cùng Times New Roman cho chữ Latinh, trên khổ giấy A4 với lề chuẩn, mỗi trang 22 dòng, mỗi dòng 28 chữ, tiêu đề căn giữa và đoạn văn thụt đầu dòng hai chữ. Các phông chữ này cần được cài trên máy mở tài liệu."
     },
     {
       "q": "Công cụ này khác Pandoc như thế nào?",
@@ -110,7 +110,7 @@
     "Chuyển Markdown (.md) sang Word (.docx)",
     "Bảng, danh sách và khối mã GitHub Flavored Markdown",
     "Sao chép văn bản có định dạng cho Word hoặc Google Docs",
-    "Phông chữ công văn tiếng Trung (公文)",
+    "Định dạng công văn tiếng Trung (公文) theo GB/T 9704-2012",
     "100% phía máy khách — không có gì được tải lên"
   ],
   "errorGeneric": "Đã xảy ra lỗi khi chuyển đổi Markdown của bạn. Vui lòng thử lại.",

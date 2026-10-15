@@ -1,6 +1,11 @@
 import JSZip from 'jszip';
 import { CODE_FONT } from './docx-html.js';
-import { keepXmlDeclaration, WORDPROCESSING_NS as W_NS, XML_NS } from './xml-part.js';
+import {
+  keepXmlDeclaration,
+  paragraphProperty,
+  WORDPROCESSING_NS as W_NS,
+  XML_NS,
+} from './xml-part.js';
 
 export { CODE_FONT };
 
@@ -19,6 +24,9 @@ const THEME_FONT_ATTRIBUTES = ['asciiTheme', 'eastAsiaTheme', 'hAnsiTheme', 'cst
  *   matched in order against `codeBlocks`, and get the monospace face in all
  *   three slots. Keying on the generator's hardcoded code font instead would
  *   also catch any inline `font-family` that names the same font.
+ * - Indent: the same paragraphs get an explicit zero first-line indent, so a
+ *   preset that indents body text (the 公文 one) leaves the first code line
+ *   aligned with the rest.
  *
  * @param codeBlocks The text content of each `<pre>` in the source HTML, in
  *   document order.
@@ -101,6 +109,12 @@ function textRuns(paragraph: Element): Element[] {
 
 function setCodeFont(paragraph: Element): void {
   const document = paragraph.ownerDocument;
+
+  let pPr = firstChild(paragraph, 'pPr');
+  if (!pPr) {
+    pPr = paragraph.insertBefore(document.createElementNS(W_NS, 'w:pPr'), paragraph.firstChild);
+  }
+  paragraphProperty(pPr, 'ind').setAttributeNS(W_NS, 'w:firstLine', '0');
 
   for (const run of textRuns(paragraph)) {
     let rPr = firstChild(run, 'rPr');

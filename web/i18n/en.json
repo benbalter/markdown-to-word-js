@@ -14,7 +14,7 @@
   "styleLabel": "Style",
   "styleDefault": "Default",
   "styleChineseOfficial": "Chinese official document (公文)",
-  "styleChineseHint": "This looks like Chinese text. For 公文-style fonts, choose “Chinese official document (公文)”.",
+  "styleChineseHint": "This looks like Chinese text. For 公文 formatting, choose “Chinese official document (公文)”.",
   "convertButton": "Convert to Word",
   "convertSectionAria": "Convert a document",
   "convertedLabel": "Converted",
@@ -85,7 +85,7 @@
     },
     {
       "q": "Can it format a Chinese official document (公文)?",
-      "a": "Yes. Choose the Chinese official document (公文) style before converting. Body text is set in FangSong, headings in FZXiaoBiaoSong, SimHei, and KaiTi at the customary sizes, with Times New Roman for Latin text. Those fonts need to be installed wherever the document is opened."
+      "a": "Yes. Choose the Chinese official document (公文) style before converting. It follows GB/T 9704-2012: body text in FangSong, headings in FZXiaoBiaoSong, SimHei, and KaiTi at the customary sizes, with Times New Roman for Latin text, on A4 paper with the standard margins, 22 lines of 28 characters per page, a centered title, and paragraphs indented two characters. Those fonts need to be installed wherever the document is opened."
     },
     {
       "q": "How is this different from Pandoc?",
@@ -110,7 +110,7 @@
     "Convert Markdown (.md) to Word (.docx)",
     "GitHub Flavored Markdown tables, lists, and code blocks",
     "Copy formatted text for Word or Google Docs",
-    "Chinese official document (公文) fonts",
+    "Chinese official document (公文) formatting, after GB/T 9704-2012",
     "100% client-side: nothing is uploaded"
   ],
   "errorGeneric": "Something went wrong while converting your Markdown. Please try again.",
