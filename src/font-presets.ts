@@ -74,8 +74,9 @@ const SIZE_SAN = 16;
  * - Heading 1 (the title): FZXiaoBiaoSong (方正小标宋简体), size 2, centered (7.3.1)
  * - Heading 2: SimHei (黑体), size 3
  * - Heading 3: KaiTi (楷体), size 3
- * - Heading 4 and below: FangSong, size 3, not bold, as the standard sets
- *   levels 3 and 4 in plain 仿宋
+ * - Heading 4: FangSong, size 3, bold. The standard sets levels 3 and 4 in
+ *   plain 仿宋, but a bolded fourth level is how these documents are made.
+ * - Heading 5 and below: FangSong, size 3, not bold.
  * - A4 paper with a 37mm top and 28mm left margin around a 156 × 225mm text
  *   block (5.1, 5.2.1)
  * - 22 lines of 28 characters per page (5.2.3), as a document grid with exact
@@ -98,7 +99,7 @@ export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
     },
     { latin: LATIN_FONT, eastAsia: '黑体', sizePt: SIZE_SAN, bold: false },
     { latin: LATIN_FONT, eastAsia: '楷体', sizePt: SIZE_SAN, bold: false },
-    { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: false },
+    { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: true },
     { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: false },
     { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: false },
   ],

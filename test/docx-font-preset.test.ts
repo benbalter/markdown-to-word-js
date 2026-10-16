@@ -229,10 +229,11 @@ describe('Chinese official document font preset', () => {
     expect(styleOf(dom, 'Heading4').eastAsia).toBe('仿宋');
   });
 
-  it('bolds no heading level, as GB/T 9704 sets levels 3 and 4 in plain FangSong', () => {
-    for (const styleId of ['Heading1', 'Heading2', 'Heading3', 'Heading4'] as const) {
+  it('bolds only the fourth heading level', () => {
+    for (const styleId of ['Heading1', 'Heading2', 'Heading3'] as const) {
       expect(styleOf(dom, styleId).bold).toBe(false);
     }
+    expect(styleOf(dom, 'Heading4').bold).toBe(true);
   });
 
   it('keeps every heading font on Times New Roman for Latin characters', () => {
