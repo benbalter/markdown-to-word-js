@@ -229,7 +229,7 @@ describe('Chinese official document font preset', () => {
     expect(styleOf(dom, 'Heading4').eastAsia).toBe('仿宋');
   });
 
-  it('bolds only the fourth heading level', () => {
+  it('bolds only Heading 4, the third level (1.) in GB/T 9704, as is common 公文 practice', () => {
     for (const styleId of ['Heading1', 'Heading2', 'Heading3'] as const) {
       expect(styleOf(dom, styleId).bold).toBe(false);
     }

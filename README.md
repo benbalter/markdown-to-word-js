@@ -59,7 +59,7 @@ Word resolves a typeface per character class, so English words and numbers insid
 
 - The standard names no Latin font. Times New Roman for Latin letters and digits is common practice.
 - The standard says 小标宋体, not 方正小标宋简体 specifically. 方正小标宋简体 is a commercial Founder font that most machines don't have, so Word substitutes another font for the title unless it's installed.
-- Heading 4 is bold, which the standard doesn't ask for: it sets levels 3 and 4 in plain 仿宋. A bolded fourth level is how these documents are written in practice, so levels 5 and 6 stay plain and rely on their numbers (1. and （1）) to stand out, as in a printed 公文.
+- Heading 4, the standard's third level (1.), is bold, which the standard doesn't ask for: it generally sets its third and fourth levels in plain 仿宋. Bolding that level is how these documents are written in practice. Headings 5 and 6 stay plain and rely on their numbers (（1） and ①) to stand out, as in a printed 公文.
 
 Page numbers (7.5) aren't added yet; see [#106](https://github.com/benbalter/markdown-to-word-js/issues/106). Neither are the red separator line and the other 版头 elements, which Markdown has no way to express.
 
