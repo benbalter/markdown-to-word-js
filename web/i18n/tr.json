@@ -16,6 +16,8 @@
   "styleChineseOfficial": "Çin resmî belgesi (公文)",
   "styleChineseHint": "Bu metin Çince gibi görünüyor. 公文 tarzı yazı tipleri için “Çin resmî belgesi (公文)” seçeneğini seçin.",
   "convertButton": "Word'e dönüştür",
+  "shortcutHint": "veya {keys} tuşlarına basın",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "Bir belgeyi dönüştür",
   "convertedLabel": "Dönüştürüldü",
   "downloadButton": ".docx dosyasını indir",
@@ -114,6 +116,8 @@
     "%100 istemci tarafında: hiçbir şey yüklenmez"
   ],
   "errorGeneric": "Markdown'ınız dönüştürülürken bir sorun oluştu. Lütfen tekrar deneyin.",
+  "converterLoadError": "Dönüştürücü yüklenemedi. İnternet bağlantınızı kontrol edin, ardından sayfayı yenileyin.",
+  "tooComplexError": "Bu Markdown, tarayıcınızda dönüştürmek için çok büyük veya çok derin iç içe geçmiş. Daha küçük belgelere bölmeyi deneyin.",
   "fileTooLargeError": "Bu dosya tarayıcınızda dönüştürmek için çok büyük. Lütfen 5 MB'tan küçük bir Markdown dosyası deneyin.",
   "notMarkdownFileError": "Bu bir Markdown veya metin dosyasına benzemiyor, bu yüzden dönüştürülemez. Bunun yerine bir .md dosyası seçin.",
   "docxFileError": "Bu zaten bir Word belgesi. Markdown'a dönüştürmek için word2md.com'u kullanın.",

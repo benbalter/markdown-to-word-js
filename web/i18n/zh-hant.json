@@ -16,6 +16,8 @@
   "styleChineseOfficial": "中國大陸公文格式",
   "styleChineseHint": "這看起來是中文文字。如需中國大陸公文字型，請選擇「中國大陸公文格式」。",
   "convertButton": "轉換為 Word",
+  "shortcutHint": "或按 {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "轉換文件",
   "convertedLabel": "已轉換",
   "downloadButton": "下載 .docx",
@@ -114,6 +116,8 @@
     "100% 用戶端執行——不會上傳任何內容"
   ],
   "errorGeneric": "轉換 Markdown 時發生錯誤。請再試一次。",
+  "converterLoadError": "轉換器載入失敗。請檢查網路連線，然後重新整理頁面。",
+  "tooComplexError": "這份 Markdown 太大或巢狀層級太深，無法在你的瀏覽器中轉換。請試著將它分割成較小的文件。",
   "fileTooLargeError": "這個檔案太大，無法在你的瀏覽器中轉換。請改用小於 5 MB 的 Markdown 檔案。",
   "notMarkdownFileError": "這似乎不是 Markdown 或文字檔案，因此無法轉換。請改選 .md 檔案。",
   "docxFileError": "這已經是 Word 文件了。要將它轉換為 Markdown，請使用 word2md.com。",

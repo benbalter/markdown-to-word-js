@@ -49,6 +49,7 @@ function setupDOM(): void {
           <option value="chinese-official">Chinese official document</option>
         </select>
       </div>
+      <p id="shortcut-hint"><kbd id="shortcut-modifier">Ctrl</kbd>+<kbd>Enter</kbd></p>
       <button id="convert-button" disabled>Convert</button>
       <p id="font-preset-hint" class="hidden"></p>
     </div>
@@ -137,13 +138,43 @@ describe('converter UI', () => {
       await initApp();
       typeMarkdown('# Hello');
       $('markdown-input').dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Enter', metaKey: true })
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          metaKey: true,
+          bubbles: true,
+        })
       );
       await vi.waitFor(() => {
         expect(mockedConvert).toHaveBeenCalledWith('# Hello', {
           fontPreset: undefined,
         });
       });
+    });
+
+    it('converts on Ctrl+Enter from the style menu too', async () => {
+      await initApp();
+      typeMarkdown('# Hello');
+      $('font-preset').dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          ctrlKey: true,
+          bubbles: true,
+        })
+      );
+      await vi.waitFor(() => {
+        expect(mockedConvert).toHaveBeenCalled();
+      });
+    });
+
+    it.each([
+      ['MacIntel', '⌘'],
+      ['iPhone', '⌘'],
+      ['Win32', 'Ctrl'],
+      ['Linux x86_64', 'Ctrl'],
+    ])('labels the shortcut modifier for %s as %s', async (platform, label) => {
+      vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform);
+      await initApp();
+      expect($('shortcut-modifier').textContent).toBe(label);
     });
   });
 
@@ -210,6 +241,96 @@ describe('converter UI', () => {
 
       // The close button works (#89: it used to rely on Bootstrap's JS).
       $('error-alert').querySelector('button')!.click();
+      expect($('error-alert')).toBeNull();
+    });
+
+    it.each([
+      [
+        'a stack overflow deep in the cause chain',
+        new Error('Failed to generate Word document', {
+          cause: new Error('Failed to parse markdown content', {
+            cause: new RangeError('Maximum call stack size exceeded'),
+          }),
+        }),
+        /too large or too deeply nested/,
+      ],
+      [
+        "Firefox's too much recursion",
+        new Error('Failed to generate Word document', {
+          cause: Object.assign(new Error('too much recursion'), {
+            name: 'InternalError',
+          }),
+        }),
+        /too large or too deeply nested/,
+      ],
+      [
+        'an allocation failure',
+        new RangeError('Invalid string length'),
+        /too large or too deeply nested/,
+      ],
+      [
+        'any other error',
+        new Error('Failed to generate Word document', {
+          cause: new TypeError('x is undefined'),
+        }),
+        /went wrong/,
+      ],
+    ])('explains %s', async (_label, error, message) => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockedConvert.mockRejectedValue(error);
+      await initApp();
+      typeMarkdown('# Broken');
+      $('convert-button').click();
+
+      await vi.waitFor(() => {
+        expect($('error-message')?.textContent).toMatch(message);
+      });
+    });
+
+    it('survives an error whose cause chain loops', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const error = new Error('outer');
+      error.cause = new Error('inner', { cause: error });
+      mockedConvert.mockRejectedValue(error);
+      await initApp();
+      typeMarkdown('# Loop');
+      $('convert-button').click();
+
+      await vi.waitFor(() => {
+        expect($('error-message')?.textContent).toMatch(/went wrong/);
+      });
+    });
+
+    it('uses the localized message from the page', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      $('input').dataset.tooComplexError = 'Trop imbriqué.';
+      mockedConvert.mockRejectedValue(new RangeError('stack'));
+      await initApp();
+      typeMarkdown('# Profond');
+      $('convert-button').click();
+
+      await vi.waitFor(() => {
+        expect($('error-message')?.textContent).toBe('Trop imbriqué.');
+      });
+    });
+
+    it('says the converter failed to load, then loads it on the next try', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.doMock('../src/converter.js', () => {
+        throw new TypeError('Failed to fetch dynamically imported module');
+      });
+      await initApp();
+      typeMarkdown('# Offline');
+      $('convert-button').click();
+      await vi.waitFor(() => {
+        expect($('error-message')?.textContent).toMatch(/couldn't load/);
+      });
+
+      // Back online: the failed import isn't cached, so this one fetches again.
+      vi.doMock('../src/converter.js', () => ({
+        convertMarkdownToWord: vi.fn().mockResolvedValue(new Blob(['ok'])),
+      }));
+      await convert('# Online');
       expect($('error-alert')).toBeNull();
     });
 

@@ -16,6 +16,8 @@
   "styleChineseOfficial": "Chinese official document (公文)",
   "styleChineseHint": "This looks like Chinese text. For 公文 formatting, choose “Chinese official document (公文)”.",
   "convertButton": "Convert to Word",
+  "shortcutHint": "or press {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "Convert a document",
   "convertedLabel": "Converted",
   "downloadButton": "Download .docx",
@@ -114,6 +116,8 @@
     "100% client-side: nothing is uploaded"
   ],
   "errorGeneric": "Something went wrong while converting your Markdown. Please try again.",
+  "converterLoadError": "The converter couldn't load. Check your internet connection, then reload the page.",
+  "tooComplexError": "This Markdown is too large or too deeply nested to convert in your browser. Try splitting it into smaller documents.",
   "fileTooLargeError": "This file is too large to convert in your browser. Please try a Markdown file smaller than 5 MB.",
   "notMarkdownFileError": "This doesn't look like a Markdown or text file, so it can't be converted. Choose a .md file instead.",
   "docxFileError": "This is already a Word document. To turn it into Markdown, use word2md.com.",

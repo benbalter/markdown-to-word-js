@@ -16,6 +16,8 @@
   "styleChineseOfficial": "مستند رسمي صيني (公文)",
   "styleChineseHint": "يبدو أن هذا نص صيني. لاستخدام خطوط نمط 公文، اختر «مستند رسمي صيني (公文)».",
   "convertButton": "حوّل إلى Word",
+  "shortcutHint": "أو اضغط {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "حوّل مستندًا",
   "convertedLabel": "تم التحويل",
   "downloadButton": "نزّل \u2066.docx\u2069",
@@ -114,6 +116,8 @@
     "100% على جهة العميل — لا يتم رفع أي شيء"
   ],
   "errorGeneric": "حدث خطأ أثناء تحويل نص Markdown. يُرجى المحاولة مرة أخرى.",
+  "converterLoadError": "تعذّر تحميل المحوّل. تحقّق من اتصالك بالإنترنت، ثم أعد تحميل الصفحة.",
+  "tooComplexError": "نص Markdown هذا كبير جدًا أو متداخل بعمق شديد بحيث يتعذر تحويله داخل متصفحك. جرّب تقسيمه إلى مستندات أصغر.",
   "fileTooLargeError": "هذا الملف كبير جدًا بحيث يتعذر تحويله داخل متصفحك. يُرجى تجربة ملف Markdown أصغر من \u20665 MB\u2069.",
   "notMarkdownFileError": "لا يبدو هذا ملف Markdown أو ملفًا نصيًا، لذا لا يمكن تحويله. اختر ملف \u2066.md\u2069 بدلًا منه.",
   "docxFileError": "هذا مستند Word بالفعل. لتحويله إلى Markdown، استخدم \u2066word2md.com\u2069.",

@@ -16,6 +16,8 @@
   "styleChineseOfficial": "中国の公文書式（公文）",
   "styleChineseHint": "中国語のテキストのようです。公文スタイルのフォントを使うには「中国の公文書式（公文）」を選んでください。",
   "convertButton": "Word に変換",
+  "shortcutHint": "または {keys} を押す",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "文書を変換",
   "convertedLabel": "変換済み",
   "downloadButton": ".docx をダウンロード",
@@ -114,6 +116,8 @@
     "100%クライアントサイド — アップロードなし"
   ],
   "errorGeneric": "Markdown の変換中に問題が発生しました。もう一度お試しください。",
+  "converterLoadError": "変換ツールを読み込めませんでした。インターネット接続を確認してから、ページを再読み込みしてください。",
+  "tooComplexError": "この Markdown は大きすぎるか入れ子が深すぎるため、ブラウザ内では変換できません。小さなドキュメントに分割してお試しください。",
   "fileTooLargeError": "このファイルは大きすぎるため、ブラウザ内では変換できません。5 MB 未満の Markdown ファイルをお試しください。",
   "notMarkdownFileError": "Markdown またはテキストファイルではないようなので、変換できません。代わりに .md ファイルを選んでください。",
   "docxFileError": "これはすでに Word 文書です。Markdown に変換するには word2md.com をご利用ください。",
