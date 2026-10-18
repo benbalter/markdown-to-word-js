@@ -225,6 +225,16 @@ describe('converter UI', () => {
       expect(link.rel).toBe('noopener noreferrer');
     });
 
+    it('keeps in-page links, such as footnotes, in the preview tab', async () => {
+      mockedParseHtml.mockReturnValue(
+        '<p>x<sup><a id="footnote-ref-1" href="#footnote-1">1</a></sup></p>'
+      );
+      await initApp();
+      await convert('x[^1]\n\n[^1]: y');
+      const link = $('rendered').querySelector('a')!;
+      expect(link.hasAttribute('target')).toBe(false);
+    });
+
     it('shows a dismissible error when conversion fails', async () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
       mockedConvert.mockRejectedValue(new Error('boom'));

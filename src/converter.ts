@@ -2,6 +2,7 @@
 import './buffer-global.js';
 import HTMLtoDOCX from '@turbodocx/html-to-docx';
 import { prepareHtmlForDocx } from './docx-html.js';
+import { embedImages } from './docx-images.js';
 import type { DocumentStructure } from './docx-structure.js';
 import { mmToTwips, type FontPreset } from './font-presets.js';
 import { parseMarkdownToHtml, extractTitle } from './markdown-parser.js';
@@ -29,7 +30,11 @@ export async function convertMarkdownToWord(
   options: ConversionOptions = {}
 ): Promise<Blob> {
   try {
-    const html = parseMarkdownToHtml(markdown);
+    let html = parseMarkdownToHtml(markdown);
+    if (html.includes('<img')) {
+      // Before generation, so a failed image can keep its alt text.
+      html = await embedImages(html);
+    }
 
     const documentOptions: HTMLtoDOCX.DocumentOptions = {
       // The generator's default border size is 0, so tables had no grid lines.
@@ -78,7 +83,9 @@ export async function convertMarkdownToWord(
       result instanceof Blob ? result : new Blob([result as BlobPart]);
 
     // The patches rewrite the .docx zip with JSZip. html-to-docx bundles its own
-    // copy, so ours is a second one; load it only when a patch actually applies.
+    // copy, so ours is a second one, in the patch chunks. The structure patch
+    // runs on every document, so it always loads; the others only when they
+    // apply.
 
     // Code blocks are broken in the generator output itself, so they are fixed
     // whether or not a font preset is requested.
@@ -95,17 +102,17 @@ export async function convertMarkdownToWord(
       );
     }
 
-    if (html.includes('<hr') || html.includes('<table')) {
-      const structure = documentStructure(html);
-      wordDocument = await patchOrKeep(
-        wordDocument,
-        'structure',
-        async (document) => {
-          const { patchStructure } = await import('./docx-structure.js');
-          return patchStructure(document, structure);
-        }
-      );
-    }
+    // Every document: the generator writes <w:sectPr> first in the body, and
+    // the schema wants it last.
+    const structure = documentStructure(html);
+    wordDocument = await patchOrKeep(
+      wordDocument,
+      'structure',
+      async (document) => {
+        const { patchStructure } = await import('./docx-structure.js');
+        return patchStructure(document, structure);
+      }
+    );
 
     const { fontPreset } = options;
     if (fontPreset) {
@@ -137,6 +144,9 @@ function codeBlockTexts(html: string): string[] {
 
 /** The rules and table header rows in `html`, for the structure patch. */
 function documentStructure(html: string): DocumentStructure {
+  if (!html.includes('<hr') && !html.includes('<table')) {
+    return { rules: 0, headerRows: [] };
+  }
   const dom = new DOMParser().parseFromString(html, 'text/html');
   return {
     rules: dom.querySelectorAll('hr').length,

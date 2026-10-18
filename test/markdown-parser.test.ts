@@ -285,6 +285,46 @@ describe('extractTitle', () => {
   it('keeps characters that look like HTML as text', () => {
     expect(extractTitle('# Q&A: `a < b`')).toBe('Q&A: a < b');
   });
+
+  it('leaves footnote references out of the title', () => {
+    expect(extractTitle('# Report[^1]\n\n[^1]: Draft.\n')).toBe('Report');
+    expect(extractTitle('# Report[^undefined]\n')).toBe('Report');
+  });
+});
+
+describe('footnotes', () => {
+  const markdown = 'Note[^a] and[^b].\n\n[^a]: First.\n[^b]: Second.\n';
+
+  it('numbers references and lists the notes after a rule', () => {
+    const html = parseMarkdownToHtml(markdown);
+    expect(html).toMatch(
+      /Note<sup><a id="footnote-ref-a" href="#footnote-a"[^>]*>1<\/a><\/sup>/
+    );
+    expect(html).toMatch(/and<sup><a [^>]*>2<\/a><\/sup>/);
+    expect(html).toMatch(
+      /<hr[^>]*>\s*<section class="footnotes" data-footnotes>/
+    );
+    expect(html).toMatch(/<li id="footnote-a">\s*<p>First\./);
+    expect(html).not.toContain('[^');
+  });
+
+  it('numbers each document from 1, even after extractTitle', () => {
+    // extractTitle lexes without rendering, which would leave the footnote
+    // extension's counter and state from the last document behind.
+    extractTitle(markdown);
+    extractTitle(markdown);
+    const html = parseMarkdownToHtml('x[^n]\n\n[^n]: y\n');
+    expect(html).toMatch(/x<sup><a [^>]*>1<\/a><\/sup>/);
+  });
+
+  it('keeps the ids and in-page links through the preview sanitizer', () => {
+    const html = renderPreviewHtml(markdown);
+    expect(html).toContain('id="footnote-ref-a"');
+    expect(html).toContain('href="#footnote-a"');
+    expect(html).toContain('id="footnote-a"');
+    expect(html).toContain('href="#footnote-ref-a"');
+    expect(html).toContain('data-footnote-backref');
+  });
 });
 
 /*

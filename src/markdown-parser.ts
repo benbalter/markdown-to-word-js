@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify';
 import { Marked, type Token } from 'marked';
+import markedFootnote from 'marked-footnote';
 
 // Our own instance, not marked's shared default: as an npm package, configuring
 // that one would change how the consumer's own copy of marked renders.
@@ -20,6 +21,24 @@ marked.use({
     },
   },
 });
+
+// GitHub's `[^1]` footnotes: numbered superscript references, and the notes in
+// a list after a rule at the end, much as GitHub shows them. prepareHtmlForDocx
+// drops the parts that only work on a web page (the in-page links).
+marked.use(markedFootnote({ footnoteDivider: true }));
+
+/**
+ * extractTitle only lexes, and marked-footnote resets its per-document state
+ * while rendering, so lexing with `marked` would number the next document's
+ * footnotes wrong or throw. Titles get their own instance without it.
+ */
+const titleLexer = new Marked({ gfm: true });
+
+/**
+ * A `[^label]` footnote reference, which titleLexer leaves as text, or reads
+ * as a reference-style link when the note is defined.
+ */
+const FOOTNOTE_REFERENCE = /\[\^[^\]\s]+\]/g;
 
 /**
  * Parse markdown text and return HTML
@@ -49,10 +68,12 @@ export function renderPreviewHtml(markdown: string): string {
  * Returns null if no H1 heading is found.
  */
 export function extractTitle(markdown: string): string | null {
-  const tokens = marked.lexer(markdown);
+  const tokens = titleLexer.lexer(markdown);
   for (const token of tokens) {
     if (token.type === 'heading' && token.depth === 1) {
-      return plainText(token.tokens ?? []).trim();
+      return plainText(token.tokens ?? [])
+        .replace(FOOTNOTE_REFERENCE, '')
+        .trim();
     }
   }
   return null;
@@ -62,6 +83,12 @@ export function extractTitle(markdown: string): string | null {
 function plainText(tokens: Token[]): string {
   return tokens
     .map((token) => {
+      if (
+        token.type === 'link' &&
+        token.raw.match(FOOTNOTE_REFERENCE)?.[0] === token.raw
+      ) {
+        return '';
+      }
       if ('tokens' in token && token.tokens) return plainText(token.tokens);
       if (token.type === 'br') return ' ';
       if (token.type === 'html') return '';

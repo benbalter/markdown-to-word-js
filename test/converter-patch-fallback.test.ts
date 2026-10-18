@@ -38,7 +38,8 @@ describe('when a post-generation patch fails', () => {
 
     expect(html).toContain('<h1>Title</h1>');
     expect(html).toContain('code');
-    expect(warn).toHaveBeenCalledTimes(2);
+    // Code block, structure (which runs on every document), and font preset.
+    expect(warn).toHaveBeenCalledTimes(3);
   });
 
   it('leaves a readable section break where a rule could not be drawn', async () => {

@@ -30,7 +30,7 @@ async function trackViolations(page: Page): Promise<string[]> {
   return violations;
 }
 
-// A real (if tiny) photo: html-to-docx skips images under 1 KB.
+// A real (if tiny) photo.
 const PHOTO = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   'fixtures/photo.png'
@@ -63,6 +63,39 @@ test.describe('Content-Security-Policy', () => {
     expect(
       Object.keys(zip.files).some((f) => f.startsWith('word/media/'))
     ).toBe(true);
+  });
+
+  test('quotes, footnotes and a broken image convert without CSP violations', async ({
+    page,
+  }) => {
+    const violations = await trackViolations(page);
+    await page.route('https://images.example/**', (route) =>
+      route.fulfill({ status: 404, body: 'Not found' })
+    );
+    await page.goto('/');
+    await page
+      .locator('#markdown-input')
+      .fill(
+        '> p1\n>\n> p2\n\nPress <kbd>Ctrl</kbd>[^1].\n\n[^1]: The note.\n\n![A chart](https://images.example/chart.png)\n'
+      );
+    await page.locator('#convert-button').click();
+    await expect(page.locator('#results')).toBeVisible({ timeout: 15000 });
+    expect(violations).toEqual([]);
+
+    // The footnote links stay in the page instead of opening a new tab.
+    const reference = page.locator('#rendered a[href="#footnote-1"]');
+    await expect(reference).not.toHaveAttribute('target', /.*/);
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.locator('#download-button').click(),
+    ]);
+    const zip = await JSZip.loadAsync(await readFile((await download.path())!));
+    const xml = await zip.file('word/document.xml')!.async('string');
+    for (const text of ['>p1<', '>p2<', '>Ctrl<', '>The note.<', '>A chart<']) {
+      expect(xml).toContain(text);
+    }
+    expect(xml).not.toContain('[^1]');
   });
 
   test('pages ship a CSP that never allows eval or plugins', async ({
