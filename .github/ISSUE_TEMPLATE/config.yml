@@ -1,0 +1,7 @@
+# Blank issues stay enabled so questions, which CONTRIBUTING.md invites, have
+# somewhere to go.
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/benbalter/markdown-to-word-js/security/advisories/new
+    about: Please report security issues privately, not in a public issue.

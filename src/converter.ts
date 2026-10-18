@@ -72,7 +72,11 @@ export async function convertMarkdownToWord(
       };
     }
 
-    const result = await HTMLtoDOCX(prepareHtmlForDocx(html), null, documentOptions);
+    const result = await HTMLtoDOCX(
+      prepareHtmlForDocx(html),
+      null,
+      documentOptions
+    );
 
     // HTMLtoDOCX returns Blob in browser, Buffer/ArrayBuffer in Node.js
     const generated =
@@ -88,26 +92,38 @@ export async function convertMarkdownToWord(
     let wordDocument = generated;
     if (html.includes('<pre')) {
       const codeBlocks = codeBlockTexts(html);
-      wordDocument = await patchOrKeep(wordDocument, 'code block', async (document) => {
-        const { formatCodeBlocks } = await import('./docx-code-blocks.js');
-        return formatCodeBlocks(document, codeBlocks);
-      });
+      wordDocument = await patchOrKeep(
+        wordDocument,
+        'code block',
+        async (document) => {
+          const { formatCodeBlocks } = await import('./docx-code-blocks.js');
+          return formatCodeBlocks(document, codeBlocks);
+        }
+      );
     }
 
     // Every document: the generator writes <w:sectPr> first in the body, and
     // the schema wants it last.
     const structure = documentStructure(html);
-    wordDocument = await patchOrKeep(wordDocument, 'structure', async (document) => {
-      const { patchStructure } = await import('./docx-structure.js');
-      return patchStructure(document, structure);
-    });
+    wordDocument = await patchOrKeep(
+      wordDocument,
+      'structure',
+      async (document) => {
+        const { patchStructure } = await import('./docx-structure.js');
+        return patchStructure(document, structure);
+      }
+    );
 
     const { fontPreset } = options;
     if (fontPreset) {
-      wordDocument = await patchOrKeep(wordDocument, 'font preset', async (document) => {
-        const { applyFontPreset } = await import('./docx-font-preset.js');
-        return applyFontPreset(document, fontPreset);
-      });
+      wordDocument = await patchOrKeep(
+        wordDocument,
+        'font preset',
+        async (document) => {
+          const { applyFontPreset } = await import('./docx-font-preset.js');
+          return applyFontPreset(document, fontPreset);
+        }
+      );
     }
 
     return wordDocument;
@@ -120,7 +136,10 @@ export async function convertMarkdownToWord(
 /** The text of each `<pre>` in `html`, in document order. */
 function codeBlockTexts(html: string): string[] {
   const dom = new DOMParser().parseFromString(html, 'text/html');
-  return Array.from(dom.querySelectorAll('pre'), (pre) => pre.textContent ?? '');
+  return Array.from(
+    dom.querySelectorAll('pre'),
+    (pre) => pre.textContent ?? ''
+  );
 }
 
 /** The rules and table header rows in `html`, for the structure patch. */
@@ -133,7 +152,10 @@ function documentStructure(html: string): DocumentStructure {
     rules: dom.querySelectorAll('hr').length,
     headerRows: Array.from(dom.querySelectorAll('table'), (table) => {
       const firstRow = table.querySelector('tr');
-      return Boolean(table.tHead) || Boolean(firstRow && firstRow.querySelector('td') === null);
+      return (
+        Boolean(table.tHead) ||
+        Boolean(firstRow && firstRow.querySelector('td') === null)
+      );
     }),
   };
 }
@@ -151,7 +173,10 @@ async function patchOrKeep(
   try {
     return await patch(wordDocument);
   } catch (error) {
-    console.warn(`Skipped the ${name} patch; keeping the unpatched document:`, error);
+    console.warn(
+      `Skipped the ${name} patch; keeping the unpatched document:`,
+      error
+    );
     return wordDocument;
   }
 }

@@ -14,7 +14,9 @@ marked.use({
   renderer: {
     code({ text, lang }) {
       const language = lang?.match(/^\S*/)?.[0];
-      const className = language ? ` class="language-${escapeHtml(language)}"` : '';
+      const className = language
+        ? ` class="language-${escapeHtml(language)}"`
+        : '';
       return `<pre><code${className}>${escapeHtml(text)}</code></pre>\n`;
     },
   },
@@ -81,7 +83,10 @@ export function extractTitle(markdown: string): string | null {
 function plainText(tokens: Token[]): string {
   return tokens
     .map((token) => {
-      if (token.type === 'link' && token.raw.match(FOOTNOTE_REFERENCE)?.[0] === token.raw) {
+      if (
+        token.type === 'link' &&
+        token.raw.match(FOOTNOTE_REFERENCE)?.[0] === token.raw
+      ) {
         return '';
       }
       if ('tokens' in token && token.tokens) return plainText(token.tokens);

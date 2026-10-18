@@ -9,10 +9,7 @@ import {
   renderPreviewHtml,
 } from '../src/markdown-parser';
 
-const fixturesDir = join(
-  dirname(fileURLToPath(import.meta.url)),
-  'fixtures'
-);
+const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
 /** Read a markdown fixture by base name (without .md extension) */
 function readFixture(fixtureName: string): string {
@@ -62,7 +59,9 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
     });
 
     it('supports nested bold and italic', () => {
-      expect(result).toMatch(/<strong>Bold and <em>nested italic<\/em> text\.<\/strong>/);
+      expect(result).toMatch(
+        /<strong>Bold and <em>nested italic<\/em> text\.<\/strong>/
+      );
     });
   });
 
@@ -115,7 +114,9 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
       const result = parseMarkdownToHtml(readFixture('task-list'));
       expect(result).toContain('Pending task');
       // The unchecked checkbox should have disabled but not checked
-      expect(result).toMatch(/<input disabled="" type="checkbox">\s*Pending task/);
+      expect(result).toMatch(
+        /<input disabled="" type="checkbox">\s*Pending task/
+      );
     });
   });
 
@@ -161,7 +162,9 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
   describe('links-images fixture', () => {
     it('renders anchor tags with href', () => {
       const result = parseMarkdownToHtml(readFixture('links-images'));
-      expect(result).toMatch(/<a href="https:\/\/github\.com"[^>]*>GitHub<\/a>/);
+      expect(result).toMatch(
+        /<a href="https:\/\/github\.com"[^>]*>GitHub<\/a>/
+      );
     });
 
     it('renders image tags with src and alt', () => {
@@ -188,7 +191,9 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
     it('joins a single newline into the paragraph, as GitHub renders .md files', () => {
       const result = parseMarkdownToHtml(readFixture('paragraphs'));
       expect(result).not.toMatch(/<br/);
-      expect(result).toContain('second paragraph with a\nline break inside it.</p>');
+      expect(result).toContain(
+        'second paragraph with a\nline break inside it.</p>'
+      );
     });
 
     it('still breaks the line after two trailing spaces', () => {
@@ -229,7 +234,9 @@ describe('Fixture tests: parseMarkdownToHtml', () => {
       // Code with language
       expect(result).toContain('class="language-python"');
       // Link
-      expect(result).toMatch(/<a href="https:\/\/example\.com"[^>]*>documentation<\/a>/);
+      expect(result).toMatch(
+        /<a href="https:\/\/example\.com"[^>]*>documentation<\/a>/
+      );
       // Horizontal rule
       expect(result).toMatch(/<hr/);
     });
@@ -290,9 +297,13 @@ describe('footnotes', () => {
 
   it('numbers references and lists the notes after a rule', () => {
     const html = parseMarkdownToHtml(markdown);
-    expect(html).toMatch(/Note<sup><a id="footnote-ref-a" href="#footnote-a"[^>]*>1<\/a><\/sup>/);
+    expect(html).toMatch(
+      /Note<sup><a id="footnote-ref-a" href="#footnote-a"[^>]*>1<\/a><\/sup>/
+    );
     expect(html).toMatch(/and<sup><a [^>]*>2<\/a><\/sup>/);
-    expect(html).toMatch(/<hr[^>]*>\s*<section class="footnotes" data-footnotes>/);
+    expect(html).toMatch(
+      /<hr[^>]*>\s*<section class="footnotes" data-footnotes>/
+    );
     expect(html).toMatch(/<li id="footnote-a">\s*<p>First\./);
     expect(html).not.toContain('[^');
   });
@@ -414,4 +425,3 @@ describe('slugify', () => {
     );
   });
 });
-

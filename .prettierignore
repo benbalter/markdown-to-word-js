@@ -1,5 +1,8 @@
 # Test inputs: the converter must see these bytes exactly as written.
 test/fixtures/
+# A hand-written converter sample: its trailing-space hard break and *emphasis*
+# style are part of what it exercises.
+sample.md
 
 # Generated output.
 dist/
@@ -9,3 +12,7 @@ coverage/
 test-results/
 playwright-report/
 package-lock.json
+scripts/.gen-cache/
+
+# Agent git worktrees: each is a full copy of the repo, checked on its own.
+.claude/

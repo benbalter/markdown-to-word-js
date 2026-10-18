@@ -90,8 +90,12 @@ const MARK_COLOR = '#FFFF00';
 export function prepareHtmlForDocx(html: string): string {
   const dom = new DOMParser().parseFromString(html, 'text/html');
 
-  for (const input of Array.from(dom.querySelectorAll('input[type="checkbox"]'))) {
-    const box = input.hasAttribute('checked') ? CHECKBOX.checked : CHECKBOX.unchecked;
+  for (const input of Array.from(
+    dom.querySelectorAll('input[type="checkbox"]')
+  )) {
+    const box = input.hasAttribute('checked')
+      ? CHECKBOX.checked
+      : CHECKBOX.unchecked;
     input.replaceWith(dom.createTextNode(box));
   }
 
@@ -144,10 +148,14 @@ export function prepareHtmlForDocx(html: string): string {
     mark.replaceWith(span);
   }
 
-  for (const reference of Array.from(dom.querySelectorAll('a[data-footnote-ref]'))) {
+  for (const reference of Array.from(
+    dom.querySelectorAll('a[data-footnote-ref]')
+  )) {
     reference.replaceWith(...Array.from(reference.childNodes));
   }
-  for (const backReference of Array.from(dom.querySelectorAll('a[data-footnote-backref]'))) {
+  for (const backReference of Array.from(
+    dom.querySelectorAll('a[data-footnote-backref]')
+  )) {
     // The space before it, too, so the note doesn't end in one.
     const before = backReference.previousSibling;
     if (before?.nodeType === TEXT_NODE && before.textContent?.endsWith(' ')) {
@@ -166,7 +174,7 @@ export function prepareHtmlForDocx(html: string): string {
 
   // Only inside tags: text can't contain a raw `<`, so it's never touched.
   return dom.body.innerHTML.replace(/<[^>]+>/g, (tag) =>
-    tag.replace(` ${STYLE_PLACEHOLDER}=`, ' style='),
+    tag.replace(` ${STYLE_PLACEHOLDER}=`, ' style=')
   );
 }
 
@@ -187,7 +195,10 @@ function unwrapQuote(quote: Element, depth: number): void {
         ? align
         : `margin-left: ${depth * QUOTE_INDENT_INCHES}in; ${align}`;
       const style = child.getAttribute(STYLE_PLACEHOLDER);
-      child.setAttribute(STYLE_PLACEHOLDER, style ? `${style}; ${layout}` : layout);
+      child.setAttribute(
+        STYLE_PLACEHOLDER,
+        style ? `${style}; ${layout}` : layout
+      );
     }
   }
   quote.replaceWith(...Array.from(quote.childNodes));

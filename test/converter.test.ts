@@ -5,10 +5,7 @@ import { fileURLToPath } from 'node:url';
 import mammoth from 'mammoth';
 import { convertMarkdownToWord } from '../src/converter';
 
-const fixtureRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  'fixtures'
-);
+const fixtureRoot = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
 function getFixture(name: string): string {
   return readFileSync(join(fixtureRoot, `${name}.md`), 'utf-8');
@@ -95,10 +92,16 @@ describe('Docx round-trip verification with mammoth', () => {
       expect(recoveredHtml).toContain('<table>');
       const expectedCells = [
         // Header row
-        'Name', 'Age', 'City',
+        'Name',
+        'Age',
+        'City',
         // Data rows
-        'Alice', '30', 'NYC',
-        'Bob', '25', 'LA',
+        'Alice',
+        '30',
+        'NYC',
+        'Bob',
+        '25',
+        'LA',
       ];
       for (const cellText of expectedCells) {
         expect(recoveredHtml).toContain(cellText);
@@ -125,9 +128,7 @@ describe('Docx round-trip verification with mammoth', () => {
   describe('plain paragraphs', () => {
     let recoveredHtml: string;
     beforeAll(async () => {
-      recoveredHtml = await markdownThroughDocxToHtml(
-        getFixture('paragraphs')
-      );
+      recoveredHtml = await markdownThroughDocxToHtml(getFixture('paragraphs'));
     });
 
     it('retains both paragraph texts', () => {
@@ -209,10 +210,10 @@ describe('Blob output verification', () => {
     const smallBlob = await convertMarkdownToWord('Hi');
     const largeBlob = await convertMarkdownToWord(
       '# Title\n\n' +
-      'A much longer document with **bold**, *italic*, and lots of content.\n\n' +
-      '- Item 1\n- Item 2\n- Item 3\n\n' +
-      '> A blockquote for good measure\n\n' +
-      '```js\nconsole.log("code");\n```\n'
+        'A much longer document with **bold**, *italic*, and lots of content.\n\n' +
+        '- Item 1\n- Item 2\n- Item 3\n\n' +
+        '> A blockquote for good measure\n\n' +
+        '```js\nconsole.log("code");\n```\n'
     );
     expect(largeBlob.size).not.toBe(smallBlob.size);
   });

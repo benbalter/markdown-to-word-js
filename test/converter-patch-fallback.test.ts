@@ -50,7 +50,11 @@ describe('when a post-generation patch fails', () => {
       buffer: Buffer.from(await blob.arrayBuffer()),
     });
 
-    expect(text.split('\n').filter(Boolean)).toEqual(['Above', RULE_TEXT, 'Below']);
+    expect(text.split('\n').filter(Boolean)).toEqual([
+      'Above',
+      RULE_TEXT,
+      'Below',
+    ]);
     expect(warn).toHaveBeenCalledTimes(1);
   });
 });

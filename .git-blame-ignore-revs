@@ -1,0 +1,6 @@
+# Commits that `git blame` should skip: bulk reformatting with no behavior
+# change. GitHub's blame view honors this file automatically; locally, run
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Format the repo with Prettier (format-only)
+855ac6d43dc3a30f9346500c73efd7024cc3769b

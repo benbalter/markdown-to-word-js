@@ -29,14 +29,26 @@ interface Paragraph {
 
 /** The body's top-level paragraphs, in order. */
 async function bodyParagraphs(markdown: string): Promise<Paragraph[]> {
-  const dom = new DOMParser().parseFromString(await documentXml(markdown), 'application/xml');
+  const dom = new DOMParser().parseFromString(
+    await documentXml(markdown),
+    'application/xml'
+  );
   const body = dom.getElementsByTagNameNS(W_NS, 'body')[0];
-  const attribute = (paragraph: Element, name: string, attr: string): string | null =>
-    paragraph.getElementsByTagNameNS(W_NS, name)[0]?.getAttributeNS(W_NS, attr) ?? null;
+  const attribute = (
+    paragraph: Element,
+    name: string,
+    attr: string
+  ): string | null =>
+    paragraph
+      .getElementsByTagNameNS(W_NS, name)[0]
+      ?.getAttributeNS(W_NS, attr) ?? null;
   return Array.from(body.children)
     .filter((child) => child.localName === 'p')
     .map((paragraph) => ({
-      text: Array.from(paragraph.getElementsByTagNameNS(W_NS, 't'), (t) => t.textContent).join(''),
+      text: Array.from(
+        paragraph.getElementsByTagNameNS(W_NS, 't'),
+        (t) => t.textContent
+      ).join(''),
       indent: attribute(paragraph, 'ind', 'left'),
       align: attribute(paragraph, 'jc', 'val'),
       listItem: paragraph.getElementsByTagNameNS(W_NS, 'numPr').length > 0,
@@ -78,7 +90,9 @@ describe('prepareHtmlForDocx', () => {
     });
 
     it('leaves code blocks alone', () => {
-      expect(prepare('```\nblock\n```\n')).toBe(parseMarkdownToHtml('```\nblock\n```\n'));
+      expect(prepare('```\nblock\n```\n')).toBe(
+        parseMarkdownToHtml('```\nblock\n```\n')
+      );
     });
   });
 
@@ -114,7 +128,9 @@ describe('prepareHtmlForDocx', () => {
     });
 
     it('leaves an empty header cell empty', () => {
-      expect(prepare('|   | b |\n| - | - |\n| 1 | 2 |\n')).toContain('<th></th>');
+      expect(prepare('|   | b |\n| - | - |\n| 1 | 2 |\n')).toContain(
+        '<th></th>'
+      );
     });
   });
 });
@@ -130,7 +146,9 @@ describe('in the generated .docx', () => {
   });
 
   it('draws table borders and bolds and aligns cells', async () => {
-    const xml = await documentXml('| Name | Age |\n| :-- | --: |\n| Alice | 30 |\n');
+    const xml = await documentXml(
+      '| Name | Age |\n| :-- | --: |\n| Alice | 30 |\n'
+    );
     expect(xml).toMatch(/<w:tblBorders>[\s\S]*w:val="single"/);
     expect(xml).toMatch(/<w:b\/>[\s\S]*?<w:t[^>]*>Name</);
     expect(xml).toMatch(/<w:jc w:val="right"\/>[\s\S]*?<w:t[^>]*>30</);
@@ -139,19 +157,30 @@ describe('in the generated .docx', () => {
   it('sets inline code in the code font', async () => {
     const xml = await documentXml('Run `npm test` now.\n');
     expect(xml).toMatch(
-      new RegExp(`<w:rFonts w:ascii="${CODE_FONT}" w:hAnsi="${CODE_FONT}"/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`)
+      new RegExp(
+        `<w:rFonts w:ascii="${CODE_FONT}" w:hAnsi="${CODE_FONT}"/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`
+      )
     );
   });
 });
 
 describe('block quotes in the generated .docx', () => {
   it('keeps each paragraph of a quote as its own paragraph', async () => {
-    const paragraphs = await bodyParagraphs('Before\n\n> p1\n>\n> p2\n\nAfter\n');
-    expect(paragraphs.map(({ text }) => text)).toEqual(['Before', 'p1', 'p2', 'After']);
+    const paragraphs = await bodyParagraphs(
+      'Before\n\n> p1\n>\n> p2\n\nAfter\n'
+    );
+    expect(paragraphs.map(({ text }) => text)).toEqual([
+      'Before',
+      'p1',
+      'p2',
+      'After',
+    ]);
   });
 
   it('indents quotes, further for each level of nesting, and aligns them left', async () => {
-    const paragraphs = await bodyParagraphs('> outer\n>\n> > inner\n>\n> outer again\n');
+    const paragraphs = await bodyParagraphs(
+      '> outer\n>\n> > inner\n>\n> outer again\n'
+    );
     expect(paragraphs).toEqual([
       { text: 'outer', indent: '720', align: 'left', listItem: false },
       { text: 'inner', indent: '1440', align: 'left', listItem: false },
@@ -160,13 +189,17 @@ describe('block quotes in the generated .docx', () => {
   });
 
   it('leaves text outside the quote unindented', async () => {
-    const [before, , after] = await bodyParagraphs('Before\n\n> quoted\n\nAfter\n');
+    const [before, , after] = await bodyParagraphs(
+      'Before\n\n> quoted\n\nAfter\n'
+    );
     expect(before.indent).toBeNull();
     expect(after.indent).toBeNull();
   });
 
   it('keeps a heading and a list inside a quote', async () => {
-    const paragraphs = await bodyParagraphs('> ## Heading\n>\n> - one\n> - two\n');
+    const paragraphs = await bodyParagraphs(
+      '> ## Heading\n>\n> - one\n> - two\n'
+    );
     expect(paragraphs.map(({ text, listItem }) => [text, listItem])).toEqual([
       ['Heading', false],
       ['one', true],
@@ -181,13 +214,15 @@ describe('block quotes in the generated .docx', () => {
       expect(pPr.match(/<w:ind /g)?.length ?? 0).toBeLessThanOrEqual(1);
     }
     const paragraphs = await bodyParagraphs('- > tight\n');
-    expect(paragraphs).toEqual([{ text: 'tight', indent: null, align: 'left', listItem: true }]);
+    expect(paragraphs).toEqual([
+      { text: 'tight', indent: null, align: 'left', listItem: true },
+    ]);
   });
 
   it('keeps a code block in a quote in the code font', async () => {
-    expect(await runProperties('> ```\n> quoted code\n> ```\n', 'quoted code')).toContain(
-      `<w:rFonts w:ascii="${CODE_FONT}"`
-    );
+    expect(
+      await runProperties('> ```\n> quoted code\n> ```\n', 'quoted code')
+    ).toContain(`<w:rFonts w:ascii="${CODE_FONT}"`);
   });
 });
 
@@ -196,7 +231,9 @@ describe('inline HTML the generator does not know', () => {
     const paragraphs = await bodyParagraphs(
       'Press <kbd>Ctrl</kbd> and <abbr title="HyperText">HTML</abbr>, <small>fine</small> <var>x</var> <cite>Book</cite> <samp>out</samp>.\n'
     );
-    expect(paragraphs.map(({ text }) => text)).toEqual(['Press Ctrl and HTML, fine x Book out.']);
+    expect(paragraphs.map(({ text }) => text)).toEqual([
+      'Press Ctrl and HTML, fine x Book out.',
+    ]);
   });
 
   it('wraps <q> in quotation marks, as a browser does', async () => {
@@ -208,13 +245,15 @@ describe('inline HTML the generator does not know', () => {
     expect(await runProperties('Press <kbd>Ctrl</kbd>.\n', 'Ctrl')).toContain(
       `<w:rFonts w:ascii="${CODE_FONT}"`
     );
-    expect(await runProperties('See <samp>output</samp>.\n', 'output')).toContain(
-      `<w:rFonts w:ascii="${CODE_FONT}"`
-    );
+    expect(
+      await runProperties('See <samp>output</samp>.\n', 'output')
+    ).toContain(`<w:rFonts w:ascii="${CODE_FONT}"`);
   });
 
   it('italicizes <var>', async () => {
-    expect(await runProperties('Let <var>n</var> be.\n', 'n')).toContain('<w:i/>');
+    expect(await runProperties('Let <var>n</var> be.\n', 'n')).toContain(
+      '<w:i/>'
+    );
   });
 
   it('highlights <mark>', async () => {
@@ -230,7 +269,8 @@ describe('inline HTML the generator does not know', () => {
 });
 
 describe('footnotes in the generated .docx', () => {
-  const markdown = 'Note[^1] and another[^two].\n\n[^1]: The note.\n[^two]: The second note.\n';
+  const markdown =
+    'Note[^1] and another[^two].\n\n[^1]: The note.\n[^two]: The second note.\n';
 
   it('numbers the references and lists the notes after a rule, in order', async () => {
     const paragraphs = await bodyParagraphs(markdown);
@@ -244,14 +284,19 @@ describe('footnotes in the generated .docx', () => {
 
   it('numbers the notes from 1 after an earlier numbered list', async () => {
     const xml = await documentXml(`1. a\n2. b\n\n${markdown}`);
-    const numIds = Array.from(xml.matchAll(/<w:numId w:val="(\d+)"\/>/g), (m) => m[1]);
+    const numIds = Array.from(
+      xml.matchAll(/<w:numId w:val="(\d+)"\/>/g),
+      (m) => m[1]
+    );
     expect(numIds).toHaveLength(4);
     expect(numIds[2]).toBe(numIds[3]);
     expect(numIds[2]).not.toBe(numIds[0]);
   });
 
   it('sets each reference as a superscript', async () => {
-    expect(await runProperties(markdown, '1')).toContain('<w:vertAlign w:val="superscript"/>');
+    expect(await runProperties(markdown, '1')).toContain(
+      '<w:vertAlign w:val="superscript"/>'
+    );
   });
 
   it('drops the in-page links and the heading meant for screen readers', () => {
@@ -263,7 +308,9 @@ describe('footnotes in the generated .docx', () => {
   });
 
   it('leaves no literal footnote syntax behind', async () => {
-    const text = (await bodyParagraphs(markdown)).map(({ text }) => text).join('\n');
+    const text = (await bodyParagraphs(markdown))
+      .map(({ text }) => text)
+      .join('\n');
     expect(text).not.toContain('[^');
   });
 });

@@ -33,13 +33,18 @@ function paragraphs(xml: string): string[] {
     const text = (p.match(/<w:t[^>]*>[^<]*<\/w:t>/g) ?? [])
       .map((t) => stripXmlTagsSafely(t))
       .join('');
-    return text === '' && /<w:pBdr>\s*<w:bottom w:val="single"/.test(p) ? '<rule>' : text;
+    return text === '' && /<w:pBdr>\s*<w:bottom w:val="single"/.test(p)
+      ? '<rule>'
+      : text;
   });
 }
 
 describe('horizontal rules', () => {
   it('draws the rule the generator would drop', async () => {
-    const markdown = readFileSync(join(fixtureRoot, 'horizontal-rule.md'), 'utf-8');
+    const markdown = readFileSync(
+      join(fixtureRoot, 'horizontal-rule.md'),
+      'utf-8'
+    );
     expect(paragraphs(await documentXml(markdown))).toEqual([
       'Above the rule.',
       '<rule>',
@@ -48,17 +53,16 @@ describe('horizontal rules', () => {
   });
 
   it('draws every rule, in order', async () => {
-    expect(paragraphs(await documentXml('one\n\n---\n\ntwo\n\n***\n\nthree\n'))).toEqual([
-      'one',
-      '<rule>',
-      'two',
-      '<rule>',
-      'three',
-    ]);
+    expect(
+      paragraphs(await documentXml('one\n\n---\n\ntwo\n\n***\n\nthree\n'))
+    ).toEqual(['one', '<rule>', 'two', '<rule>', 'three']);
   });
 
   it('leaves a paragraph that only says the placeholder text alone', async () => {
-    expect(paragraphs(await documentXml('\\* \\* \\*\n\n---\n'))).toEqual([RULE_TEXT, '<rule>']);
+    expect(paragraphs(await documentXml('\\* \\* \\*\n\n---\n'))).toEqual([
+      RULE_TEXT,
+      '<rule>',
+    ]);
   });
 });
 
@@ -74,7 +78,9 @@ describe('tables', () => {
   });
 
   it('leaves a raw HTML table without header cells alone', async () => {
-    const xml = await documentXml('<table><tr><td>1</td><td>2</td></tr></table>\n');
+    const xml = await documentXml(
+      '<table><tr><td>1</td><td>2</td></tr></table>\n'
+    );
     expect(xml).not.toContain('<w:tblHeader');
   });
 
@@ -97,7 +103,9 @@ describe('with the font preset', () => {
 
     expect(xml).toContain('☒ 完成');
     expect(xml).toMatch(
-      new RegExp(`<w:rFonts w:ascii="${CODE_FONT}"[^>]*/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`)
+      new RegExp(
+        `<w:rFonts w:ascii="${CODE_FONT}"[^>]*/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`
+      )
     );
     expect(paragraphs(xml)).toContain('<rule>');
     expect(xml).toContain('<w:tblHeader/>');
@@ -115,7 +123,11 @@ describe('section properties', () => {
 
   it('moves <w:sectPr> to the end of the body, as the schema requires', async () => {
     // No rules or tables, so nothing else in the structure patch applies.
-    expect(bodyChildren(await documentXml('# Title\n\nText.\n'))).toEqual(['p', 'p', 'sectPr']);
+    expect(bodyChildren(await documentXml('# Title\n\nText.\n'))).toEqual([
+      'p',
+      'p',
+      'sectPr',
+    ]);
   });
 
   it('keeps the page size and margins, with or without the 公文 preset', async () => {
@@ -123,9 +135,13 @@ describe('section properties', () => {
       pageMargins: { top: 1, right: 1, bottom: 1, left: 1 },
     });
     expect(bodyChildren(plain).at(-1)).toBe('sectPr');
-    expect(plain).toMatch(/<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/);
+    expect(plain).toMatch(
+      /<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/
+    );
 
-    const preset = await documentXml('正文。\n', { fontPreset: CHINESE_OFFICIAL_DOC_FONTS });
+    const preset = await documentXml('正文。\n', {
+      fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+    });
     expect(bodyChildren(preset).at(-1)).toBe('sectPr');
     expect(preset).toMatch(/<w:pgSz w:w="11906" w:h="16838"/);
     expect(preset).toMatch(/<w:docGrid /);

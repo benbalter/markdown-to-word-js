@@ -10,7 +10,12 @@ import {
 export { CODE_FONT };
 
 /** Theme slots WinWord prefers over explicitly named fonts. */
-const THEME_FONT_ATTRIBUTES = ['asciiTheme', 'eastAsiaTheme', 'hAnsiTheme', 'cstheme'];
+const THEME_FONT_ATTRIBUTES = [
+  'asciiTheme',
+  'eastAsiaTheme',
+  'hAnsiTheme',
+  'cstheme',
+];
 
 /**
  * Makes code blocks survive in Word, regardless of the font preset:
@@ -31,11 +36,16 @@ const THEME_FONT_ATTRIBUTES = ['asciiTheme', 'eastAsiaTheme', 'hAnsiTheme', 'cst
  * @param codeBlocks The text content of each `<pre>` in the source HTML, in
  *   document order.
  */
-export async function formatCodeBlocks(wordDocument: Blob, codeBlocks: string[]): Promise<Blob> {
+export async function formatCodeBlocks(
+  wordDocument: Blob,
+  codeBlocks: string[]
+): Promise<Blob> {
   const zip = await JSZip.loadAsync(await wordDocument.arrayBuffer());
   const documentEntry = zip.file('word/document.xml');
   if (!documentEntry) {
-    throw new Error('Cannot format code blocks: document contains no word/document.xml');
+    throw new Error(
+      'Cannot format code blocks: document contains no word/document.xml'
+    );
   }
 
   const documentXml = await documentEntry.async('string');
@@ -50,7 +60,10 @@ export async function formatCodeBlocks(wordDocument: Blob, codeBlocks: string[])
 }
 
 /** Exported for testing. */
-export function formatDocumentXml(documentXml: string, codeBlocks: string[]): string {
+export function formatDocumentXml(
+  documentXml: string,
+  codeBlocks: string[]
+): string {
   const dom = new DOMParser().parseFromString(documentXml, 'application/xml');
   let changed = false;
 
@@ -66,7 +79,10 @@ export function formatDocumentXml(documentXml: string, codeBlocks: string[]): st
     if (pending.length === 0) {
       break;
     }
-    if (compact(paragraphText(paragraph)) === pending[0] && hasExplicitFonts(paragraph)) {
+    if (
+      compact(paragraphText(paragraph)) === pending[0] &&
+      hasExplicitFonts(paragraph)
+    ) {
       pending.shift();
       setCodeFont(paragraph);
       changed = true;
@@ -80,7 +96,10 @@ export function formatDocumentXml(documentXml: string, codeBlocks: string[]): st
   if (!changed) {
     return documentXml;
   }
-  return keepXmlDeclaration(documentXml, new XMLSerializer().serializeToString(dom));
+  return keepXmlDeclaration(
+    documentXml,
+    new XMLSerializer().serializeToString(dom)
+  );
 }
 
 function compact(text: string): string {
@@ -95,7 +114,10 @@ function paragraphText(paragraph: Element): string {
 
 function hasExplicitFonts(paragraph: Element): boolean {
   return textRuns(paragraph).every((run) => {
-    const rFonts = firstChild(run, 'rPr')?.getElementsByTagNameNS(W_NS, 'rFonts')[0];
+    const rFonts = firstChild(run, 'rPr')?.getElementsByTagNameNS(
+      W_NS,
+      'rFonts'
+    )[0];
     const font = rFonts?.getAttributeNS(W_NS, 'ascii');
     return Boolean(font) && font !== CODE_FONT;
   });
@@ -112,20 +134,29 @@ function setCodeFont(paragraph: Element): void {
 
   let pPr = firstChild(paragraph, 'pPr');
   if (!pPr) {
-    pPr = paragraph.insertBefore(document.createElementNS(W_NS, 'w:pPr'), paragraph.firstChild);
+    pPr = paragraph.insertBefore(
+      document.createElementNS(W_NS, 'w:pPr'),
+      paragraph.firstChild
+    );
   }
   paragraphProperty(pPr, 'ind').setAttributeNS(W_NS, 'w:firstLine', '0');
 
   for (const run of textRuns(paragraph)) {
     let rPr = firstChild(run, 'rPr');
     if (!rPr) {
-      rPr = run.insertBefore(document.createElementNS(W_NS, 'w:rPr'), run.firstChild);
+      rPr = run.insertBefore(
+        document.createElementNS(W_NS, 'w:rPr'),
+        run.firstChild
+      );
     }
 
     // <w:rFonts> comes first in <w:rPr>.
     let rFonts = firstChild(rPr, 'rFonts');
     if (!rFonts) {
-      rFonts = rPr.insertBefore(document.createElementNS(W_NS, 'w:rFonts'), rPr.firstChild);
+      rFonts = rPr.insertBefore(
+        document.createElementNS(W_NS, 'w:rFonts'),
+        rPr.firstChild
+      );
     }
 
     for (const attribute of THEME_FONT_ATTRIBUTES) {

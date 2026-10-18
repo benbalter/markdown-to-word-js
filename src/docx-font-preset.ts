@@ -1,9 +1,18 @@
 import JSZip from 'jszip';
 import type { FontPreset, LevelStyle, ParagraphStyle } from './font-presets.js';
-import { keepXmlDeclaration, paragraphProperty, WORDPROCESSING_NS as W_NS } from './xml-part.js';
+import {
+  keepXmlDeclaration,
+  paragraphProperty,
+  WORDPROCESSING_NS as W_NS,
+} from './xml-part.js';
 
 /** Theme slots WinWord prefers over explicitly named fonts. */
-const THEME_FONT_ATTRIBUTES = ['asciiTheme', 'eastAsiaTheme', 'hAnsiTheme', 'cstheme'];
+const THEME_FONT_ATTRIBUTES = [
+  'asciiTheme',
+  'eastAsiaTheme',
+  'hAnsiTheme',
+  'cstheme',
+];
 
 /**
  * `<w:line>` is ignored while the rule is auto, but WinWord still writes 240
@@ -38,11 +47,16 @@ interface Layout {
  * The grid is measured from the page the document actually has, so it still
  * fits when `pageMargins` overrode the preset's margins.
  */
-export async function applyFontPreset(wordDocument: Blob, preset: FontPreset): Promise<Blob> {
+export async function applyFontPreset(
+  wordDocument: Blob,
+  preset: FontPreset
+): Promise<Blob> {
   const zip = await JSZip.loadAsync(await wordDocument.arrayBuffer());
   const stylesEntry = zip.file('word/styles.xml');
   if (!stylesEntry) {
-    throw new Error('Cannot apply font preset: document contains no word/styles.xml');
+    throw new Error(
+      'Cannot apply font preset: document contains no word/styles.xml'
+    );
   }
 
   let grid: Grid | null = null;
@@ -54,7 +68,9 @@ export async function applyFontPreset(wordDocument: Blob, preset: FontPreset): P
   ) {
     const documentEntry = zip.file('word/document.xml');
     if (!documentEntry) {
-      throw new Error('Cannot apply font preset: document contains no word/document.xml');
+      throw new Error(
+        'Cannot apply font preset: document contains no word/document.xml'
+      );
     }
     const documentXml = await documentEntry.async('string');
     const patched = patchDocumentXml(documentXml, preset);
@@ -88,28 +104,39 @@ export function patchStylesXml(
     // Widow control pulls a line onto the next page whenever a paragraph would
     // leave a single line behind, so pages would often hold one line fewer
     // than the grid. Word turns it on unless the document says otherwise.
-    paragraphProperty(paragraphPropertiesOf(docDefaults), 'widowControl').setAttributeNS(
-      W_NS,
-      'w:val',
-      '0'
-    );
+    paragraphProperty(
+      paragraphPropertiesOf(docDefaults),
+      'widowControl'
+    ).setAttributeNS(W_NS, 'w:val', '0');
   }
 
   const styles = Array.from(dom.getElementsByTagNameNS(W_NS, 'style'));
   for (const style of styles) {
-    const heading = /^Heading([1-6])$/.exec(style.getAttributeNS(W_NS, 'styleId') ?? '');
+    const heading = /^Heading([1-6])$/.exec(
+      style.getAttributeNS(W_NS, 'styleId') ?? ''
+    );
     if (heading) {
-      applyLevelStyle(style, preset.headings[Number(heading[1]) - 1], preset.paragraph, layout);
+      applyLevelStyle(
+        style,
+        preset.headings[Number(heading[1]) - 1],
+        preset.paragraph,
+        layout
+      );
     }
   }
 
-  return keepXmlDeclaration(stylesXml, new XMLSerializer().serializeToString(dom));
+  return keepXmlDeclaration(
+    stylesXml,
+    new XMLSerializer().serializeToString(dom)
+  );
 }
 
 function resolveLayout(preset: FontPreset, grid: Grid | null): Layout {
   const { lineSpacing, firstLineIndentChars = 0 } = preset.paragraph;
   if (lineSpacing === 'grid' && !grid) {
-    throw new Error("Cannot apply font preset: lineSpacing 'grid' needs page.grid");
+    throw new Error(
+      "Cannot apply font preset: lineSpacing 'grid' needs page.grid"
+    );
   }
   return {
     spacing:
@@ -142,7 +169,9 @@ export function patchDocumentXml(
   let grid: Grid | null = null;
   const pageGrid = preset.page?.grid;
   if (pageGrid) {
-    for (const sectPr of Array.from(dom.getElementsByTagNameNS(W_NS, 'sectPr'))) {
+    for (const sectPr of Array.from(
+      dom.getElementsByTagNameNS(W_NS, 'sectPr')
+    )) {
       grid = measureGrid(sectPr, pageGrid, preset.body.sizePt);
       setDocGrid(sectPr, grid);
     }
@@ -158,7 +187,8 @@ export function patchDocumentXml(
         spacing.setAttributeNS(W_NS, 'w:line', SINGLE_SPACING.line);
         spacing.setAttributeNS(W_NS, 'w:lineRule', SINGLE_SPACING.rule);
       } else {
-        const spacing = pPr && children(pPr).find((child) => child.localName === 'spacing');
+        const spacing =
+          pPr && children(pPr).find((child) => child.localName === 'spacing');
         if (spacing && !spacing.hasAttributeNS(W_NS, 'line')) {
           spacing.removeAttributeNS(W_NS, 'lineRule');
           if (spacing.attributes.length === 0) {
@@ -174,7 +204,10 @@ export function patchDocumentXml(
   }
 
   return {
-    xml: keepXmlDeclaration(documentXml, new XMLSerializer().serializeToString(dom)),
+    xml: keepXmlDeclaration(
+      documentXml,
+      new XMLSerializer().serializeToString(dom)
+    ),
     grid,
   };
 }
@@ -188,7 +221,10 @@ export function patchDocumentXml(
  */
 function measureGrid(
   sectPr: Element,
-  { linesPerPage, charsPerLine }: { linesPerPage: number; charsPerLine: number },
+  {
+    linesPerPage,
+    charsPerLine,
+  }: { linesPerPage: number; charsPerLine: number },
   bodySizePt: number
 ): Grid {
   const pgSz = children(sectPr).find((child) => child.localName === 'pgSz');
@@ -196,13 +232,17 @@ function measureGrid(
   const twips = (element: Element | undefined, attribute: string): number => {
     const value = Number(element?.getAttributeNS(W_NS, attribute));
     if (!Number.isFinite(value) || value <= 0) {
-      throw new Error(`Cannot apply font preset: section has no page ${attribute}`);
+      throw new Error(
+        `Cannot apply font preset: section has no page ${attribute}`
+      );
     }
     return value;
   };
 
-  const textHeight = twips(pgSz, 'h') - twips(pgMar, 'top') - twips(pgMar, 'bottom');
-  const textWidth = twips(pgSz, 'w') - twips(pgMar, 'left') - twips(pgMar, 'right');
+  const textHeight =
+    twips(pgSz, 'h') - twips(pgMar, 'top') - twips(pgMar, 'bottom');
+  const textWidth =
+    twips(pgSz, 'w') - twips(pgMar, 'left') - twips(pgMar, 'right');
   const charPitchPt = textWidth / 20 / charsPerLine;
 
   return {
@@ -216,7 +256,9 @@ function setDocGrid(sectPr: Element, grid: Grid): void {
   if (!docGrid) {
     docGrid = sectPr.ownerDocument.createElementNS(W_NS, 'w:docGrid');
     // <w:docGrid> is the last section property but <w:printerSettings>.
-    const printerSettings = children(sectPr).find((child) => child.localName === 'printerSettings');
+    const printerSettings = children(sectPr).find(
+      (child) => child.localName === 'printerSettings'
+    );
     sectPr.insertBefore(docGrid, printerSettings ?? null);
   }
   docGrid.setAttributeNS(W_NS, 'w:type', 'linesAndChars');
@@ -267,7 +309,10 @@ function applyLevelStyle(
     }
   }
   if (style.bold) {
-    rPr.insertBefore(rPr.ownerDocument.createElementNS(W_NS, 'w:b'), rFonts.nextSibling);
+    rPr.insertBefore(
+      rPr.ownerDocument.createElementNS(W_NS, 'w:b'),
+      rFonts.nextSibling
+    );
   }
 
   // <w:sz> is measured in half points.
@@ -322,11 +367,19 @@ function paragraphPropertiesOf(parent: Element): Element {
 }
 
 function children(element: Element): Element[] {
-  return Array.from(element.children).filter((child) => child.namespaceURI === W_NS);
+  return Array.from(element.children).filter(
+    (child) => child.namespaceURI === W_NS
+  );
 }
 
-function childOrCreate(parent: Element, localName: string, position: 'first' | 'last'): Element {
-  const existing = children(parent).find((child) => child.localName === localName);
+function childOrCreate(
+  parent: Element,
+  localName: string,
+  position: 'first' | 'last'
+): Element {
+  const existing = children(parent).find(
+    (child) => child.localName === localName
+  );
   if (existing) {
     return existing;
   }
@@ -339,7 +392,9 @@ function childOrCreate(parent: Element, localName: string, position: 'first' | '
 function requireElement(dom: Document, localName: string): Element {
   const element = dom.getElementsByTagNameNS(W_NS, localName)[0];
   if (!element) {
-    throw new Error(`Cannot apply font preset: styles.xml has no <w:${localName}> element`);
+    throw new Error(
+      `Cannot apply font preset: styles.xml has no <w:${localName}> element`
+    );
   }
   return element;
 }
