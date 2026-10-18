@@ -10,6 +10,8 @@ const t = useTranslations(Astro.currentLocale);
 // Chinese page it starts collapsed: src/index.ts reveals it once the pasted
 // text is mostly Chinese or a preset was chosen on an earlier visit.
 const collapseStyle = asLocale(Astro.currentLocale) !== 'zh';
+// The hint's sentence around its keys: "or press {keys}" → ["or press ", ""].
+const [shortcutBefore = '', shortcutAfter = ''] = t.shortcutHint.split('{keys}');
 const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&utm_medium=referral&utm_campaign=results`;
 ---
 
@@ -24,6 +26,8 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
   <div
     id="input"
     data-error-generic={t.errorGeneric}
+    data-converter-load-error={t.converterLoadError}
+    data-too-complex-error={t.tooComplexError}
     data-file-too-large={t.fileTooLargeError}
     data-not-markdown-file-error={t.notMarkdownFileError}
     data-docx-file-error={t.docxFileError}
@@ -82,30 +86,47 @@ const resultsPromoUrl = `https://open-and-async.com/?utm_source=${UTM_SOURCE}&ut
           <option value="chinese-official">{t.styleChineseOfficial}</option>
         </select>
       </div>
-      <button
-        id="convert-button"
-        type="button"
-        class="btn btn-accent disabled:cursor-not-allowed disabled:opacity-60 sm:ms-auto"
-        disabled
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="rtl:-scale-x-100"
+      <div class="flex items-center gap-3 sm:ms-auto">
+        {/* Ctrl/⌘+Enter converts from anywhere in the input. A quiet label, not
+             a second accent, and only where there's a keyboard: src/index.ts
+             swaps in ⌘ on Apple platforms. aria-hidden because the button's
+             aria-keyshortcuts already tells assistive tech. */}
+        <p
+          id="shortcut-hint"
           aria-hidden="true"
+          class="hidden font-mono text-[0.72rem] tracking-wide whitespace-nowrap text-navy-soft sm:block pointer-coarse:hidden rtl:font-sans rtl:tracking-normal dark:text-mist"
         >
-          <path d="M5 12h14" />
-          <path d="m12 5 7 7-7 7" />
-        </svg>
-        <span id="convert-label">{t.convertButton}</span>
-      </button>
+          {shortcutBefore}<span dir="ltr"
+            ><kbd id="shortcut-modifier" class="kbd">{t.shortcutCtrl}</kbd
+            >+<kbd class="kbd">Enter</kbd></span
+          >{shortcutAfter}
+        </p>
+        <button
+          id="convert-button"
+          type="button"
+          aria-keyshortcuts="Control+Enter Meta+Enter"
+          class="btn btn-accent w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          disabled
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="rtl:-scale-x-100"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+          <span id="convert-label">{t.convertButton}</span>
+        </button>
+      </div>
     </div>
     {/* Suggests the 公文 preset when the text is mostly Chinese and no style
          is chosen; src/index.ts toggles it. */}

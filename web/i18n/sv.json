@@ -16,6 +16,8 @@
   "styleChineseOfficial": "Kinesiskt officiellt dokument (公文)",
   "styleChineseHint": "Det här ser ut som kinesisk text. Välj ”Kinesiskt officiellt dokument (公文)” för typsnitt i 公文-stil.",
   "convertButton": "Konvertera till Word",
+  "shortcutHint": "eller tryck på {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "Konvertera ett dokument",
   "convertedLabel": "Konverterad",
   "downloadButton": "Ladda ner .docx",
@@ -114,6 +116,8 @@
     "100 % på klientsidan: inget laddas upp"
   ],
   "errorGeneric": "Något gick fel när din Markdown konverterades. Försök igen.",
+  "converterLoadError": "Konverteraren kunde inte laddas. Kontrollera din internetanslutning och ladda om sidan.",
+  "tooComplexError": "Den här Markdown-texten är för stor eller för djupt nästlad för att konverteras i din webbläsare. Försök att dela upp den i mindre dokument.",
   "fileTooLargeError": "Den här filen är för stor för att konverteras i din webbläsare. Försök med en Markdown-fil som är mindre än 5 MB.",
   "notMarkdownFileError": "Det här ser inte ut som en Markdown- eller textfil, så det går inte att konvertera. Välj en .md-fil i stället.",
   "docxFileError": "Det här är redan ett Word-dokument. Använd word2md.com för att göra om det till Markdown.",

@@ -16,6 +16,8 @@
   "styleChineseOfficial": "Chinees officieel document (公文)",
   "styleChineseHint": "Dit lijkt Chinese tekst. Kies voor lettertypen in 公文-stijl “Chinees officieel document (公文)”.",
   "convertButton": "Converteren naar Word",
+  "shortcutHint": "of druk op {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "Een document converteren",
   "convertedLabel": "Geconverteerd",
   "downloadButton": ".docx downloaden",
@@ -114,6 +116,8 @@
     "100% client-side: er wordt niets geüpload"
   ],
   "errorGeneric": "Er ging iets mis bij het converteren van je Markdown. Probeer het opnieuw.",
+  "converterLoadError": "De converter kon niet worden geladen. Controleer je internetverbinding en herlaad de pagina.",
+  "tooComplexError": "Deze Markdown is te groot of te diep genest om in je browser te converteren. Probeer hem op te splitsen in kleinere documenten.",
   "fileTooLargeError": "Dit bestand is te groot om in je browser te converteren. Probeer een Markdown-bestand kleiner dan 5 MB.",
   "notMarkdownFileError": "Dit lijkt geen Markdown- of tekstbestand, dus het kan niet worden geconverteerd. Kies in plaats daarvan een .md-bestand.",
   "docxFileError": "Dit is al een Word-document. Gebruik word2md.com om het naar Markdown om te zetten.",

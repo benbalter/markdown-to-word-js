@@ -142,6 +142,74 @@ test.describe('converter', () => {
     await expect(page.locator('#font-preset')).toBeVisible();
   });
 
+  test('the Convert button shows its keyboard shortcut', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#convert-button')).toHaveAttribute(
+      'aria-keyshortcuts',
+      'Control+Enter Meta+Enter'
+    );
+    const hint = page.locator('#shortcut-hint');
+    await expect(hint).toBeVisible();
+    // The Desktop Chrome device emulates Windows.
+    await expect(page.locator('#shortcut-modifier')).toHaveText('Ctrl');
+    await expect(hint).toContainText('or press');
+  });
+
+  test('the shortcut hint shows ⌘ on a Mac', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'userAgentData', {
+        get: () => ({ platform: 'macOS' }),
+      });
+    });
+    await page.goto('/');
+    await expect(page.locator('#shortcut-modifier')).toHaveText('⌘');
+  });
+
+  test('the shortcut hint is hidden on touch screens', async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 375, height: 800 },
+      hasTouch: true,
+      isMobile: true,
+    });
+    const page = await context.newPage();
+    await page.goto('/');
+    await expect(page.locator('#convert-button')).toBeVisible();
+    await expect(page.locator('#shortcut-hint')).toBeHidden();
+    await context.close();
+  });
+
+  test('the shortcut hint uses the local key name', async ({ page }) => {
+    await page.goto('/de/');
+    await expect(page.locator('#shortcut-hint')).toContainText('drücken');
+  });
+
+  test('a converter that fails to download says so, and a reload recovers', async ({
+    page,
+  }) => {
+    // Block the chunk before the page loads, or the idle preload fetches it.
+    const converterChunk = /\/_astro\/converter\.[^/]*\.js$/;
+    await page.route(converterChunk, (route) =>
+      route.abort('internetdisconnected')
+    );
+    await page.goto('/');
+    await page.locator('#markdown-input').fill('# Offline');
+    await page.locator('#convert-button').click();
+    await expect(page.locator('#error-message')).toHaveText(
+      "The converter couldn't load. Check your internet connection, then reload the page."
+    );
+    await expect(page.locator('#convert-button')).toBeEnabled();
+
+    // Chrome remembers a failed module until the page reloads, so the
+    // message says to reload, and that's what recovers.
+    await page.unrouteAll();
+    await page.reload();
+    await page.locator('#markdown-input').fill('# Online');
+    await page.locator('#convert-button').click();
+    await expect(page.locator('#filename')).toHaveText('online.docx', {
+      timeout: 15000,
+    });
+  });
+
   // Every locale, before and after a conversion: translated labels run longer
   // than English, and the result pane's buttons only appear after one.
   for (const locale of locales) {

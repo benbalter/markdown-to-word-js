@@ -16,6 +16,8 @@
   "styleChineseOfficial": "Dokumen resmi Tiongkok (公文)",
   "styleChineseHint": "Ini tampaknya teks berbahasa Mandarin. Untuk format 公文, pilih “Dokumen resmi Tiongkok (公文)”.",
   "convertButton": "Konversi ke Word",
+  "shortcutHint": "atau tekan {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "Konversi dokumen",
   "convertedLabel": "Dikonversi",
   "downloadButton": "Unduh .docx",
@@ -114,6 +116,8 @@
     "100% di sisi klien — tidak ada yang diunggah"
   ],
   "errorGeneric": "Terjadi kesalahan saat mengonversi Markdown Anda. Silakan coba lagi.",
+  "converterLoadError": "Konverter tidak dapat dimuat. Periksa koneksi internet Anda, lalu muat ulang halaman.",
+  "tooComplexError": "Markdown ini terlalu besar atau bersarang terlalu dalam untuk dikonversi di peramban Anda. Coba pisahkan menjadi beberapa dokumen yang lebih kecil.",
   "fileTooLargeError": "Berkas ini terlalu besar untuk dikonversi di peramban Anda. Coba berkas Markdown yang lebih kecil dari 5 MB.",
   "notMarkdownFileError": "Ini tampaknya bukan berkas Markdown atau teks, jadi tidak bisa dikonversi. Pilih berkas .md.",
   "docxFileError": "Ini sudah berupa dokumen Word. Untuk mengubahnya menjadi Markdown, gunakan word2md.com.",

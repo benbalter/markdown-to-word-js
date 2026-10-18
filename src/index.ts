@@ -18,10 +18,65 @@ type ConverterModule = typeof import('./converter.js');
 type ParserModule = typeof import('./markdown-parser.js');
 let converterModule: Promise<ConverterModule> | undefined;
 let parserModule: Promise<ParserModule> | undefined;
+// A failed load (offline, or a deploy replaced the chunk while the tab was
+// open) forgets its promise, so a browser that refetches failed modules gets
+// another chance. Chrome keeps the failure in its module map until a reload,
+// which is why the message for it says to reload.
 const loadConverter = (): Promise<ConverterModule> =>
-  (converterModule ??= import('./converter.js'));
+  (converterModule ??= import('./converter.js').catch((error: unknown) => {
+    converterModule = undefined;
+    throw error;
+  }));
 const loadParser = (): Promise<ParserModule> =>
-  (parserModule ??= import('./markdown-parser.js'));
+  (parserModule ??= import('./markdown-parser.js').catch((error: unknown) => {
+    parserModule = undefined;
+    throw error;
+  }));
+
+/**
+ * Why a conversion failed, as far as the page can tell, for the message it
+ * shows. `load`: the converter's code didn't download. `too-complex`: the
+ * engine ran out of stack or memory (RangeError in Chrome and Safari,
+ * InternalError for Firefox's "too much recursion"), which in practice means
+ * very deep nesting or a huge document. Anything else is `generic`.
+ */
+type ConversionFailure = 'load' | 'too-complex' | 'generic';
+
+function classifyConversionError(
+  error: unknown,
+  stage: 'load' | 'convert'
+): ConversionFailure {
+  if (stage === 'load') return 'load';
+  // The converter wraps what it catches ("Failed to generate Word document",
+  // with the parser's own wrapper as its cause), so look down the chain.
+  const seen = new Set<unknown>();
+  for (
+    let current = error;
+    current instanceof Error && !seen.has(current);
+    current = current.cause
+  ) {
+    seen.add(current);
+    if (current.name === 'RangeError' || current.name === 'InternalError') {
+      return 'too-complex';
+    }
+  }
+  return 'generic';
+}
+
+const FAILURE_STRINGS = {
+  load: [
+    'converterLoadError',
+    "The converter couldn't load. Check your internet connection, then reload the page.",
+  ],
+  'too-complex': [
+    'tooComplexError',
+    'This Markdown is too large or too deeply nested to convert in your browser. Try splitting it into smaller documents.',
+  ],
+  generic: [
+    'errorGeneric',
+    'Something went wrong while converting your Markdown. Please try again.',
+  ],
+} as const satisfies Record<ConversionFailure, readonly [UIStringKey, string]>;
 
 let lastDocument: Blob | null = null;
 let lastFilename = 'document.docx';
@@ -38,6 +93,8 @@ let activeConversion = 0;
 
 type UIStringKey =
   | 'errorGeneric'
+  | 'converterLoadError'
+  | 'tooComplexError'
   | 'fileTooLarge'
   | 'notMarkdownFileError'
   | 'docxFileError'
@@ -194,6 +251,22 @@ function updatePresetHint(): void {
   byId('font-preset-hint')?.classList.toggle('hidden', !suggest);
 }
 
+// Apple keyboards say ⌘ where others say Ctrl. The page renders the
+// localized Ctrl name, and this swaps it on Apple platforms (iPadOS reports
+// itself as a Mac). Either modifier works everywhere.
+function isApplePlatform(): boolean {
+  const nav = navigator as Navigator & {
+    userAgentData?: { platform?: string };
+  };
+  const platform = nav.userAgentData?.platform || nav.platform || '';
+  return /mac|iphone|ipad|ipod/i.test(platform);
+}
+
+function showShortcutModifier(): void {
+  const modifier = byId('shortcut-modifier');
+  if (modifier && isApplePlatform()) modifier.textContent = '⌘';
+}
+
 function updateConvertButton(): void {
   const text = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
   const button = byId<HTMLButtonElement>('convert-button');
@@ -338,11 +411,15 @@ async function convert(sourceName?: string, note = ''): Promise<void> {
   if (convertButton) convertButton.disabled = true;
   announce(uiString('converting', 'Converting…'));
 
+  // Loading and converting fail for different reasons with different fixes,
+  // so they're caught apart rather than by matching browsers' error text.
+  let stage: 'load' | 'convert' = 'load';
   try {
     const [{ convertMarkdownToWord }, parser] = await Promise.all([
       loadConverter(),
       loadParser(),
     ]);
+    stage = 'convert';
     const preset = FONT_PRESETS[selectedPreset()];
     const blob = await convertMarkdownToWord(markdown, { fontPreset: preset });
     if (token !== activeConversion) return;
@@ -358,17 +435,15 @@ async function convert(sourceName?: string, note = ''): Promise<void> {
 
     showResults(markdown, lastPreviewHtml);
     if (note) showError(note);
-  } catch {
-    // The converter logs the underlying error; the visitor gets the alert.
+  } catch (error) {
     if (token !== activeConversion) return;
     endBusy();
     announce('');
-    showError(
-      uiString(
-        'errorGeneric',
-        'Something went wrong while converting your Markdown. Please try again.'
-      )
-    );
+    // The converter logs its own errors, and the browser logs a failed chunk
+    // download; the visitor gets the alert.
+    const [key, fallback] =
+      FAILURE_STRINGS[classifyConversionError(error, stage)];
+    showError(uiString(key, fallback));
   }
 }
 
@@ -574,13 +649,15 @@ function init(): void {
     updateConvertButton();
     updatePresetHint();
   });
-  // Ctrl/Cmd+Enter converts from the keyboard.
-  textarea?.addEventListener('keydown', (event: KeyboardEvent) => {
+  // Ctrl/Cmd+Enter converts from anywhere in the input: the paste box, the
+  // style menu, or the button itself (its aria-keyshortcuts says so).
+  byId('input')?.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       void convert();
     }
   });
+  showShortcutModifier();
   // Typing or pasting signals an imminent conversion.
   textarea?.addEventListener('focus', prefetchConverter, { once: true });
   updateConvertButton();

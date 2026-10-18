@@ -16,6 +16,8 @@
   "styleChineseOfficial": "Công văn tiếng Trung (公文)",
   "styleChineseHint": "Đây có vẻ là văn bản tiếng Trung. Để dùng định dạng 公文, hãy chọn “Công văn tiếng Trung (公文)”.",
   "convertButton": "Chuyển sang Word",
+  "shortcutHint": "hoặc nhấn {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "Chuyển đổi tài liệu",
   "convertedLabel": "Đã chuyển đổi",
   "downloadButton": "Tải xuống .docx",
@@ -114,6 +116,8 @@
     "100% phía máy khách — không có gì được tải lên"
   ],
   "errorGeneric": "Đã xảy ra lỗi khi chuyển đổi Markdown của bạn. Vui lòng thử lại.",
+  "converterLoadError": "Không thể tải trình chuyển đổi. Hãy kiểm tra kết nối internet, rồi tải lại trang.",
+  "tooComplexError": "Markdown này quá lớn hoặc lồng nhau quá sâu để chuyển đổi trong trình duyệt. Hãy thử chia nó thành các tài liệu nhỏ hơn.",
   "fileTooLargeError": "Tệp này quá lớn để chuyển đổi trong trình duyệt. Hãy thử một tệp Markdown nhỏ hơn 5 MB.",
   "notMarkdownFileError": "Đây có vẻ không phải tệp Markdown hay tệp văn bản nên không thể chuyển đổi. Hãy chọn một tệp .md.",
   "docxFileError": "Đây đã là tài liệu Word. Để chuyển nó thành Markdown, hãy dùng word2md.com.",

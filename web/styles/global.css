@@ -372,6 +372,12 @@
     @apply border-chartreuse bg-chartreuse font-semibold text-navy shadow-sm hover:border-chartreuse-deep hover:bg-chartreuse-deep hover:text-white;
   }
 
+  /* A key in the Convert shortcut hint: a hairline keycap, never an accent,
+     so the button stays the one filled thing in the row. */
+  .kbd {
+    @apply inline-block min-w-[1.5em] rounded border border-b-2 border-rule-light bg-paper-card px-1 text-center font-mono text-navy-soft dark:border-rule-dark dark:bg-ink-card dark:text-mist;
+  }
+
   /* Copy and Download confirm with a drawn check for as long as their label
      reads "Copied!" / "Downloaded" (src/index.ts toggles `.is-confirmed`). */
   .confirmable .confirm-icon,
