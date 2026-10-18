@@ -13,9 +13,16 @@ on:
 permissions:
   contents: read
 
+# Cancel a PR's superseded runs when new commits land. Unlike word2md, pushes
+# to main never cancel, so every commit on main keeps its own CI result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
@@ -28,6 +35,7 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      - run: npm run format:check
       - run: npm run typecheck
       # astro check + astro build, which also runs the SEO / accessibility /
       # performance checks (@nuasite/checks) and fails on errors.
