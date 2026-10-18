@@ -122,7 +122,7 @@ The converter needs the DOM's `DOMParser` and `XMLSerializer`. Browsers have the
 
 The package also exports `parseMarkdownToHtml`, `extractTitle`, the `FONT_PRESETS` (see [Optional Font Presets](#optional-font-presets)), and their TypeScript types. `parseMarkdownToHtml` passes raw HTML through unsanitized, so sanitize its output (for example with [DOMPurify](https://github.com/cure53/DOMPurify)) before putting it in a page.
 
-On a server, treat Markdown from users as untrusted: the converter downloads each remote image (`![](https://…)`) to embed it, so the request comes from your server. Strip or allowlist image URLs first if the server can reach internal addresses.
+On a server, treat Markdown from users as untrusted: the converter downloads each remote image (`![](https://…)`) to embed it, so the request comes from your server (up to 100 distinct `http(s)` URLs per document, 10 MB each, 4 at a time). Strip or allowlist image URLs first if the server can reach internal addresses.
 
 ## Development
 

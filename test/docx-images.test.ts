@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import JSZip from 'jszip';
 import { convertMarkdownToWord } from '../src/converter';
-import { embedImages } from '../src/docx-images';
+import {
+  CONCURRENCY,
+  MAX_IMAGE_BYTES,
+  MAX_IMAGES,
+  embedImages,
+} from '../src/docx-images';
 
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
@@ -175,5 +180,107 @@ describe('images', () => {
     const html = `<img src="data:image/png;base64,${PIXEL_BASE64}">`;
     expect(await embedImages(html)).toBe(html);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('only fetches the URLs html-to-docx would', async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    // No dot-suffix, which html-to-docx's URL check requires; and a URL that
+    // isn't the whole src.
+    await embedImages(
+      '<img alt="a" src="http://intranet"><img alt="b" src="see http://x.example/a.png">'
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('gives up on an image whose Content-Length is over the limit, unread', async () => {
+    const body = new ReadableStream<Uint8Array>({
+      pull(): void {
+        throw new Error('the body should not be read');
+      },
+    });
+    const fetch = vi.fn(
+      async () =>
+        new Response(body, {
+          headers: {
+            'content-type': 'image/png',
+            'content-length': String(MAX_IMAGE_BYTES + 1),
+          },
+        })
+    );
+    vi.stubGlobal('fetch', fetch);
+    expect(
+      await embedImages('<img alt="big" src="https://example.com/big.png">')
+    ).toBe('<a href="https://example.com/big.png">big</a>');
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops reading a body that runs past the limit, and does not retry', async () => {
+    const chunk = new Uint8Array(1024 * 1024);
+    let pulled = 0;
+    let cancelled = false;
+    const fetch = vi.fn(async () => {
+      const body = new ReadableStream<Uint8Array>({
+        pull(controller): void {
+          pulled++;
+          controller.enqueue(chunk);
+        },
+        cancel(): void {
+          cancelled = true;
+        },
+      });
+      return new Response(body, { headers: { 'content-type': 'image/png' } });
+    });
+    vi.stubGlobal('fetch', fetch);
+
+    expect(
+      await embedImages(
+        '<img alt="endless" src="https://example.com/endless.png">'
+      )
+    ).toBe('<a href="https://example.com/endless.png">endless</a>');
+    expect(cancelled).toBe(true);
+    // Just past the limit (plus the stream's read-ahead), not an endless body.
+    expect(pulled * chunk.length).toBeLessThanOrEqual(
+      MAX_IMAGE_BYTES + 3 * chunk.length
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it(`fetches at most ${CONCURRENCY} images at once`, async () => {
+    let active = 0;
+    let peak = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        active++;
+        peak = Math.max(peak, active);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        active--;
+        return image(PIXEL);
+      })
+    );
+    const html = Array.from(
+      { length: 12 },
+      (_, i) => `<img src="https://example.com/${i}.png">`
+    ).join('');
+    const result = await embedImages(html);
+    expect(peak).toBe(CONCURRENCY);
+    expect(result.match(/src="data:image\/png/g)).toHaveLength(12);
+  });
+
+  it(`fetches at most ${MAX_IMAGES} distinct images, keeping the alt text of the rest`, async () => {
+    const fetch = vi.fn(async () => image(PIXEL));
+    vi.stubGlobal('fetch', fetch);
+    const count = MAX_IMAGES + 5;
+    const html = Array.from(
+      { length: count },
+      (_, i) => `<img alt="img ${i}" src="https://example.com/${i}.png">`
+    ).join('');
+    const result = await embedImages(html);
+    expect(fetch).toHaveBeenCalledTimes(MAX_IMAGES);
+    expect(result.match(/src="data:/g)).toHaveLength(MAX_IMAGES);
+    expect(result).toContain(
+      `<a href="https://example.com/${count - 1}.png">img ${count - 1}</a>`
+    );
   });
 });
