@@ -1,0 +1,59 @@
+name: Bug report
+description: A document didn't convert the way you expected, or something errored.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Conversion bugs almost always depend on the input, so the Markdown that reproduces the problem is the single most useful thing you can include.
+
+        **Don't include anything confidential.** Issues are public. If you can, trim the Markdown down to just the part that converts incorrectly.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did you run the conversion?
+      options:
+        - md2word.app (browser)
+        - Node library (import from markdown-to-word)
+        - markdown-to-word bundled into my own web app
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: For the library, the version of markdown-to-word in your package.json or lockfile. Leave blank for md2word.app.
+      placeholder: 0.2.0
+  - type: textarea
+    id: markdown
+    attributes:
+      label: Markdown input
+      description: Paste the Markdown that reproduces the problem.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What you expected the Word document to look like.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result or error
+      description: What you got instead. Attach the .docx or a screenshot of it, or paste the error message.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser and OS for md2word.app, or Node version and OS for the library, plus the app you opened the .docx in.
+      placeholder: Chrome 140 on macOS, opened in Word for Mac
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: The font preset or other options you chose, or anything else that might help.

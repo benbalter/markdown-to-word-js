@@ -57,3 +57,5 @@ temp/
 .wrangler/
 test-results/
 playwright-report/
+# Raw model responses from npm run gen:i18n
+scripts/.gen-cache/

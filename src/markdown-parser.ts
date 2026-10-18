@@ -13,7 +13,9 @@ marked.use({
   renderer: {
     code({ text, lang }) {
       const language = lang?.match(/^\S*/)?.[0];
-      const className = language ? ` class="language-${escapeHtml(language)}"` : '';
+      const className = language
+        ? ` class="language-${escapeHtml(language)}"`
+        : '';
       return `<pre><code${className}>${escapeHtml(text)}</code></pre>\n`;
     },
   },

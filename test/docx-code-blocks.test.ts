@@ -27,16 +27,18 @@ async function codeRun(blob: Blob): Promise<CodeRun> {
   const xml = await zip.file('word/document.xml')!.async('string');
   const dom = new DOMParser().parseFromString(xml, 'application/xml');
   // Inline code is monospace too, so find the block's run by its text.
-  const run = Array.from(dom.getElementsByTagNameNS(W_NS, 'r')).find((candidate) =>
-    candidate.getElementsByTagNameNS(W_NS, 't')[0]?.textContent?.startsWith('def f():')
+  const run = Array.from(dom.getElementsByTagNameNS(W_NS, 'r')).find(
+    (candidate) =>
+      candidate
+        .getElementsByTagNameNS(W_NS, 't')[0]
+        ?.textContent?.startsWith('def f():')
   )!;
 
   return {
     fonts: Object.fromEntries(
-      Array.from(run.getElementsByTagNameNS(W_NS, 'rFonts')[0].attributes).map((attribute) => [
-        attribute.localName,
-        attribute.value,
-      ])
+      Array.from(run.getElementsByTagNameNS(W_NS, 'rFonts')[0].attributes).map(
+        (attribute) => [attribute.localName, attribute.value]
+      )
     ),
     children: Array.from(run.children)
       .filter((child) => child.localName !== 'rPr')
@@ -65,18 +67,29 @@ describe.each([
   let run: CodeRun;
 
   beforeAll(async () => {
-    blob = await convertMarkdownToWord(MARKDOWN, fontPreset ? { fontPreset } : {});
+    blob = await convertMarkdownToWord(
+      MARKDOWN,
+      fontPreset ? { fontPreset } : {}
+    );
     run = await codeRun(blob);
   });
 
   it('puts the monospace face in every font slot, Chinese comments included', () => {
-    expect(run.fonts).toMatchObject({ ascii: CODE_FONT, hAnsi: CODE_FONT, eastAsia: CODE_FONT });
+    expect(run.fonts).toMatchObject({
+      ascii: CODE_FONT,
+      hAnsi: CODE_FONT,
+      eastAsia: CODE_FONT,
+    });
   });
 
   it('turns each source newline into a line break Word renders', () => {
     // The blank line is the paired <w:br/>, so it needs no text node.
     expect(run.children).toEqual(['t', 'br', 't', 'br', 'br', 't']);
-    expect(run.lines).toEqual(['def f():', '    return 1  # 中文注释', '    return 2']);
+    expect(run.lines).toEqual([
+      'def f():',
+      '    return 1  # 中文注释',
+      '    return 2',
+    ]);
   });
 
   it('keeps the block in one paragraph and leaves no raw newline behind', async () => {
@@ -107,22 +120,30 @@ function runFonts(xml: string): Record<string, string | null>[] {
 
 describe('code block detection', () => {
   it('styles a single-line code block, which has no newline to give it away', async () => {
-    const xml = await documentXml(await convertMarkdownToWord('```\nonly line\n```\n'));
+    const xml = await documentXml(
+      await convertMarkdownToWord('```\nonly line\n```\n')
+    );
 
     expect(runFonts(xml)).toEqual([{ ascii: CODE_FONT, eastAsia: CODE_FONT }]);
   });
 
   it('styles every run of a raw HTML <pre>, including nested markup', async () => {
     const xml = await documentXml(
-      await convertMarkdownToWord('<pre>first\nsecond <b>bold</b>\nthird</pre>\n')
+      await convertMarkdownToWord(
+        '<pre>first\nsecond <b>bold</b>\nthird</pre>\n'
+      )
     );
 
-    expect(runFonts(xml)).toEqual(Array(3).fill({ ascii: CODE_FONT, eastAsia: CODE_FONT }));
+    expect(runFonts(xml)).toEqual(
+      Array(3).fill({ ascii: CODE_FONT, eastAsia: CODE_FONT })
+    );
     expect((xml.match(/<w:br\/>/g) ?? []).length).toBe(2);
   });
 
   it('tells an inline-code-only paragraph from a code block with the same text', async () => {
-    const xml = await documentXml(await convertMarkdownToWord('`x = 1`\n\n```\nx = 1\n```\n'));
+    const xml = await documentXml(
+      await convertMarkdownToWord('`x = 1`\n\n```\nx = 1\n```\n')
+    );
 
     expect(runFonts(xml)).toEqual([
       { ascii: CODE_FONT, eastAsia: null },
@@ -132,7 +153,9 @@ describe('code block detection', () => {
 
   it('leaves a paragraph alone even when a later code block repeats its text', async () => {
     const xml = await documentXml(
-      await convertMarkdownToWord('```\nfirst\n```\n\nsame text\n\n```\nsame text\n```\n')
+      await convertMarkdownToWord(
+        '```\nfirst\n```\n\nsame text\n\n```\nsame text\n```\n'
+      )
     );
 
     expect(runFonts(xml)).toEqual([
@@ -151,7 +174,8 @@ describe('surrounding content', () => {
     const dom = new DOMParser().parseFromString(xml, 'application/xml');
 
     const bodyRuns = Array.from(dom.getElementsByTagNameNS(W_NS, 'r')).filter(
-      (run) => run.getElementsByTagNameNS(W_NS, 't')[0]?.textContent === '正文 with '
+      (run) =>
+        run.getElementsByTagNameNS(W_NS, 't')[0]?.textContent === '正文 with '
     );
     expect(bodyRuns).toHaveLength(1);
     expect(bodyRuns[0].getElementsByTagNameNS(W_NS, 'rFonts')).toHaveLength(0);

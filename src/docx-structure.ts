@@ -29,7 +29,9 @@ export async function patchStructure(
   const zip = await JSZip.loadAsync(await wordDocument.arrayBuffer());
   const documentEntry = zip.file('word/document.xml');
   if (!documentEntry) {
-    throw new Error('Cannot patch structure: document contains no word/document.xml');
+    throw new Error(
+      'Cannot patch structure: document contains no word/document.xml'
+    );
   }
 
   const documentXml = await documentEntry.async('string');
@@ -45,7 +47,10 @@ export async function patchStructure(
 }
 
 /** Exported for testing. */
-export function patchDocumentXml(documentXml: string, structure: DocumentStructure): string {
+export function patchDocumentXml(
+  documentXml: string,
+  structure: DocumentStructure
+): string {
   const dom = new DOMParser().parseFromString(documentXml, 'application/xml');
   let changed = false;
 
@@ -77,7 +82,10 @@ export function patchDocumentXml(documentXml: string, structure: DocumentStructu
   if (!changed) {
     return documentXml;
   }
-  return keepXmlDeclaration(documentXml, new XMLSerializer().serializeToString(dom));
+  return keepXmlDeclaration(
+    documentXml,
+    new XMLSerializer().serializeToString(dom)
+  );
 }
 
 function isRulePlaceholder(paragraph: Element): boolean {
@@ -85,7 +93,9 @@ function isRulePlaceholder(paragraph: Element): boolean {
     .map((t) => t.textContent ?? '')
     .join('');
   const jc = children(children(paragraph, 'pPr')[0] ?? paragraph, 'jc')[0];
-  return text.trim() === RULE_TEXT && jc?.getAttributeNS(W_NS, 'val') === 'center';
+  return (
+    text.trim() === RULE_TEXT && jc?.getAttributeNS(W_NS, 'val') === 'center'
+  );
 }
 
 /** Replaces the paragraph's content with nothing but a bottom border. */
@@ -108,7 +118,10 @@ function markHeaderRow(row: Element): void {
   const document = row.ownerDocument;
   let trPr = children(row, 'trPr')[0];
   if (!trPr) {
-    trPr = row.insertBefore(document.createElementNS(W_NS, 'w:trPr'), row.firstChild);
+    trPr = row.insertBefore(
+      document.createElementNS(W_NS, 'w:trPr'),
+      row.firstChild
+    );
   }
   if (children(trPr, 'tblHeader').length === 0) {
     // The generator writes at most cantSplit here, which comes before tblHeader.

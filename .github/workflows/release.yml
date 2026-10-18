@@ -52,6 +52,7 @@ jobs:
             echo "Release tag $RELEASE_TAG does not match package.json version $pkg" >&2
             exit 1
           fi
+      - run: npm run typecheck
       - run: npm test
       # `prepack` builds build/ clean. No token: OIDC authenticates via
       # id-token, and provenance is automatic.

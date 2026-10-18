@@ -88,7 +88,12 @@ const SIZE_SAN = 16;
  * practice.
  */
 export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
-  body: { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: false },
+  body: {
+    latin: LATIN_FONT,
+    eastAsia: BODY_FONT,
+    sizePt: SIZE_SAN,
+    bold: false,
+  },
   headings: [
     {
       latin: LATIN_FONT,
@@ -103,7 +108,12 @@ export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
     { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: false },
     { latin: LATIN_FONT, eastAsia: BODY_FONT, sizePt: SIZE_SAN, bold: false },
   ],
-  paragraph: { beforePt: 0, afterPt: 0, lineSpacing: 'grid', firstLineIndentChars: 2 },
+  paragraph: {
+    beforePt: 0,
+    afterPt: 0,
+    lineSpacing: 'grid',
+    firstLineIndentChars: 2,
+  },
   page: {
     widthMm: 210,
     heightMm: 297,
@@ -133,7 +143,8 @@ export const FONT_PRESETS: Record<string, FontPreset> = {
 export function isMostlyChinese(text: string): boolean {
   const letters = text.match(/\p{L}/gu)?.length ?? 0;
   const han = text.match(/\p{Script=Han}/gu)?.length ?? 0;
-  const kana = text.match(/[\p{Script=Hiragana}\p{Script=Katakana}]/gu)?.length ?? 0;
+  const kana =
+    text.match(/[\p{Script=Hiragana}\p{Script=Katakana}]/gu)?.length ?? 0;
 
   return han >= 10 && han / letters >= 0.5 && kana < han / 10;
 }

@@ -32,13 +32,18 @@ function paragraphs(xml: string): string[] {
     const text = (p.match(/<w:t[^>]*>[^<]*<\/w:t>/g) ?? [])
       .map((t) => stripXmlTagsSafely(t))
       .join('');
-    return text === '' && /<w:pBdr>\s*<w:bottom w:val="single"/.test(p) ? '<rule>' : text;
+    return text === '' && /<w:pBdr>\s*<w:bottom w:val="single"/.test(p)
+      ? '<rule>'
+      : text;
   });
 }
 
 describe('horizontal rules', () => {
   it('draws the rule the generator would drop', async () => {
-    const markdown = readFileSync(join(fixtureRoot, 'horizontal-rule.md'), 'utf-8');
+    const markdown = readFileSync(
+      join(fixtureRoot, 'horizontal-rule.md'),
+      'utf-8'
+    );
     expect(paragraphs(await documentXml(markdown))).toEqual([
       'Above the rule.',
       '<rule>',
@@ -47,17 +52,16 @@ describe('horizontal rules', () => {
   });
 
   it('draws every rule, in order', async () => {
-    expect(paragraphs(await documentXml('one\n\n---\n\ntwo\n\n***\n\nthree\n'))).toEqual([
-      'one',
-      '<rule>',
-      'two',
-      '<rule>',
-      'three',
-    ]);
+    expect(
+      paragraphs(await documentXml('one\n\n---\n\ntwo\n\n***\n\nthree\n'))
+    ).toEqual(['one', '<rule>', 'two', '<rule>', 'three']);
   });
 
   it('leaves a paragraph that only says the placeholder text alone', async () => {
-    expect(paragraphs(await documentXml('\\* \\* \\*\n\n---\n'))).toEqual([RULE_TEXT, '<rule>']);
+    expect(paragraphs(await documentXml('\\* \\* \\*\n\n---\n'))).toEqual([
+      RULE_TEXT,
+      '<rule>',
+    ]);
   });
 });
 
@@ -73,7 +77,9 @@ describe('tables', () => {
   });
 
   it('leaves a raw HTML table without header cells alone', async () => {
-    const xml = await documentXml('<table><tr><td>1</td><td>2</td></tr></table>\n');
+    const xml = await documentXml(
+      '<table><tr><td>1</td><td>2</td></tr></table>\n'
+    );
     expect(xml).not.toContain('<w:tblHeader');
   });
 
@@ -96,7 +102,9 @@ describe('with the font preset', () => {
 
     expect(xml).toContain('☒ 完成');
     expect(xml).toMatch(
-      new RegExp(`<w:rFonts w:ascii="${CODE_FONT}"[^>]*/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`)
+      new RegExp(
+        `<w:rFonts w:ascii="${CODE_FONT}"[^>]*/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`
+      )
     );
     expect(paragraphs(xml)).toContain('<rule>');
     expect(xml).toContain('<w:tblHeader/>');

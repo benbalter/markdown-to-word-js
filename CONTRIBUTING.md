@@ -52,9 +52,12 @@ scripts/                  # OG image, favicon, translation, and Cloudflare setup
 - `npm run lint` - Run ESLint (`npm run lint:fix` applies fixes)
 - `npm run typecheck` - Type-check everything, including tests and scripts
 - `npm test` - Run the unit tests
+- `npm run test:coverage` - Run the unit tests with coverage, failing below the floors in `vitest.config.ts` (CI runs this; the HTML report lands in `coverage/`)
 - `npm run test:e2e` - Run the Playwright tests against `dist/` (build first)
-- `npm run format` - Format code with Prettier
+- `npm run format` - Format code with Prettier (`npm run format:check` checks without writing, as CI does)
 - `npm run gen:og` / `npm run gen:icons` - Regenerate the social card and favicons
+- `npm run gen:i18n` - Machine-translate `web/i18n/en.json` into the locales listed in `scripts/translate-i18n.mjs` with Azure OpenAI, keeping every key and array length intact. Needs `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and `AZURE_OPENAI_DEPLOYMENT` set; pass locale codes (`npm run gen:i18n -- es pt`) to translate only those. Raw responses are kept in `scripts/.gen-cache/i18n/`. See [web/i18n/README.md](web/i18n/README.md)
+- `npm run cf:builds` - Connect the repo to Cloudflare Workers Builds through the Cloudflare API, so `main` deploys and branches get preview URLs. Safe to rerun. Needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and `BUILD_TOKEN_UUID` (for example via `op run --env-file=.env -- npm run cf:builds`); add `-- --tokens` to list the build tokens to choose from. See [docs/cloudflare.md](docs/cloudflare.md)
 
 ## Contributing Guidelines
 
