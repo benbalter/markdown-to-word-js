@@ -5,12 +5,27 @@ import type { UIStrings } from './types';
 // test time by test/i18n-completeness.test.ts (astro check only reports
 // diagnostics for .astro files, so it can't catch a missing JSON key). See
 // web/i18n/README.md.
+import ar from './ar.json';
+import de from './de.json';
 import en from './en.json';
 import es from './es.json';
+import fr from './fr.json';
+import hi from './hi.json';
 import id from './id.json';
+import it from './it.json';
+import ja from './ja.json';
+import ko from './ko.json';
+import nl from './nl.json';
+import pl from './pl.json';
 import pt from './pt.json';
+import ru from './ru.json';
+import sv from './sv.json';
+import th from './th.json';
+import tr from './tr.json';
+import uk from './uk.json';
 import vi from './vi.json';
 import zh from './zh.json';
+import zhHant from './zh-hant.json';
 
 import { defaultLocale, locales, type Locale } from './locales';
 
@@ -27,7 +42,22 @@ const dictionaries: Record<Locale, UIStrings> = {
   vi,
   pt,
   es,
+  ar,
+  de,
+  fr,
   zh,
+  'zh-hant': zhHant,
+  ja,
+  ko,
+  ru,
+  it,
+  nl,
+  pl,
+  tr,
+  hi,
+  th,
+  uk,
+  sv,
 };
 
 /** Narrow an arbitrary string (e.g. Astro.currentLocale) to a known Locale. */

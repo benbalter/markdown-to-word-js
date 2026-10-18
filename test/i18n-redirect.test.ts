@@ -33,11 +33,10 @@ describe('pickLocale', () => {
     }
   });
 
-  it('never sends Traditional Chinese readers to Simplified', () => {
-    // There's no zh-hant dictionary yet, so the next listed language decides.
+  it('sends Traditional Chinese readers to zh-hant, never Simplified', () => {
     for (const tag of ['zh-TW', 'zh-HK', 'zh-MO', 'zh-Hant', 'zh-Hant-TW']) {
-      expect(pickLocale(`${tag},en;q=0.8`)).toBeNull();
-      expect(pickLocale(`${tag},zh;q=0.9`)).toBe('zh');
+      expect(pickLocale(`${tag},en;q=0.8`)).toBe('zh-hant');
+      expect(pickLocale(`${tag},zh;q=0.9`)).toBe('zh-hant');
     }
     // Only the zh prefix counts: a lookalike tag isn't Chinese at all.
     expect(pickLocale('zhx-TW')).toBeNull();
@@ -74,7 +73,7 @@ describe('pickLocale', () => {
   it('keeps the "unsupported" fixtures above genuinely unsupported', () => {
     // If one of these languages is ever added, pick different codes for the
     // "skips unsupported languages" case.
-    for (const code of ['fa', 'he', 'el', 'zh-hant']) {
+    for (const code of ['fa', 'he', 'el']) {
       expect(SUPPORTED_LOCALES).not.toContain(code);
     }
   });
@@ -84,6 +83,7 @@ describe('pickSuggestion', () => {
   it('suggests a supported language listed after English', () => {
     expect(pickSuggestion('en-US,en;q=0.9,id;q=0.8', undefined)).toBe('id');
     expect(pickSuggestion('en,zh-CN;q=0.7', undefined)).toBe('zh');
+    expect(pickSuggestion('en,zh-TW;q=0.7', 'TW')).toBe('zh-hant');
   });
 
   it("falls back to the visitor's country", () => {
@@ -100,7 +100,6 @@ describe('pickSuggestion', () => {
     expect(pickSuggestion('en-US,en;q=0.9', 'US')).toBeNull();
     expect(pickSuggestion('en-US,en;q=0.9', undefined)).toBeNull();
     expect(pickSuggestion('en,fa;q=0.8', 'IR')).toBeNull();
-    expect(pickSuggestion('en,zh-TW;q=0.7', 'TW')).toBeNull();
     expect(pickSuggestion(null, null)).toBeNull();
   });
 

@@ -30,4 +30,4 @@ Routing (`/<locale>/`), the sitemap's hreflang alternates, the head's hreflang c
 
 ## Review status
 
-Machine-translated locales are a first pass and need native review. The first five (`id`, `vi`, `pt`, `es`, `zh`) were written by Claude rather than `gen:i18n`, reusing word2md's wording wherever the English matches, and haven't had a native review yet. Legal pages (Terms/Privacy) are intentionally English-only.
+Machine-translated locales are a first pass and need native review. All 20 were written by Claude rather than `gen:i18n`, reusing word2md's wording wherever the English matches, and none has had a native review yet: the first five (`id`, `vi`, `pt`, `es`, `zh`) shipped first, and the other 15 brought the list level with word2md. Legal pages (Terms/Privacy) are intentionally English-only.

@@ -1,0 +1,136 @@
+{
+  "eyebrow": "Kostenlos · Open Source · 100% im Browser",
+  "tagline": "Wandeln Sie Markdown in ein formatiertes Word-Dokument (.docx) um, komplett in Ihrem Browser. Ihre Dateien werden nie hochgeladen.",
+  "trustBadge": "Bewährt seit 2015",
+  "flowFromAlt": "Markdown-Datei",
+  "flowToAlt": "Word-Dokument",
+  "dropzoneTitle": "Legen Sie Ihre .md-Datei hier ab",
+  "dropzoneTitleTouch": "Wählen Sie eine Markdown-Datei",
+  "dropzoneBrowsePrefix": "oder ",
+  "dropzoneBrowseLink": "klicken Sie, um eine Datei zu wählen",
+  "dropzoneNote": "Bis 5 MB · Wird auf diesem Gerät konvertiert, nie hochgeladen",
+  "orFile": "oder eine Datei verwenden",
+  "pastePlaceholder": "# Mein Dokument\n\nFügen Sie hier **Markdown** ein oder tippen Sie es, und wandeln Sie es dann in Word um.",
+  "styleLabel": "Stil",
+  "styleDefault": "Standard",
+  "styleChineseOfficial": "Chinesisches Amtsdokument (公文)",
+  "styleChineseHint": "Das sieht nach chinesischem Text aus. Für Schriften im 公文-Stil wählen Sie „Chinesisches Amtsdokument (公文)“.",
+  "convertButton": "In Word umwandeln",
+  "convertSectionAria": "Dokument umwandeln",
+  "convertedLabel": "Umgewandelt",
+  "downloadButton": ".docx herunterladen",
+  "downloadedButton": "Heruntergeladen",
+  "copyButton": "Formatierten Text kopieren",
+  "copiedButton": "Kopiert!",
+  "convertAnother": "Weiteres Dokument umwandeln",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "Vorschau",
+  "steps": [
+    {
+      "t": "Einfügen oder ablegen",
+      "d": "Fügen Sie Markdown ein, ziehen Sie eine .md-Datei hinein oder wählen Sie eine aus."
+    },
+    {
+      "t": "Umwandeln",
+      "d": "Die Umwandlung erfolgt im Browser: kein Server, kein Warten."
+    },
+    {
+      "t": "Herunterladen",
+      "d": "Speichern Sie die .docx, oder kopieren Sie formatierten Text direkt in Word oder Google Docs."
+    }
+  ],
+  "conversionHeading": "Was konvertiert wird",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "In Word",
+  "conversionRows": [
+    "Formatvorlagen Überschrift 1–6",
+    "Fett & kursiv",
+    "Durchgestrichen",
+    "Aufzählungen & nummerierte Listen",
+    "☒ / ☐ Checklisteneinträge",
+    "Tabellen mit Rahmen und wiederholter Kopfzeile",
+    "Anklickbare Links",
+    "Code in Festbreitenschrift",
+    "Eingerückte Zitate",
+    "Eine Linie über die ganze Seite"
+  ],
+  "reverseHeading": "Andersherum?",
+  "reverseBody": "Um ein Word- oder Google-Dokument in sauberes Markdown umzuwandeln, nutzen Sie word2md.com. Vom selben Entwickler, mit demselben Versprechen: Alles geschieht in Ihrem Browser.",
+  "reverseCta": "Word in Markdown umwandeln",
+  "faqHeading": "Häufig gestellte Fragen",
+  "faqs": [
+    {
+      "q": "Wie wandle ich Markdown in Word um?",
+      "a": "Fügen Sie Ihr Markdown ein und klicken Sie auf „In Word umwandeln“, oder legen Sie eine .md-Datei auf der Seite ab (oder wählen Sie eine aus), um sie sofort umzuwandeln. Laden Sie die .docx herunter, oder kopieren Sie den formatierten Text und fügen Sie ihn in Word ein."
+    },
+    {
+      "q": "Ist Markdown to Word kostenlos?",
+      "a": "Ja. Es ist kostenlos und Open Source: ohne Anmeldung und ohne Begrenzung der Anzahl umgewandelter Dokumente."
+    },
+    {
+      "q": "Werden meine Dokumente auf einen Server hochgeladen?",
+      "a": "Nein. Die Umwandlung erfolgt vollständig in Ihrem Browser mit JavaScript. Ihr Markdown und das Word-Dokument verlassen nie Ihr Gerät und werden nie hochgeladen, gespeichert oder protokolliert."
+    },
+    {
+      "q": "Wie mache ich aus einer Antwort von ChatGPT oder Claude ein Word-Dokument?",
+      "a": "KI-Chat-Apps antworten in Markdown. Kopieren Sie die Antwort über die Kopierschaltfläche, fügen Sie sie hier ein und wandeln Sie sie um. Überschriften, Listen, Tabellen und Code werden zu echter Word-Formatierung statt zu verstreuten Sternchen und Rautezeichen."
+    },
+    {
+      "q": "Welches Markdown wird unterstützt?",
+      "a": "GitHub Flavored Markdown: Überschriften, fett, kursiv, durchgestrichen, Aufzählungen und nummerierte Listen, Aufgabenlisten, Tabellen, Links, Inline-Code, Codeblöcke, Zitate und horizontale Linien. Die erste Überschrift wird zum Titel und Dateinamen des Dokuments."
+    },
+    {
+      "q": "Kann ich das Ergebnis in Google Docs einfügen?",
+      "a": "Ja. Klicken Sie auf „Formatierten Text kopieren“ und fügen Sie ihn in Google Docs oder Word ein – die Formatierung bleibt erhalten. Sie können die .docx auch herunterladen und in Google Docs öffnen."
+    },
+    {
+      "q": "Kann es ein chinesisches Amtsdokument (公文) formatieren?",
+      "a": "Ja. Wählen Sie vor dem Umwandeln den Stil „Chinesisches Amtsdokument (公文)“. Fließtext wird in FangSong gesetzt, Überschriften in FZXiaoBiaoSong, SimHei und KaiTi in den üblichen Größen, lateinischer Text in Times New Roman. Diese Schriften müssen auf dem Gerät installiert sein, auf dem das Dokument geöffnet wird."
+    },
+    {
+      "q": "Wie unterscheidet sich das von Pandoc?",
+      "a": "Pandoc ist ein leistungsstarker Konverter für die Kommandozeile, muss aber erst installiert und konfiguriert werden. Markdown to Word läuft sofort im Browser, ganz ohne Installation."
+    }
+  ],
+  "footer": {
+    "feedback": "Feedback",
+    "source": "Quellcode",
+    "wordToMarkdown": "Word in Markdown",
+    "donate": "Spenden",
+    "terms": "Nutzungsbedingungen",
+    "privacy": "Datenschutz",
+    "languagesLabel": "Sprache",
+    "linksLabel": "Seitenlinks"
+  },
+  "footerTagline": "Im Browser umgewandelt · nichts wird hochgeladen",
+  "metaTitle": "Markdown in Word umwandeln — Kostenlos von .md zu .docx",
+  "metaDescription": "Kostenloser Open-Source-Konverter: wandelt Markdown, auch Antworten von ChatGPT und Claude, im Browser in Word-Dateien (.docx) um. Nichts wird hochgeladen.",
+  "schemaDescription": "Kostenloses Open-Source-Tool, das GitHub Flavored Markdown vollständig im Browser in formatierte Word-Dokumente (.docx) umwandelt.",
+  "schemaFeatureList": [
+    "Markdown (.md) in Word (.docx) umwandeln",
+    "Tabellen, Listen und Codeblöcke aus GitHub Flavored Markdown",
+    "Formatierten Text für Word oder Google Docs kopieren",
+    "Schriften für chinesische Amtsdokumente (公文)",
+    "100% clientseitig: nichts wird hochgeladen"
+  ],
+  "errorGeneric": "Beim Umwandeln Ihres Markdowns ist etwas schiefgelaufen. Bitte versuchen Sie es erneut.",
+  "fileTooLargeError": "Diese Datei ist zu groß, um sie im Browser zu konvertieren. Bitte verwenden Sie eine Markdown-Datei, die kleiner als 5 MB ist.",
+  "notMarkdownFileError": "Das sieht nicht nach einer Markdown- oder Textdatei aus und kann daher nicht konvertiert werden. Wählen Sie stattdessen eine .md-Datei.",
+  "docxFileError": "Das ist bereits ein Word-Dokument. Um es in Markdown umzuwandeln, nutzen Sie word2md.com.",
+  "readError": "Diese Datei konnte nicht gelesen werden. Bitte wählen Sie sie erneut aus.",
+  "emptyError": "Fügen Sie zuerst Markdown ein oder wählen Sie eine .md-Datei.",
+  "copyFailed": "Automatisches Kopieren fehlgeschlagen. Markieren Sie die Vorschau und kopieren Sie sie mit Strg+C (⌘C auf dem Mac).",
+  "onlyFirstFile": "Nur die erste Datei wurde umgewandelt. Fügen Sie die anderen einzeln hinzu.",
+  "conversionAnnouncement": "Konvertierung abgeschlossen. Ihr Word-Dokument kann heruntergeladen werden.",
+  "convertingStatus": "Wird konvertiert…",
+  "dismiss": "Schließen",
+  "suggestLanguage": "Auch auf Deutsch verfügbar",
+  "promo": {
+    "label": "Vom Macher",
+    "body": "Ich habe dieses kostenlose Tool entwickelt — und ich habe das Buch über offenes Arbeiten geschrieben. <strong>Open &amp; Async</strong> ist das auf GitHub erprobte Handbuch für Remote- und verteilte Teams.",
+    "cta": "Jetzt kaufen",
+    "coverAlt": "Buchcover von Open and Async",
+    "resultsLead": "Stark — ein weiteres Dokument von Markdown nach Word. Ich habe das Handbuch dafür geschrieben, Dinge auf diese Weise schriftlich festzuhalten:",
+    "resultsCta": "Open & Async ansehen"
+  }
+}

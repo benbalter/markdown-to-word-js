@@ -79,9 +79,8 @@ export function pickSuggestion(acceptLanguage, country) {
 
 // Traditional Chinese is the one locale a base-language match can't find:
 // zh-TW, zh-HK, zh-MO and any zh-Hant tag map to zh-hant; every other zh tag
-// (zh, zh-CN, zh-SG, zh-Hans) maps to Simplified. There's no zh-hant
-// dictionary yet, so those readers aren't sent to Simplified: the tag goes
-// unmatched and the next language they list decides.
+// (zh, zh-CN, zh-SG, zh-Hans) maps to Simplified, so Traditional readers are
+// never sent to Simplified.
 const TRADITIONAL_CHINESE = /^zh-(?:hant|tw|hk|mo)(?:-|$)/;
 
 // Map a lowercased language tag to a site locale key (which may be
