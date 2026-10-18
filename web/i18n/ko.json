@@ -16,6 +16,8 @@
   "styleChineseOfficial": "중국 공문서 서식(公文)",
   "styleChineseHint": "중국어 텍스트로 보입니다. 公文 스타일 글꼴을 사용하려면 “중국 공문서 서식(公文)”을 선택하세요.",
   "convertButton": "Word로 변환",
+  "shortcutHint": "또는 {keys} 누르기",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "문서 변환",
   "convertedLabel": "변환됨",
   "downloadButton": ".docx 다운로드",
@@ -114,6 +116,8 @@
     "100% 클라이언트 측 처리 — 업로드 없음"
   ],
   "errorGeneric": "Markdown을 변환하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+  "converterLoadError": "변환기를 불러오지 못했습니다. 인터넷 연결을 확인한 후 페이지를 새로 고쳐 주세요.",
+  "tooComplexError": "이 Markdown은 너무 크거나 중첩이 너무 깊어 브라우저에서 변환할 수 없습니다. 더 작은 문서로 나누어 보세요.",
   "fileTooLargeError": "이 파일은 브라우저에서 변환하기에 너무 큽니다. 5 MB보다 작은 Markdown 파일을 사용해 주세요.",
   "notMarkdownFileError": "Markdown 또는 텍스트 파일이 아닌 것 같아 변환할 수 없습니다. 대신 .md 파일을 선택하세요.",
   "docxFileError": "이미 Word 문서입니다. Markdown으로 바꾸려면 word2md.com을 사용하세요.",

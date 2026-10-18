@@ -16,6 +16,8 @@
   "styleChineseOfficial": "公文格式",
   "styleChineseHint": "这看起来是中文文本。如需公文格式，请选择“公文格式”。",
   "convertButton": "转换为 Word",
+  "shortcutHint": "或按 {keys}",
+  "shortcutCtrl": "Ctrl",
   "convertSectionAria": "转换文档",
   "convertedLabel": "已转换",
   "downloadButton": "下载 .docx",
@@ -114,6 +116,8 @@
     "100% 客户端运行——不会上传任何内容"
   ],
   "errorGeneric": "转换 Markdown 时出错了。请重试。",
+  "converterLoadError": "转换器加载失败。请检查网络连接，然后刷新页面。",
+  "tooComplexError": "此 Markdown 太大或嵌套太深，无法在浏览器中转换。请尝试将其拆分为较小的文档。",
   "fileTooLargeError": "此文件太大，无法在浏览器中转换。请尝试小于 5 MB 的 Markdown 文件。",
   "notMarkdownFileError": "这似乎不是 Markdown 或文本文件，因此无法转换。请改选 .md 文件。",
   "docxFileError": "这已经是 Word 文档了。要将其转换为 Markdown，请使用 word2md.com。",

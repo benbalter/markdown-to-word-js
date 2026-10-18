@@ -51,6 +51,16 @@ export interface UIStrings {
   /** Shown when the text is mostly Chinese and no style is chosen. */
   styleChineseHint: string;
   convertButton: string;
+  /**
+   * Hint beside the Convert button on devices with a keyboard. `{keys}` is
+   * replaced with the key combination, rendered as <kbd> elements.
+   */
+  shortcutHint: string;
+  /**
+   * The Control key's name on this language's keyboards (German: "Strg").
+   * Apple platforms show ⌘ instead, which src/index.ts swaps in.
+   */
+  shortcutCtrl: string;
   convertSectionAria: string;
 
   // Results
@@ -112,6 +122,13 @@ export interface UIStrings {
 
   // Converter runtime (injected into the DOM as data-* and read by src/index.ts)
   errorGeneric: string;
+  /** The converter's code failed to download (offline, or a stale page). */
+  converterLoadError: string;
+  /**
+   * The browser ran out of stack or memory converting, which in practice
+   * means very deep nesting or a huge document.
+   */
+  tooComplexError: string;
   /** Shown when a chosen file exceeds the in-browser size limit. */
   fileTooLargeError: string;
   /** A file that isn't text at all (e.g. a .docx or a PDF). */
