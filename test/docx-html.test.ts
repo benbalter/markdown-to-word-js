@@ -40,7 +40,9 @@ describe('prepareHtmlForDocx', () => {
     });
 
     it('leaves code blocks alone', () => {
-      expect(prepare('```\nblock\n```\n')).toBe(parseMarkdownToHtml('```\nblock\n```\n'));
+      expect(prepare('```\nblock\n```\n')).toBe(
+        parseMarkdownToHtml('```\nblock\n```\n')
+      );
     });
   });
 
@@ -76,7 +78,9 @@ describe('prepareHtmlForDocx', () => {
     });
 
     it('leaves an empty header cell empty', () => {
-      expect(prepare('|   | b |\n| - | - |\n| 1 | 2 |\n')).toContain('<th></th>');
+      expect(prepare('|   | b |\n| - | - |\n| 1 | 2 |\n')).toContain(
+        '<th></th>'
+      );
     });
   });
 });
@@ -92,7 +96,9 @@ describe('in the generated .docx', () => {
   });
 
   it('draws table borders and bolds and aligns cells', async () => {
-    const xml = await documentXml('| Name | Age |\n| :-- | --: |\n| Alice | 30 |\n');
+    const xml = await documentXml(
+      '| Name | Age |\n| :-- | --: |\n| Alice | 30 |\n'
+    );
     expect(xml).toMatch(/<w:tblBorders>[\s\S]*w:val="single"/);
     expect(xml).toMatch(/<w:b\/>[\s\S]*?<w:t[^>]*>Name</);
     expect(xml).toMatch(/<w:jc w:val="right"\/>[\s\S]*?<w:t[^>]*>30</);
@@ -101,7 +107,9 @@ describe('in the generated .docx', () => {
   it('sets inline code in the code font', async () => {
     const xml = await documentXml('Run `npm test` now.\n');
     expect(xml).toMatch(
-      new RegExp(`<w:rFonts w:ascii="${CODE_FONT}" w:hAnsi="${CODE_FONT}"/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`)
+      new RegExp(
+        `<w:rFonts w:ascii="${CODE_FONT}" w:hAnsi="${CODE_FONT}"/>\\s*</w:rPr>\\s*<w:t[^>]*>npm test<`
+      )
     );
   });
 });

@@ -43,8 +43,12 @@ const STYLE_PLACEHOLDER = 'data-docx-style';
 export function prepareHtmlForDocx(html: string): string {
   const dom = new DOMParser().parseFromString(html, 'text/html');
 
-  for (const input of Array.from(dom.querySelectorAll('input[type="checkbox"]'))) {
-    const box = input.hasAttribute('checked') ? CHECKBOX.checked : CHECKBOX.unchecked;
+  for (const input of Array.from(
+    dom.querySelectorAll('input[type="checkbox"]')
+  )) {
+    const box = input.hasAttribute('checked')
+      ? CHECKBOX.checked
+      : CHECKBOX.unchecked;
     input.replaceWith(dom.createTextNode(box));
   }
 
@@ -79,6 +83,6 @@ export function prepareHtmlForDocx(html: string): string {
 
   // Only inside tags: text can't contain a raw `<`, so it's never touched.
   return dom.body.innerHTML.replace(/<[^>]+>/g, (tag) =>
-    tag.replace(` ${STYLE_PLACEHOLDER}=`, ' style='),
+    tag.replace(` ${STYLE_PLACEHOLDER}=`, ' style=')
   );
 }

@@ -30,8 +30,8 @@ describe('images without a global Buffer, as in a browser', () => {
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
     const xml = await zip.file('word/document.xml')!.async('string');
     expect(xml).toContain('<w:drawing>');
-    expect(Object.keys(zip.files).some((name) => /^word\/media\/.+\.png$/.test(name))).toBe(
-      true
-    );
+    expect(
+      Object.keys(zip.files).some((name) => /^word\/media\/.+\.png$/.test(name))
+    ).toBe(true);
   });
 });
