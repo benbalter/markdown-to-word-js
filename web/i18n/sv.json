@@ -1,0 +1,136 @@
+{
+  "eyebrow": "Gratis · Öppen källkod · 100 % i din webbläsare",
+  "tagline": "Gör om Markdown till ett formaterat Word-dokument (.docx), helt i din webbläsare. Dina filer laddas aldrig upp.",
+  "trustBadge": "Betrodd sedan 2015",
+  "flowFromAlt": "Markdown-fil",
+  "flowToAlt": "Word-dokument",
+  "dropzoneTitle": "Släpp din .md-fil här",
+  "dropzoneTitleTouch": "Välj en Markdown-fil",
+  "dropzoneBrowsePrefix": "eller ",
+  "dropzoneBrowseLink": "klicka för att välja en fil",
+  "dropzoneNote": "Upp till 5 MB · Konverteras på den här enheten, laddas aldrig upp",
+  "orFile": "eller använd en fil",
+  "pastePlaceholder": "# Mitt dokument\n\nKlistra in eller skriv **Markdown** här och konvertera det sedan till Word.",
+  "styleLabel": "Stil",
+  "styleDefault": "Standard",
+  "styleChineseOfficial": "Kinesiskt officiellt dokument (公文)",
+  "styleChineseHint": "Det här ser ut som kinesisk text. Välj ”Kinesiskt officiellt dokument (公文)” för typsnitt i 公文-stil.",
+  "convertButton": "Konvertera till Word",
+  "convertSectionAria": "Konvertera ett dokument",
+  "convertedLabel": "Konverterad",
+  "downloadButton": "Ladda ner .docx",
+  "downloadedButton": "Nedladdat",
+  "copyButton": "Kopiera formaterad text",
+  "copiedButton": "Kopierat!",
+  "convertAnother": "Konvertera en till",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "Förhandsvisning",
+  "steps": [
+    {
+      "t": "Klistra in eller släpp",
+      "d": "Klistra in Markdown, eller dra in en .md-fil eller välj en."
+    },
+    {
+      "t": "Konvertera",
+      "d": "Den konverteras i din webbläsare: ingen server, ingen väntan."
+    },
+    {
+      "t": "Ladda ner",
+      "d": "Spara .docx-filen, eller kopiera formaterad text direkt till Word eller Google Docs."
+    }
+  ],
+  "conversionHeading": "Vad som konverteras",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "I Word",
+  "conversionRows": [
+    "Formaten Rubrik 1–6",
+    "Fetstil & kursiv",
+    "Genomstrykning",
+    "Punktlistor & numrerade listor",
+    "☒ / ☐ punkter i checklistor",
+    "Tabeller med kantlinjer och upprepad rubrikrad",
+    "Klickbara länkar",
+    "Kod i ett teckensnitt med fast bredd",
+    "Indragna blockcitat",
+    "En linje över hela sidan"
+  ],
+  "reverseHeading": "Åt andra hållet?",
+  "reverseBody": "Vill du göra om ett Word-dokument eller Google-dokument till ren Markdown? Använd word2md.com. Samma skapare, samma löfte: allt sker i din webbläsare.",
+  "reverseCta": "Konvertera Word till Markdown",
+  "faqHeading": "Vanliga frågor",
+  "faqs": [
+    {
+      "q": "Hur konverterar jag Markdown till Word?",
+      "a": "Klistra in din Markdown och klicka på Konvertera till Word, eller släpp en .md-fil på sidan (eller välj en) så konverteras den direkt. Ladda ner .docx-filen, eller kopiera den formaterade texten och klistra in den i Word."
+    },
+    {
+      "q": "Är Markdown to Word gratis?",
+      "a": "Ja. Det är gratis och har öppen källkod, utan registrering och utan gräns för hur många dokument du konverterar."
+    },
+    {
+      "q": "Laddas mina dokument upp till en server?",
+      "a": "Nej. Konverteringen sker helt i din webbläsare med JavaScript. Din Markdown och Word-dokumentet lämnar aldrig din enhet och laddas aldrig upp, lagras eller loggas."
+    },
+    {
+      "q": "Hur gör jag om ett svar från ChatGPT eller Claude till ett Word-dokument?",
+      "a": "AI-chattar svarar i Markdown. Använd svarets kopieringsknapp, klistra in det här och konvertera. Rubriker, listor, tabeller och kod blir riktig Word-formatering i stället för lösa asterisker och fyrkanter."
+    },
+    {
+      "q": "Vilken Markdown stöds?",
+      "a": "GitHub Flavored Markdown: rubriker, fetstil, kursiv, genomstrykning, punktlistor och numrerade listor, uppgiftslistor, tabeller, länkar, inlinekod, kodblock, blockcitat och horisontella linjer. Den första rubriken blir dokumentets titel och filnamn."
+    },
+    {
+      "q": "Kan jag klistra in resultatet i Google Docs?",
+      "a": "Ja. Klicka på Kopiera formaterad text och klistra in i Google Docs eller Word, så följer formateringen med. Du kan också ladda ner .docx-filen och öppna den i Google Docs."
+    },
+    {
+      "q": "Kan den formatera ett kinesiskt officiellt dokument (公文)?",
+      "a": "Ja. Välj stilen Kinesiskt officiellt dokument (公文) innan du konverterar. Brödtexten sätts i FangSong och rubrikerna i FZXiaoBiaoSong, SimHei och KaiTi i de vedertagna storlekarna, med Times New Roman för latinsk text. De typsnitten måste vara installerade där dokumentet öppnas."
+    },
+    {
+      "q": "Hur skiljer sig detta från Pandoc?",
+      "a": "Pandoc är en kraftfull kommandoradskonverterare, men den måste först installeras och konfigureras. Markdown to Word körs direkt i din webbläsare utan att något behöver installeras."
+    }
+  ],
+  "footer": {
+    "feedback": "Feedback",
+    "source": "Källkod",
+    "wordToMarkdown": "Word till Markdown",
+    "donate": "Donera",
+    "terms": "Villkor",
+    "privacy": "Integritet",
+    "languagesLabel": "Språk",
+    "linksLabel": "Webbplatslänkar"
+  },
+  "footerTagline": "Konverterat i din webbläsare · inget laddas upp",
+  "metaTitle": "Konvertera Markdown till Word — gratis .md till .docx online",
+  "metaDescription": "Gratis konverterare med öppen källkod som gör om Markdown, även svar från ChatGPT och Claude, till Word-filer (.docx) i webbläsaren. Inget laddas upp.",
+  "schemaDescription": "Gratis verktyg med öppen källkod som konverterar GitHub Flavored Markdown till formaterade Word-dokument (.docx) helt i din webbläsare.",
+  "schemaFeatureList": [
+    "Konvertera Markdown (.md) till Word (.docx)",
+    "Tabeller, listor och kodblock i GitHub Flavored Markdown",
+    "Kopiera formaterad text till Word eller Google Docs",
+    "Typsnitt för kinesiska officiella dokument (公文)",
+    "100 % på klientsidan: inget laddas upp"
+  ],
+  "errorGeneric": "Något gick fel när din Markdown konverterades. Försök igen.",
+  "fileTooLargeError": "Den här filen är för stor för att konverteras i din webbläsare. Försök med en Markdown-fil som är mindre än 5 MB.",
+  "notMarkdownFileError": "Det här ser inte ut som en Markdown- eller textfil, så det går inte att konvertera. Välj en .md-fil i stället.",
+  "docxFileError": "Det här är redan ett Word-dokument. Använd word2md.com för att göra om det till Markdown.",
+  "readError": "Det gick inte att läsa filen. Försök att välja den igen.",
+  "emptyError": "Klistra in lite Markdown eller välj en .md-fil först.",
+  "copyFailed": "Det gick inte att kopiera automatiskt. Markera förhandsvisningen och kopiera den med Ctrl+C (⌘C på Mac).",
+  "onlyFirstFile": "Bara den första filen konverterades. Lägg till de andra en i taget.",
+  "conversionAnnouncement": "Konverteringen är klar. Ditt Word-dokument är redo att laddas ner.",
+  "convertingStatus": "Konverterar…",
+  "dismiss": "Stäng",
+  "suggestLanguage": "Finns även på svenska",
+  "promo": {
+    "label": "Från skaparen",
+    "body": "Jag byggde det här gratisverktyget — och jag skrev boken om att arbeta öppet. <strong>Open &amp; Async</strong> är den GitHub-testade handboken för distans- och distribuerade team.",
+    "cta": "Köp nu",
+    "coverAlt": "Bokomslag för Open & Async",
+    "resultsLead": "Snyggt — ännu ett dokument från Markdown till Word. Jag skrev handboken för att arbeta så här och skriva ner saker:",
+    "resultsCta": "Se Open & Async"
+  }
+}

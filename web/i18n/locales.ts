@@ -37,7 +37,22 @@ export const localeMeta = {
   vi: { htmlLang: 'vi', ogLocale: 'vi_VN', name: 'Tiếng Việt', countries: ['VN'] },
   pt: { htmlLang: 'pt-BR', ogLocale: 'pt_BR', name: 'Português' },
   es: { htmlLang: 'es', ogLocale: 'es_ES', name: 'Español' },
+  ar: { htmlLang: 'ar', ogLocale: 'ar_AR', name: 'العربية', dir: 'rtl' },
+  de: { htmlLang: 'de', ogLocale: 'de_DE', name: 'Deutsch' },
+  fr: { htmlLang: 'fr', ogLocale: 'fr_FR', name: 'Français' },
   zh: { htmlLang: 'zh-Hans', ogLocale: 'zh_CN', name: '简体中文' },
+  'zh-hant': { htmlLang: 'zh-Hant', ogLocale: 'zh_TW', name: '繁體中文' },
+  ja: { htmlLang: 'ja', ogLocale: 'ja_JP', name: '日本語' },
+  ko: { htmlLang: 'ko', ogLocale: 'ko_KR', name: '한국어' },
+  ru: { htmlLang: 'ru', ogLocale: 'ru_RU', name: 'Русский' },
+  it: { htmlLang: 'it', ogLocale: 'it_IT', name: 'Italiano' },
+  nl: { htmlLang: 'nl', ogLocale: 'nl_NL', name: 'Nederlands' },
+  pl: { htmlLang: 'pl', ogLocale: 'pl_PL', name: 'Polski' },
+  tr: { htmlLang: 'tr', ogLocale: 'tr_TR', name: 'Türkçe' },
+  hi: { htmlLang: 'hi', ogLocale: 'hi_IN', name: 'हिन्दी' },
+  th: { htmlLang: 'th', ogLocale: 'th_TH', name: 'ไทย' },
+  uk: { htmlLang: 'uk', ogLocale: 'uk_UA', name: 'Українська' },
+  sv: { htmlLang: 'sv', ogLocale: 'sv_SE', name: 'Svenska' },
 } as const satisfies Record<string, LocaleMeta>;
 
 export type Locale = keyof typeof localeMeta;

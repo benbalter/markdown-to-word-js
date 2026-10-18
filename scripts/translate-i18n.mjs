@@ -60,6 +60,20 @@ export const TARGETS = [
       'Use neutral Spanish that reads naturally in Latin America and Spain, addressing the reader informally as "tú".',
   },
   {
+    code: 'de',
+    lang: 'German',
+    htmlLang: 'de',
+    ogLocale: 'de_DE',
+    name: 'Deutsch',
+  },
+  {
+    code: 'fr',
+    lang: 'French',
+    htmlLang: 'fr',
+    ogLocale: 'fr_FR',
+    name: 'Français',
+  },
+  {
     code: 'zh',
     lang: 'Simplified Chinese',
     htmlLang: 'zh-Hans',

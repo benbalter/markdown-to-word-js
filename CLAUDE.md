@@ -40,7 +40,7 @@ The patches find their paragraphs by matching, in order, against counts and text
 
 - **CSP:** a strict Content-Security-Policy ships as a `<meta>` tag ([`astro.config.mjs`](astro.config.mjs)). Never use `style="…"` attributes (use classes, or `element.style` from JS) or `<script is:inline>` (Astro only hashes scripts it bundles). Pass server values to scripts through `data-*` attributes.
 - **No HTML comments in `.astro` files:** Astro ships `<!-- -->` verbatim. Use `{/* */}`.
-- **i18n:** every string lives in [`web/i18n/en.json`](web/i18n/en.json), typed by [`types.ts`](web/i18n/types.ts). English is the source; Indonesian, Vietnamese, Portuguese, Spanish, and Simplified Chinese are listed in [`locales.ts`](web/i18n/locales.ts), and [`web/i18n/README.md`](web/i18n/README.md) covers adding more.
+- **i18n:** every string lives in [`web/i18n/en.json`](web/i18n/en.json), typed by [`types.ts`](web/i18n/types.ts). English is the source; the other 20 locales (the same set as word2md.com, including right-to-left Arabic) are listed in [`locales.ts`](web/i18n/locales.ts), and [`web/i18n/README.md`](web/i18n/README.md) covers adding more.
 - **Design:** follow word2md's [DESIGN.md](https://github.com/benbalter/word-to-markdown-js/blob/main/DESIGN.md) (tokens in [`web/styles/global.css`](web/styles/global.css)): one filled accent button per screen, chartreuse only on the output or the next action.
 
 ## Deploying

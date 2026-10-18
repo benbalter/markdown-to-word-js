@@ -1,0 +1,136 @@
+{
+  "eyebrow": "Gratis · Open source · 100% in je browser",
+  "tagline": "Zet Markdown om in een opgemaakt Word-document (.docx), volledig in je browser. Je bestanden worden nooit geüpload.",
+  "trustBadge": "Vertrouwd sinds 2015",
+  "flowFromAlt": "Markdown-bestand",
+  "flowToAlt": "Word-document",
+  "dropzoneTitle": "Sleep je .md-bestand hierheen",
+  "dropzoneTitleTouch": "Kies een Markdown-bestand",
+  "dropzoneBrowsePrefix": "of ",
+  "dropzoneBrowseLink": "klik om een bestand te kiezen",
+  "dropzoneNote": "Tot 5 MB · Geconverteerd op dit apparaat, nooit geüpload",
+  "orFile": "of gebruik een bestand",
+  "pastePlaceholder": "# Mijn document\n\nPlak of typ hier **Markdown** en converteer het naar Word.",
+  "styleLabel": "Stijl",
+  "styleDefault": "Standaard",
+  "styleChineseOfficial": "Chinees officieel document (公文)",
+  "styleChineseHint": "Dit lijkt Chinese tekst. Kies voor lettertypen in 公文-stijl “Chinees officieel document (公文)”.",
+  "convertButton": "Converteren naar Word",
+  "convertSectionAria": "Een document converteren",
+  "convertedLabel": "Geconverteerd",
+  "downloadButton": ".docx downloaden",
+  "downloadedButton": "Gedownload",
+  "copyButton": "Opgemaakte tekst kopiëren",
+  "copiedButton": "Gekopieerd!",
+  "convertAnother": "Nog een converteren",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "Voorbeeld",
+  "steps": [
+    {
+      "t": "Plakken of slepen",
+      "d": "Plak Markdown, of sleep een .md-bestand hierheen of kies er een."
+    },
+    {
+      "t": "Converteren",
+      "d": "Het wordt in je browser geconverteerd: geen server, geen wachttijd."
+    },
+    {
+      "t": "Downloaden",
+      "d": "Sla de .docx op, of kopieer de opgemaakte tekst rechtstreeks naar Word of Google Docs."
+    }
+  ],
+  "conversionHeading": "Wat wordt geconverteerd",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "In Word",
+  "conversionRows": [
+    "Kopstijlen 1–6",
+    "Vet & cursief",
+    "Doorhalen",
+    "Lijsten met opsommingstekens & genummerde lijsten",
+    "☒ / ☐ takenlijstitems",
+    "Tabellen met randen en een herhaalde koprij",
+    "Klikbare links",
+    "Code in een monospace-lettertype",
+    "Ingesprongen citaten",
+    "Een lijn over de hele pagina"
+  ],
+  "reverseHeading": "Andersom nodig?",
+  "reverseBody": "Wil je een Word-document of Google Doc omzetten naar schone Markdown? Gebruik word2md.com. Dezelfde maker, dezelfde belofte: alles gebeurt in je browser.",
+  "reverseCta": "Word naar Markdown converteren",
+  "faqHeading": "Veelgestelde vragen",
+  "faqs": [
+    {
+      "q": "Hoe converteer ik Markdown naar Word?",
+      "a": "Plak je Markdown en klik op Converteren naar Word, of sleep een .md-bestand naar de pagina (of kies er een) om het meteen te converteren. Download de .docx, of kopieer de opgemaakte tekst en plak die in Word."
+    },
+    {
+      "q": "Is Markdown to Word gratis?",
+      "a": "Ja. Het is gratis en open source, zonder registratie en zonder limiet op hoeveel documenten je converteert."
+    },
+    {
+      "q": "Worden mijn documenten naar een server geüpload?",
+      "a": "Nee. De conversie gebeurt volledig in je browser met JavaScript. Je Markdown en het Word-document verlaten je apparaat nooit en worden nooit geüpload, opgeslagen of gelogd."
+    },
+    {
+      "q": "Hoe zet ik een antwoord van ChatGPT of Claude om in een Word-document?",
+      "a": "AI-chatapps antwoorden in Markdown. Gebruik de kopieerknop bij het antwoord, plak het hier en converteer. Koppen, lijsten, tabellen en code worden echte Word-opmaak in plaats van losse sterretjes en hekjes."
+    },
+    {
+      "q": "Welke Markdown wordt ondersteund?",
+      "a": "GitHub Flavored Markdown: koppen, vet, cursief, doorhalen, lijsten met opsommingstekens en genummerde lijsten, takenlijsten, tabellen, links, inline code, codeblokken, citaten en horizontale lijnen. De eerste kop wordt de titel en bestandsnaam van het document."
+    },
+    {
+      "q": "Kan ik het resultaat in Google Docs plakken?",
+      "a": "Ja. Klik op Opgemaakte tekst kopiëren en plak in Google Docs of Word; de opmaak gaat mee. Je kunt de .docx ook downloaden en in Google Docs openen."
+    },
+    {
+      "q": "Kan het een Chinees officieel document (公文) opmaken?",
+      "a": "Ja. Kies vóór het converteren de stijl Chinees officieel document (公文). De hoofdtekst wordt gezet in FangSong, de koppen in FZXiaoBiaoSong, SimHei en KaiTi in de gebruikelijke groottes, met Times New Roman voor Latijnse tekst. Die lettertypen moeten geïnstalleerd zijn op de plek waar het document wordt geopend."
+    },
+    {
+      "q": "Wat is het verschil met Pandoc?",
+      "a": "Pandoc is een krachtige command-line-converter, maar moet eerst worden geïnstalleerd en geconfigureerd. Markdown to Word werkt direct in je browser zonder iets te installeren."
+    }
+  ],
+  "footer": {
+    "feedback": "Feedback",
+    "source": "Broncode",
+    "wordToMarkdown": "Word naar Markdown",
+    "donate": "Doneren",
+    "terms": "Voorwaarden",
+    "privacy": "Privacy",
+    "languagesLabel": "Taal",
+    "linksLabel": "Sitelinks"
+  },
+  "footerTagline": "Geconverteerd in je browser · er wordt niets geüpload",
+  "metaTitle": "Markdown naar Word converteren — gratis .md naar .docx",
+  "metaDescription": "Gratis open-source-converter die Markdown, ook antwoorden van ChatGPT en Claude, in je browser omzet naar Word-bestanden (.docx). Er wordt niets geüpload.",
+  "schemaDescription": "Gratis open-source-tool die GitHub Flavored Markdown omzet naar opgemaakte Word-documenten (.docx), volledig in je browser.",
+  "schemaFeatureList": [
+    "Markdown (.md) naar Word (.docx) converteren",
+    "Tabellen, lijsten en codeblokken in GitHub Flavored Markdown",
+    "Opgemaakte tekst kopiëren voor Word of Google Docs",
+    "Lettertypen voor Chinese officiële documenten (公文)",
+    "100% client-side: er wordt niets geüpload"
+  ],
+  "errorGeneric": "Er ging iets mis bij het converteren van je Markdown. Probeer het opnieuw.",
+  "fileTooLargeError": "Dit bestand is te groot om in je browser te converteren. Probeer een Markdown-bestand kleiner dan 5 MB.",
+  "notMarkdownFileError": "Dit lijkt geen Markdown- of tekstbestand, dus het kan niet worden geconverteerd. Kies in plaats daarvan een .md-bestand.",
+  "docxFileError": "Dit is al een Word-document. Gebruik word2md.com om het naar Markdown om te zetten.",
+  "readError": "Dat bestand kon niet worden gelezen. Probeer het opnieuw te kiezen.",
+  "emptyError": "Plak eerst wat Markdown of kies een .md-bestand.",
+  "copyFailed": "Automatisch kopiëren is mislukt. Selecteer het voorbeeld en kopieer met Ctrl+C (⌘C op een Mac).",
+  "onlyFirstFile": "Alleen het eerste bestand is omgezet. Voeg de andere één voor één toe.",
+  "conversionAnnouncement": "Conversie voltooid. Je Word-document is klaar om te downloaden.",
+  "convertingStatus": "Converteren…",
+  "dismiss": "Sluiten",
+  "suggestLanguage": "Ook beschikbaar in het Nederlands",
+  "promo": {
+    "label": "Van de maker",
+    "body": "Ik heb deze gratis tool gebouwd — en ik schreef het boek over open werken. <strong>Open &amp; Async</strong> is het op GitHub geteste handboek voor remote en gedistribueerde teams.",
+    "cta": "Koop nu",
+    "coverAlt": "Boekomslag van Open & Async",
+    "resultsLead": "Mooi — weer een document van Markdown naar Word. Ik schreef het handboek voor werken waarin je alles opschrijft:",
+    "resultsCta": "Bekijk Open & Async"
+  }
+}

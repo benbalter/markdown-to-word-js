@@ -1,0 +1,136 @@
+{
+  "eyebrow": "無料 · オープンソース · 100%ブラウザ内で動作",
+  "tagline": "Markdown を書式付きの Word (.docx) 文書に変換 — すべてブラウザ内で完結します。ファイルがアップロードされることはありません。",
+  "trustBadge": "2015年から信頼されています",
+  "flowFromAlt": "Markdownファイル",
+  "flowToAlt": "Word文書",
+  "dropzoneTitle": ".md ファイルをここにドロップ",
+  "dropzoneTitleTouch": "Markdown ファイルを選択",
+  "dropzoneBrowsePrefix": "または ",
+  "dropzoneBrowseLink": "クリックしてファイルを選択",
+  "dropzoneNote": "5 MB まで · このデバイス上で変換、アップロードされません",
+  "orFile": "またはファイルを使う",
+  "pastePlaceholder": "# マイドキュメント\n\nここに **Markdown** を貼り付けるか入力して、Word に変換します。",
+  "styleLabel": "スタイル",
+  "styleDefault": "デフォルト",
+  "styleChineseOfficial": "中国の公文書式（公文）",
+  "styleChineseHint": "中国語のテキストのようです。公文スタイルのフォントを使うには「中国の公文書式（公文）」を選んでください。",
+  "convertButton": "Word に変換",
+  "convertSectionAria": "文書を変換",
+  "convertedLabel": "変換済み",
+  "downloadButton": ".docx をダウンロード",
+  "downloadedButton": "ダウンロード済み",
+  "copyButton": "書式付きテキストをコピー",
+  "copiedButton": "コピーしました！",
+  "convertAnother": "別の文書を変換",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "プレビュー",
+  "steps": [
+    {
+      "t": "貼り付けまたはドロップ",
+      "d": "Markdown を貼り付けるか、.md ファイルをドラッグ＆ドロップまたは選択します。"
+    },
+    {
+      "t": "変換",
+      "d": "ブラウザ内で変換されます — サーバー不要、待ち時間なし。"
+    },
+    {
+      "t": "ダウンロード",
+      "d": ".docx を保存するか、書式付きテキストをコピーして Word や Google Docs に直接貼り付けます。"
+    }
+  ],
+  "conversionHeading": "変換される内容",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "Word では",
+  "conversionRows": [
+    "見出し 1～6 のスタイル",
+    "太字と斜体",
+    "取り消し線",
+    "箇条書きと番号付きリスト",
+    "☒ / ☐ チェックリスト項目",
+    "見出し行が繰り返される罫線付きの表",
+    "クリックできるリンク",
+    "等幅フォントのコード",
+    "インデントされた引用",
+    "ページを横切る区切り線"
+  ],
+  "reverseHeading": "逆方向に変換したいですか？",
+  "reverseBody": "Word や Google Docs の文書をクリーンな Markdown に変換するなら word2md.com をどうぞ。同じ作者、同じ約束：すべてブラウザ内で処理されます。",
+  "reverseCta": "Word を Markdown に変換",
+  "faqHeading": "よくある質問",
+  "faqs": [
+    {
+      "q": "Markdown を Word に変換するには？",
+      "a": "Markdown を貼り付けて「Word に変換」をクリックするか、.md ファイルをページにドロップ（または選択）すれば、すぐに変換されます。.docx をダウンロードするか、書式付きテキストをコピーして Word に貼り付けてください。"
+    },
+    {
+      "q": "Markdown to Word は無料ですか？",
+      "a": "はい。無料のオープンソースです。登録不要で、変換できる文書数にも制限はありません。"
+    },
+    {
+      "q": "文書はサーバーにアップロードされますか？",
+      "a": "いいえ。変換は JavaScript を使って完全にブラウザ内で行われます。Markdown も Word 文書もデバイスの外に出ることはなく、アップロード、保存、記録もされません。"
+    },
+    {
+      "q": "ChatGPT や Claude の回答を Word 文書にするには？",
+      "a": "AI チャットアプリは Markdown で回答します。回答のコピーボタンを使ってここに貼り付け、変換してください。見出し、リスト、表、コードが、散らばったアスタリスクやシャープ記号ではなく、本物の Word の書式になります。"
+    },
+    {
+      "q": "どの Markdown に対応していますか？",
+      "a": "GitHub Flavored Markdown に対応しています：見出し、太字、斜体、取り消し線、箇条書きと番号付きリスト、タスクリスト、表、リンク、インラインコード、コードブロック、引用、水平線。最初の見出しが文書のタイトルとファイル名になります。"
+    },
+    {
+      "q": "結果を Google Docs に貼り付けられますか？",
+      "a": "はい。「書式付きテキストをコピー」をクリックして Google Docs や Word に貼り付ければ、書式もそのまま引き継がれます。.docx をダウンロードして Google Docs で開くこともできます。"
+    },
+    {
+      "q": "中国の公文書式（公文）に整形できますか？",
+      "a": "はい。変換する前に「中国の公文書式（公文）」スタイルを選んでください。本文は FangSong、見出しは FZXiaoBiaoSong、SimHei、KaiTi で慣例のサイズに設定され、欧文には Times New Roman が使われます。文書を開く環境にこれらのフォントがインストールされている必要があります。"
+    },
+    {
+      "q": "Pandoc との違いは何ですか？",
+      "a": "Pandoc は強力なコマンドライン変換ツールですが、最初にインストールと設定が必要です。Markdown to Word はインストール不要で、ブラウザですぐに使えます。"
+    }
+  ],
+  "footer": {
+    "feedback": "フィードバック",
+    "source": "ソースコード",
+    "wordToMarkdown": "Word から Markdown へ",
+    "donate": "寄付",
+    "terms": "利用規約",
+    "privacy": "プライバシー",
+    "languagesLabel": "言語",
+    "linksLabel": "サイトのリンク"
+  },
+  "footerTagline": "ブラウザ内で変換 · アップロードはされません",
+  "metaTitle": "Markdown から Word への変換ツール — 無料で .md を .docx にオンライン変換",
+  "metaDescription": "Markdown（ChatGPT や Claude の回答も含む）を、ブラウザ内で書式付きの Word (.docx) ファイルに変換する無料のオープンソース変換ツールです。アップロードはされません。",
+  "schemaDescription": "GitHub Flavored Markdown を書式付きの Word (.docx) 文書に変換する、無料のオープンソースツールです。すべてブラウザ内で完結します。",
+  "schemaFeatureList": [
+    "Markdown (.md) を Word (.docx) に変換",
+    "GitHub Flavored Markdown の表、リスト、コードブロック",
+    "Word や Google Docs 向けに書式付きテキストをコピー",
+    "中国の公文書式（公文）のフォント",
+    "100%クライアントサイド — アップロードなし"
+  ],
+  "errorGeneric": "Markdown の変換中に問題が発生しました。もう一度お試しください。",
+  "fileTooLargeError": "このファイルは大きすぎるため、ブラウザ内では変換できません。5 MB 未満の Markdown ファイルをお試しください。",
+  "notMarkdownFileError": "Markdown またはテキストファイルではないようなので、変換できません。代わりに .md ファイルを選んでください。",
+  "docxFileError": "これはすでに Word 文書です。Markdown に変換するには word2md.com をご利用ください。",
+  "readError": "ファイルを読み込めませんでした。もう一度選択してください。",
+  "emptyError": "まず Markdown を貼り付けるか、.md ファイルを選択してください。",
+  "copyFailed": "自動でコピーできませんでした。プレビューを選択し、Ctrl+C（Mac では ⌘C）でコピーしてください。",
+  "onlyFirstFile": "変換したのは最初のファイルだけです。ほかのファイルは 1 つずつ追加してください。",
+  "conversionAnnouncement": "変換が完了しました。Word 文書をダウンロードできます。",
+  "convertingStatus": "変換中…",
+  "dismiss": "閉じる",
+  "suggestLanguage": "日本語版もあります",
+  "promo": {
+    "label": "開発者より",
+    "body": "この無料ツールを作った私が、オープンに働く方法についての本も書きました。<strong>Open &amp; Async</strong> は、リモートチームや分散チームのための GitHub で実証された実践ガイドです。",
+    "cta": "今すぐ購入",
+    "coverAlt": "Open & Async の書影",
+    "resultsLead": "いいですね — また1つ、Markdown から Word 文書ができました。私はこうして物事を書き残す働き方の実践ガイドを書きました：",
+    "resultsCta": "Open & Asyncを見る"
+  }
+}

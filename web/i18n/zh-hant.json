@@ -1,0 +1,136 @@
+{
+  "eyebrow": "免費 · 開放原始碼 · 100% 在你的瀏覽器中",
+  "tagline": "將 Markdown 轉換為排版好的 Word (.docx) 文件——全程都在你的瀏覽器中進行。你的檔案絕不會被上傳。",
+  "trustBadge": "自 2015 年起深受信賴",
+  "flowFromAlt": "Markdown 檔案",
+  "flowToAlt": "Word 文件",
+  "dropzoneTitle": "將 .md 檔案拖曳到這裡",
+  "dropzoneTitleTouch": "選擇 Markdown 檔案",
+  "dropzoneBrowsePrefix": "或",
+  "dropzoneBrowseLink": "點選以選擇檔案",
+  "dropzoneNote": "最大 5 MB · 在這部裝置上轉換，絕不上傳",
+  "orFile": "或使用檔案",
+  "pastePlaceholder": "# 我的文件\n\n在此貼上或輸入 **Markdown**，然後轉換為 Word。",
+  "styleLabel": "樣式",
+  "styleDefault": "預設",
+  "styleChineseOfficial": "中國大陸公文格式",
+  "styleChineseHint": "這看起來是中文文字。如需中國大陸公文字型，請選擇「中國大陸公文格式」。",
+  "convertButton": "轉換為 Word",
+  "convertSectionAria": "轉換文件",
+  "convertedLabel": "已轉換",
+  "downloadButton": "下載 .docx",
+  "downloadedButton": "已下載",
+  "copyButton": "複製含格式的文字",
+  "copiedButton": "已複製！",
+  "convertAnother": "再轉換一份",
+  "panelMarkdown": "Markdown",
+  "panelPreview": "預覽",
+  "steps": [
+    {
+      "t": "貼上或拖放",
+      "d": "貼上 Markdown，或拖入、選擇一個 .md 檔案。"
+    },
+    {
+      "t": "轉換",
+      "d": "直接在你的瀏覽器中轉換——無需伺服器，無需等待。"
+    },
+    {
+      "t": "下載",
+      "d": "儲存 .docx，或複製含格式的文字，直接貼到 Word 或 Google Docs。"
+    }
+  ],
+  "conversionHeading": "會轉換哪些內容",
+  "conversionColInput": "Markdown",
+  "conversionColOutput": "在 Word 中",
+  "conversionRows": [
+    "標題 1–6 樣式",
+    "粗體與斜體",
+    "刪除線",
+    "項目符號與編號清單",
+    "☒ / ☐ 待辦清單項目",
+    "有框線的表格，標題列跨頁重複",
+    "可點選的連結",
+    "以等寬字型顯示程式碼",
+    "縮排的引用區塊",
+    "橫越頁面的分隔線"
+  ],
+  "reverseHeading": "需要反向轉換？",
+  "reverseBody": "要把 Word 或 Google Docs 文件轉換為乾淨的 Markdown，請使用 word2md.com。同一作者，同樣的承諾：一切都在你的瀏覽器中完成。",
+  "reverseCta": "將 Word 轉換為 Markdown",
+  "faqHeading": "常見問題",
+  "faqs": [
+    {
+      "q": "如何將 Markdown 轉換為 Word？",
+      "a": "貼上 Markdown 後點選「轉換為 Word」，或將 .md 檔案拖曳到頁面上（或選擇一個檔案）即可立即轉換。下載 .docx，或複製含格式的文字並貼到 Word 中。"
+    },
+    {
+      "q": "Markdown to Word 是免費的嗎？",
+      "a": "是的。它免費且開放原始碼：無需註冊，轉換的文件數量也沒有限制。"
+    },
+    {
+      "q": "我的文件會被上傳到伺服器嗎？",
+      "a": "不會。轉換完全在你的瀏覽器中使用 JavaScript 進行。你的 Markdown 和 Word 文件絕不會離開你的裝置，也不會被上傳、儲存或記錄。"
+    },
+    {
+      "q": "如何把 ChatGPT 或 Claude 的回覆轉換成 Word 文件？",
+      "a": "AI 聊天應用程式會用 Markdown 回覆。按下回覆的複製按鈕，貼到這裡，然後轉換。標題、清單、表格和程式碼都會變成真正的 Word 格式，而不是零散的星號和井字號。"
+    },
+    {
+      "q": "支援哪種 Markdown？",
+      "a": "GitHub Flavored Markdown：標題、粗體、斜體、刪除線、項目符號與編號清單、待辦清單、表格、連結、行內程式碼、程式碼區塊、引用區塊和水平分隔線。第一個標題會成為文件的標題和檔名。"
+    },
+    {
+      "q": "可以把結果貼到 Google Docs 嗎？",
+      "a": "可以。點選「複製含格式的文字」，然後貼到 Google Docs 或 Word，格式會一併保留。你也可以下載 .docx 並在 Google Docs 中開啟。"
+    },
+    {
+      "q": "能排版成中國大陸的公文格式嗎？",
+      "a": "能。轉換前選擇「中國大陸公文格式」樣式即可。這是中國大陸的公文格式，與臺灣的公文格式不同。內文使用仿宋，各級標題使用方正小標宋、黑體和楷體，並採用公文常用字級；西文使用 Times New Roman。開啟文件的電腦上需要安裝這些字型。"
+    },
+    {
+      "q": "這和 Pandoc 有什麼不同？",
+      "a": "Pandoc 是功能強大的命令列轉換器，但必須先安裝並設定。Markdown to Word 可立即在你的瀏覽器中執行，無需安裝任何東西。"
+    }
+  ],
+  "footer": {
+    "feedback": "意見回饋",
+    "source": "原始碼",
+    "wordToMarkdown": "Word 轉 Markdown",
+    "donate": "贊助",
+    "terms": "條款",
+    "privacy": "隱私權",
+    "languagesLabel": "語言",
+    "linksLabel": "網站連結"
+  },
+  "footerTagline": "在你的瀏覽器中完成轉換 · 不會上傳任何內容",
+  "metaTitle": "Markdown 轉 Word 線上轉換器——免費將 .md 轉為 .docx",
+  "metaDescription": "免費、開放原始碼的轉換器，可在你的瀏覽器中將 Markdown（包括 ChatGPT 和 Claude 的回覆）轉為排版好的 Word (.docx) 檔案。不會上傳任何內容。",
+  "schemaDescription": "免費、開放原始碼的工具，可完全在你的瀏覽器中將 GitHub Flavored Markdown 轉換為排版好的 Word (.docx) 文件。",
+  "schemaFeatureList": [
+    "將 Markdown (.md) 轉換為 Word (.docx)",
+    "支援 GitHub Flavored Markdown 表格、清單和程式碼區塊",
+    "複製含格式的文字到 Word 或 Google Docs",
+    "中國大陸公文字型",
+    "100% 用戶端執行——不會上傳任何內容"
+  ],
+  "errorGeneric": "轉換 Markdown 時發生錯誤。請再試一次。",
+  "fileTooLargeError": "這個檔案太大，無法在你的瀏覽器中轉換。請改用小於 5 MB 的 Markdown 檔案。",
+  "notMarkdownFileError": "這似乎不是 Markdown 或文字檔案，因此無法轉換。請改選 .md 檔案。",
+  "docxFileError": "這已經是 Word 文件了。要將它轉換為 Markdown，請使用 word2md.com。",
+  "readError": "無法讀取該檔案。請重新選擇一次。",
+  "emptyError": "請先貼上 Markdown 或選擇一個 .md 檔案。",
+  "copyFailed": "無法自動複製。請選取預覽內容並按 Ctrl+C（Mac 上為 ⌘C）複製。",
+  "onlyFirstFile": "只轉換了第一個檔案。請逐一加入其他檔案。",
+  "conversionAnnouncement": "轉換完成。你的 Word 文件已可下載。",
+  "convertingStatus": "轉換中…",
+  "dismiss": "關閉",
+  "suggestLanguage": "也提供繁體中文版",
+  "promo": {
+    "label": "來自創作者",
+    "body": "我打造了這個免費工具——也寫了這本關於公開協作的書。<strong>Open &amp; Async</strong> 是經 GitHub 驗證、適用於遠端與分散式團隊的實戰指南。",
+    "cta": "立即購買",
+    "coverAlt": "Open and Async 書封",
+    "resultsLead": "太好了——又一份文件從 Markdown 變成了 Word。我寫了一本關於這種「凡事寫下來」工作方式的實戰指南：",
+    "resultsCta": "看看 Open & Async"
+  }
+}
