@@ -90,5 +90,10 @@
   ],
   "bugs": {
     "url": "https://github.com/benbalter/markdown-to-word-js/issues"
+  },
+  "overrides": {
+    "@tailwindcss/typography": {
+      "postcss-selector-parser": "^7.1.6"
+    }
   }
 }
