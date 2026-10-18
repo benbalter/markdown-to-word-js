@@ -17,18 +17,20 @@ The document is named after its first heading, which also becomes its title.
 
 ## What converts
 
-| Markdown                                    | In Word                                                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `#` to `######` headings                    | Heading 1–6 styles                                                                                    |
-| `**bold**`, `*italic*`, `~~strikethrough~~` | The same formatting                                                                                   |
-| Bulleted and numbered lists, nested         | Word lists                                                                                            |
-| `- [x]` task lists                          | ☒ (done) and ☐ (to do) items, since Word can't show checkboxes from HTML                              |
-| Tables                                      | Thin borders, a bold header row that repeats on each page, and the column alignment from the Markdown |
-| `[links](https://example.com)`              | Clickable hyperlinks                                                                                  |
-| `` `inline code` `` and fenced code blocks  | Monospace; code blocks keep their line breaks                                                         |
-| `> block quotes`                            | Indented paragraphs                                                                                   |
-| `---` horizontal rules                      | A line across the page                                                                                |
-| `![images](https://example.com/a.png)`      | Embedded, when the browser can fetch them (see [Limitations](#limitations))                           |
+| Markdown                                          | In Word                                                                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `#` to `######` headings                          | Heading 1–6 styles                                                                                                       |
+| `**bold**`, `*italic*`, `~~strikethrough~~`       | The same formatting                                                                                                      |
+| Bulleted and numbered lists, nested               | Word lists                                                                                                               |
+| `- [x]` task lists                                | ☒ (done) and ☐ (to do) items, since Word can't show checkboxes from HTML                                                 |
+| Tables                                            | Thin borders, a bold header row that repeats on each page, and the column alignment from the Markdown                    |
+| `[links](https://example.com)`                    | Clickable hyperlinks                                                                                                     |
+| `` `inline code` `` and fenced code blocks        | Monospace; code blocks keep their line breaks                                                                            |
+| `> block quotes`                                  | Left-aligned paragraphs, indented one step per level of nesting                                                          |
+| `---` horizontal rules                            | A line across the page                                                                                                   |
+| `[^1]` footnotes                                  | Superscript numbers, with the notes as a numbered list after a line at the end of the document (not Word footnotes)      |
+| `![images](https://example.com/a.png)`            | Embedded, when the browser can fetch them; otherwise the alt text, linked to the image (see [Limitations](#limitations)) |
+| `<kbd>`, `<mark>`, `<abbr>` and other inline HTML | The text, with `<kbd>` in the code font and `<mark>` highlighted                                                         |
 
 As on GitHub, a single newline inside a paragraph is joined into the same line, so hard-wrapped files convert to normal paragraphs. End a line with two spaces or a backslash to force a line break.
 
@@ -84,7 +86,12 @@ Conversion happens entirely in your browser: your Markdown and the Word document
 
 ## Limitations
 
-- Images are embedded only when the browser can fetch them: `data:` URIs, and web URLs whose server allows cross-origin requests (most image hosts and CDNs do). Other images, images under 1 KB (html-to-docx's minimum), and local file paths are left out.
+- Images are embedded only when the browser can fetch them: `data:` URIs, and web URLs whose server allows cross-origin requests (most image hosts and CDNs do). Any other image, including a local file path, becomes its alt text, linked to the image's URL when it has one.
+- Footnotes come out as a numbered list of notes at the end of the document, not as Word footnotes at the foot of each page.
+- Math stays as the literal text: `$x^2$` comes out as `$x^2$`, not an equation.
+- Emoji shortcodes such as `:tada:` aren't converted; paste the emoji itself instead.
+- Links to headings in the same document (`[see below](#usage)`) don't jump anywhere in Word.
+- `<details>` sections are flattened: the summary and the hidden content both show, as ordinary paragraphs.
 - Complex raw HTML inside Markdown may not convert cleanly, and advanced Word features (comments, tracked changes, page layout) aren't produced.
 - Very large documents can be slow, since everything runs in the browser. Files are limited to 5 MB.
 - The site works in current versions of Chrome, Edge, Firefox, and Safari. The end-to-end tests run in Chrome.

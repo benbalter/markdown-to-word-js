@@ -379,8 +379,9 @@ function showResults(markdown: string, previewHtml: string): void {
   const rendered = byId('rendered');
   if (rendered) {
     rendered.innerHTML = previewHtml;
-    // Links in the preview open in a new tab so the result isn't lost.
-    for (const link of rendered.querySelectorAll('a[href]')) {
+    // Links in the preview open in a new tab so the result isn't lost. In-page
+    // ones (footnotes and their back links) scroll the preview instead.
+    for (const link of rendered.querySelectorAll('a[href]:not([href^="#"])')) {
       link.setAttribute('target', '_blank');
       link.setAttribute('rel', 'noopener noreferrer');
     }

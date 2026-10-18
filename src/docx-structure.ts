@@ -21,6 +21,9 @@ export interface DocumentStructure {
  *   it at the top of each page the table spans.
  * - Table grids: the generator writes a second `<w:tblGrid>` between rows,
  *   which the schema doesn't allow; only the first is kept.
+ * - Section properties: the generator writes the body's `<w:sectPr>` (page
+ *   size and margins) as its first child. The schema requires it last, and
+ *   strict readers ignore it elsewhere, so it's moved to the end.
  */
 export async function patchStructure(
   wordDocument: Blob,
@@ -72,6 +75,13 @@ export function patchDocumentXml(documentXml: string, structure: DocumentStructu
       markHeaderRow(firstRow);
       changed = true;
     }
+  }
+
+  const body = dom.getElementsByTagNameNS(W_NS, 'body')[0];
+  const sectPr = body && children(body, 'sectPr')[0];
+  if (sectPr && body.lastElementChild !== sectPr) {
+    body.appendChild(sectPr);
+    changed = true;
   }
 
   if (!changed) {

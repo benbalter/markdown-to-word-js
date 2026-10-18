@@ -67,7 +67,8 @@
     "dompurify": "^3.4.17",
     "jsdom": "^30.1.3",
     "jszip": "^3.10.2",
-    "marked": "^18.1.1"
+    "marked": "^18.1.1",
+    "marked-footnote": "^1.4.0"
   },
   "author": "Ben Balter <ben@balter.com>",
   "license": "MIT",

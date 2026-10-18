@@ -8,6 +8,7 @@ import { CODE_FONT, RULE_TEXT } from '../src/docx-html';
 import { CHINESE_OFFICIAL_DOC_FONTS } from '../src/font-presets';
 
 const fixtureRoot = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
 async function documentXml(markdown: string, options = {}): Promise<string> {
   const blob = await convertMarkdownToWord(markdown, options);
@@ -27,7 +28,7 @@ function stripXmlTagsSafely(input: string): string {
 
 /** Each body paragraph as its text, or `<rule>` for an empty bordered one. */
 function paragraphs(xml: string): string[] {
-  const body = xml.slice(xml.lastIndexOf('</w:sectPr>'));
+  const body = xml.slice(xml.indexOf('<w:body>'), xml.lastIndexOf('<w:sectPr'));
   return (body.match(/<w:p>[\s\S]*?<\/w:p>/g) ?? []).map((p) => {
     const text = (p.match(/<w:t[^>]*>[^<]*<\/w:t>/g) ?? [])
       .map((t) => stripXmlTagsSafely(t))
@@ -101,5 +102,32 @@ describe('with the font preset', () => {
     expect(paragraphs(xml)).toContain('<rule>');
     expect(xml).toContain('<w:tblHeader/>');
     expect(xml).toContain('<w:tblBorders>');
+  });
+});
+
+describe('section properties', () => {
+  /** The local names of `<w:body>`'s children, in order. */
+  function bodyChildren(xml: string): string[] {
+    const dom = new DOMParser().parseFromString(xml, 'application/xml');
+    const body = dom.getElementsByTagNameNS(W_NS, 'body')[0];
+    return Array.from(body.children, (child) => child.localName);
+  }
+
+  it('moves <w:sectPr> to the end of the body, as the schema requires', async () => {
+    // No rules or tables, so nothing else in the structure patch applies.
+    expect(bodyChildren(await documentXml('# Title\n\nText.\n'))).toEqual(['p', 'p', 'sectPr']);
+  });
+
+  it('keeps the page size and margins, with or without the 公文 preset', async () => {
+    const plain = await documentXml('Text.\n', {
+      pageMargins: { top: 1, right: 1, bottom: 1, left: 1 },
+    });
+    expect(bodyChildren(plain).at(-1)).toBe('sectPr');
+    expect(plain).toMatch(/<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/);
+
+    const preset = await documentXml('正文。\n', { fontPreset: CHINESE_OFFICIAL_DOC_FONTS });
+    expect(bodyChildren(preset).at(-1)).toBe('sectPr');
+    expect(preset).toMatch(/<w:pgSz w:w="11906" w:h="16838"/);
+    expect(preset).toMatch(/<w:docGrid /);
   });
 });
