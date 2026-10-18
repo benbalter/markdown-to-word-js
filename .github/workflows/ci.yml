@@ -40,7 +40,9 @@ jobs:
       # astro check + astro build, which also runs the SEO / accessibility /
       # performance checks (@nuasite/checks) and fails on errors.
       - run: npm run build
-      - run: npm test
+      # Unit tests with coverage; fails if coverage drops below the floors in
+      # vitest.config.ts.
+      - run: npm run test:coverage
 
       # Pack the npm package as `npm publish` would, install it into an empty
       # project, and convert with it in plain Node: this catches a missing file
