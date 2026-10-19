@@ -22,7 +22,8 @@ If you choose a document style (such as the Chinese official document preset), y
 ### Information collected automatically
 
 - **On md2word.app:** This site uses privacy-centric [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/) to collect anonymous usage statistics. Cloudflare Analytics is privacy-first and does not track individual users or use cookies.
-- **When self-hosted:** No analytics or tracking of any kind are included when you run the application locally or self-host it.
+- **On md2word.app:** When a conversion finishes, the site records a single anonymous count — whether it succeeded, the page's language, and how the conversion started (a dropped or chosen file, Markdown pasted or typed into the box, or an AI agent using the page's WebMCP tool) — so we can answer one simple question: _is anyone still using this, and is it worth continuing to maintain and improve?_ This is **not** used to track or profile you. It contains **no document content, no filename, no file size, and nothing that identifies you or your device** — only that a conversion happened. Your Markdown and the Word document still never leave your browser.
+- **When self-hosted:** No analytics or tracking of any kind are included when you run the application locally or self-host it (the conversion count is sent only on md2word.app).
 
 ### How information is used
 

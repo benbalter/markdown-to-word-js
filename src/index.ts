@@ -4,6 +4,8 @@
 // reverse: Markdown in, a .docx out.
 import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
 import { registerWebMcpTools } from '../web/scripts/webmcp.ts';
+import { recordConversion } from '../web/scripts/analytics.ts';
+import type { ConversionSource } from '../web/scripts/conversion-sources.ts';
 
 // Markdown is text, so this is generous; it bounds the in-browser render.
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -377,7 +379,11 @@ async function processFile(
   if (textarea) textarea.value = text;
   updateConvertButton();
   updatePresetHint();
-  await convert(file.name.replace(/\.[^/.]+$/, '') || 'document', ignoredNote);
+  await convert(
+    file.name.replace(/\.[^/.]+$/, '') || 'document',
+    ignoredNote,
+    'drop'
+  );
 }
 
 function processFiles(files: ArrayLike<File> | null | undefined): void {
@@ -386,9 +392,16 @@ function processFiles(files: ArrayLike<File> | null | undefined): void {
 }
 
 // Convert the paste box's Markdown. `sourceName` (an uploaded file's base
-// name) names the download when the Markdown has no H1. Resolves true once
-// the result shows, false if it failed (the alert says why) or was superseded.
-async function convert(sourceName?: string, note = ''): Promise<boolean> {
+// name) names the download when the Markdown has no H1. `source`, how the
+// conversion started, goes to the anonymous counter, which counts each
+// conversion once when its .docx is made (or fails), not per download or
+// copy. Resolves true once the result shows, false if it failed (the alert
+// says why) or was superseded.
+async function convert(
+  sourceName: string | undefined,
+  note: string,
+  source: ConversionSource
+): Promise<boolean> {
   const markdown = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
   if (markdown.trim() === '') {
     showError(
@@ -437,11 +450,13 @@ async function convert(sourceName?: string, note = ''): Promise<boolean> {
 
     showResults(markdown, lastPreviewHtml);
     if (note) showError(note);
+    recordConversion('success', source);
     return true;
   } catch (error) {
     if (token !== activeConversion) return false;
     endBusy();
     announce('');
+    recordConversion('error', source);
     // The converter logs its own errors, and the browser logs a failed chunk
     // download; the visitor gets the alert.
     const [key, fallback] =
@@ -473,7 +488,7 @@ async function convertForAgent(
   updatePresetHint();
 
   const sourceName = options.filename?.replace(/\.docx$/i, '');
-  const converted = await convert(sourceName);
+  const converted = await convert(sourceName, '', 'webmcp');
   // Read before anything else can run: a later conversion would replace it.
   const blob = lastDocument;
   if (!converted || !blob) {
@@ -708,7 +723,7 @@ function init(): void {
   byId('input')?.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
-      void convert();
+      void convert(undefined, '', 'paste');
     }
   });
   showShortcutModifier();
@@ -718,7 +733,10 @@ function init(): void {
   updatePresetHint();
 
   byId('font-preset')?.addEventListener('change', rememberPreset);
-  byId('convert-button')?.addEventListener('click', () => void convert());
+  byId('convert-button')?.addEventListener(
+    'click',
+    () => void convert(undefined, '', 'paste')
+  );
 
   const dropzone = byId('dropzone');
   if (dropzone) {

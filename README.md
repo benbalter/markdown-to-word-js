@@ -88,7 +88,7 @@ const blob = await convertMarkdownToWord(markdown, {
 
 ## Privacy
 
-Conversion happens entirely in your browser: your Markdown and the Word document never leave your device. Images your Markdown links to load from the sites that host them, like on any web page. md2word.app uses cookie-free Cloudflare Web Analytics; a local or self-hosted copy has no analytics. Raw HTML in the preview is sanitized, so a shared file can't run script. See the [privacy policy](https://md2word.app/privacy/).
+Conversion happens entirely in your browser: your Markdown and the Word document never leave your device. Images your Markdown links to load from the sites that host them, like on any web page. md2word.app uses cookie-free Cloudflare Web Analytics and keeps an anonymous count of conversions (whether each succeeded, the page's language, and how it started; never the content, filename, size, or anything that identifies you); a local or self-hosted copy sends neither. Raw HTML in the preview is sanitized, so a shared file can't run script. See the [privacy policy](https://md2word.app/privacy/).
 
 ## Limitations
 
