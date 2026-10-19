@@ -19,16 +19,25 @@ import ConversionTable from './home/ConversionTable.astro';
 import ReverseCallout from './home/ReverseCallout.astro';
 import Faq from './home/Faq.astro';
 import LanguageSuggestion from './home/LanguageSuggestion.astro';
+import { REPO_URL, WORD_TO_MARKDOWN_URL } from '../site';
 
 const locale = asLocale(Astro.currentLocale);
 const meta = localeMeta[locale];
 const t = useTranslations(locale);
 
-// Structured data (schema.org) for rich results: the app entity + the FAQ.
+// Structured data (schema.org): the app, its npm package, the steps, and the
+// FAQ. Google shows few of these as rich results any more; they're here for
+// LLMs and other readers that parse schema.org.
 // `inLanguage` and the human-readable copy follow the active locale. It spans
 // multiple sections (FAQ copy lives in Faq.astro), so it stays here at the shell.
 // URLs derive from `site` so the localized page describes its own URL and card.
 const image = `/og/${locale}.png`;
+const siteUrl = new URL('/', Astro.site).href;
+const author = {
+  '@type': 'Person',
+  name: 'Ben Balter',
+  url: 'https://ben.balter.com',
+};
 const structuredData = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -46,11 +55,43 @@ const structuredData = {
       isAccessibleForFree: true,
       featureList: t.schemaFeatureList,
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-      author: {
-        '@type': 'Person',
-        name: 'Ben Balter',
-        url: 'https://ben.balter.com',
+      author,
+      isRelatedTo: {
+        '@type': 'WebApplication',
+        name: 'Word to Markdown Converter',
+        url: `${WORD_TO_MARKDOWN_URL}/`,
       },
+    },
+    {
+      '@type': 'WebSite',
+      name: 'Markdown to Word',
+      url: siteUrl,
+      inLanguage: meta.htmlLang,
+    },
+    {
+      // The same converter as a Node library, for agents and scripts.
+      '@type': 'SoftwareSourceCode',
+      name: 'markdown-to-word',
+      description:
+        'Convert GitHub Flavored Markdown to Word (.docx) documents in Node or the browser.',
+      codeRepository: REPO_URL,
+      programmingLanguage: 'TypeScript',
+      runtimePlatform: 'Node.js',
+      // package.json and LICENSE: MIT.
+      license: 'https://opensource.org/license/mit',
+      url: 'https://www.npmjs.com/package/markdown-to-word',
+      author,
+    },
+    {
+      '@type': 'HowTo',
+      name: t.metaTitle,
+      inLanguage: meta.htmlLang,
+      step: t.steps.map((s, i) => ({
+        '@type': 'HowToStep',
+        position: i + 1,
+        name: s.t,
+        text: s.d,
+      })),
     },
     {
       '@type': 'FAQPage',
@@ -71,6 +112,7 @@ const structuredData = {
   image={image}
   structuredData={structuredData}
   i18nPath="/"
+  markdownPath={locale === defaultLocale ? '/index.md' : undefined}
 >
   <Hero />
   <Converter />
