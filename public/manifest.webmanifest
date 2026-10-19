@@ -1,0 +1,29 @@
+{
+  "id": "/",
+  "name": "Markdown to Word",
+  "short_name": "md2word",
+  "description": "Free, open-source converter that turns Markdown, including ChatGPT and Claude replies, into formatted Word (.docx) files in your browser. Nothing is uploaded.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f5ef",
+  "theme_color": "#f6f5ef",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

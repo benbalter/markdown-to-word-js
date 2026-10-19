@@ -57,6 +57,12 @@ export default defineConfig(
     },
   },
 
+  // The site's offline service worker (template and kill switch).
+  {
+    files: ['web/pwa/*.js'],
+    languageOptions: { globals: { ...globals.serviceworker } },
+  },
+
   // Tests, configs, and build scripts run in Node.
   {
     files: ['test/**/*.ts', 'scripts/**/*.mjs', '*.ts', '*.mjs'],

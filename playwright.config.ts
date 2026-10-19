@@ -14,6 +14,9 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
+    // The offline service worker would take over requests and bypass
+    // page.route() mocks; pwa.spec.ts opts back in.
+    serviceWorkers: 'block',
   },
   projects: [
     {
