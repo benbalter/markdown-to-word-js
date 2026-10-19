@@ -1,8 +1,14 @@
 # Markdown to Word
 
-[![CI](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml/badge.svg)](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/markdown-to-word.svg)](https://www.npmjs.com/package/markdown-to-word) [![npm downloads](https://img.shields.io/npm/dm/markdown-to-word.svg)](https://www.npmjs.com/package/markdown-to-word) [![CI](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml/badge.svg)](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/npm/l/markdown-to-word.svg)](https://github.com/benbalter/markdown-to-word-js/blob/main/LICENSE)
 
 Convert GitHub Flavored Markdown to a formatted Word (`.docx`) document, entirely in your browser, at **[md2word.app](https://md2word.app)**. Nothing is uploaded.
+
+The same converter is on npm as [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word): a [command-line tool](#command-line), a [Node library](#use-it-from-code), and an [MCP server](#mcp-server) for AI agents, no clone required:
+
+```console
+npx markdown-to-word input.md
+```
 
 It's the mirror image of [word2md.com](https://word2md.com) ([word-to-markdown-js](https://github.com/benbalter/word-to-markdown-js)), which goes the other way, and the successor to [markdown_to_word](https://github.com/benbalter/markdown_to_word), the original Ruby gem and web demo, first published in 2015 and now archived.
 
@@ -130,6 +136,8 @@ Options:
 ## MCP server
 
 `md2w mcp` runs a local [Model Context Protocol](https://modelcontextprotocol.io) server on stdio, so AI agents can turn Markdown into Word documents on your machine. Like the website, it never uploads anything: the server converts in-process and writes the `.docx` to disk.
+
+In Claude Desktop, it's one click: [download `markdown-to-word.mcpb`](https://github.com/benbalter/markdown-to-word-js/releases/latest/download/markdown-to-word.mcpb) and double-click it. Claude Desktop installs it as an extension. You don't need Node or a terminal, since Claude Desktop includes Node.
 
 Add it to Claude Code:
 

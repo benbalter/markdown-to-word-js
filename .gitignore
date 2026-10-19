@@ -62,3 +62,6 @@ scripts/.gen-cache/
 
 # Generated at release time by scripts/mcp-server-json.mjs
 server.json
+
+# MCP Bundle built by `npm run pack:mcpb` (scripts/pack-mcpb.mjs)
+*.mcpb

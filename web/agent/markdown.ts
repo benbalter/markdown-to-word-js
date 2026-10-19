@@ -14,6 +14,9 @@ import { REPO_URL, WORD_TO_MARKDOWN_URL } from '../site';
 
 const SITE_NAME = 'Markdown to Word';
 const NPM_URL = 'https://www.npmjs.com/package/markdown-to-word';
+// The Claude Desktop bundle .github/workflows/mcpb.yml attaches to each release.
+const MCPB_URL =
+  'https://github.com/benbalter/markdown-to-word-js/releases/latest/download/markdown-to-word.mcpb';
 const SIBLING_URL = `${WORD_TO_MARKDOWN_URL}/`;
 const GEM_URL = 'https://github.com/benbalter/markdown_to_word';
 const AUTHOR = { name: 'Ben Balter', url: 'https://ben.balter.com' };
@@ -62,6 +65,7 @@ function developerMarkdown(site: URL): string {
 
 Agents and scripts can run the same converter on their own machine. Nothing is uploaded either way. Full reference: ${new URL('/developers.md', site).href}
 
+- **Claude Desktop (one click):** download [markdown-to-word.mcpb](${MCPB_URL}) and double-click it. Claude Desktop installs the MCP server below; no Node or terminal needed, since Claude Desktop includes Node.
 - **MCP server (local):** \`claude mcp add markdown-to-word -- npx -y markdown-to-word mcp\`, or in any MCP client the command \`npx\` with args \`["-y", "markdown-to-word", "mcp"]\`. Its tool \`convert_markdown_to_word\` takes \`markdown\` or a .md \`path\`, writes the .docx to \`output_path\`, and never fetches remote images.
 - **Command line:** \`npx markdown-to-word report.md\` writes report.docx next to it.
 - **Node library:** \`convertMarkdownToWord(markdown)\` from the [\`markdown-to-word\`](${NPM_URL}) package returns the .docx as a \`Blob\`.

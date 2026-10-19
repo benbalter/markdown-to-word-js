@@ -8,6 +8,10 @@ order: 3
 
 The converter behind [md2word.app](/) is free and open source, published to npm as [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word). Every way of running it, below, converts on your own machine; the converter uploads nothing. With MCP or WebMCP, the agent sees the Markdown it sends and the file it gets back, as with any file you share with it.
 
+## Claude Desktop (one click)
+
+[Download `markdown-to-word.mcpb`](https://github.com/benbalter/markdown-to-word-js/releases/latest/download/markdown-to-word.mcpb) and double-click it. Claude Desktop installs the [MCP server](#mcp-server-for-ai-agents) as an extension, so Claude can turn Markdown into Word documents on your computer. You don't need Node or a terminal: Claude Desktop includes Node. To install it another way, drag the file into Claude Desktop, or open **Settings > Extensions > Advanced settings > Install Extension**.
+
 ## Command line
 
 ```console

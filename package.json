@@ -45,7 +45,8 @@
     "gen:icons": "sh scripts/gen-icons.sh",
     "cf:builds": "node scripts/cloudflare-builds.mjs",
     "build:lib": "tsc -p tsconfig.build.json",
-    "prepack": "rm -rf build && npm run build:lib"
+    "prepack": "rm -rf build && npm run build:lib",
+    "pack:mcpb": "node scripts/pack-mcpb.mjs"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
