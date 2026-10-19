@@ -1,6 +1,6 @@
 # Markdown to Word
 
-[![npm version](https://img.shields.io/npm/v/markdown-to-word.svg)](https://www.npmjs.com/package/markdown-to-word) [![npm downloads](https://img.shields.io/npm/dm/markdown-to-word.svg)](https://www.npmjs.com/package/markdown-to-word) [![CI](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml/badge.svg)](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/npm/l/markdown-to-word.svg)](https://github.com/benbalter/markdown-to-word-js/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/markdown-to-word.svg)](https://www.npmjs.com/package/markdown-to-word) [![npm downloads](https://img.shields.io/npm/dm/markdown-to-word.svg)](https://www.npmjs.com/package/markdown-to-word) [![MCP registry](https://img.shields.io/badge/MCP_registry-io.github.benbalter%2Fmarkdown--to--word-blue)](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.benbalter/markdown-to-word) [![CI](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml/badge.svg)](https://github.com/benbalter/markdown-to-word-js/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/npm/l/markdown-to-word.svg)](https://github.com/benbalter/markdown-to-word-js/blob/main/LICENSE)
 
 Convert GitHub Flavored Markdown to a formatted Word (`.docx`) document, entirely in your browser, at **[md2word.app](https://md2word.app)**. Nothing is uploaded.
 
