@@ -42,25 +42,27 @@ GitHub Actions ([`ci.yml`](../.github/workflows/ci.yml)) runs lint, typecheck, t
 
 ## Conversion counter
 
-md2word.app counts conversions the way word2md.com does, so the owner can see whether the tool is used and how often AI agents convert through its WebMCP tool compared with people. After each conversion, the page ([`web/scripts/analytics.ts`](../web/scripts/analytics.ts), called from [`src/index.ts`](../src/index.ts)) sends a content-free beacon, `POST /api/event?o=<success|error>&l=<locale>&s=<source>`, only when it's served from md2word.app, so local and self-hosted copies send nothing. The Worker accepts it only from the site's own pages (same `Origin`, `Sec-Fetch-Site: same-origin`), bounds each value to a fixed list (anything else becomes `other`), and writes one [Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/) data point to `md2word_events` (previews write to `md2word_events_preview`). It never records the Markdown, a filename, a size, an IP address, or an identifier, and the [privacy policy](../web/content/legal/privacy.md) says so.
+md2word.app counts conversions the way word2md.com does, so the owner can see whether the tool is used and how often AI agents convert through its WebMCP tool compared with people. After each conversion, the page ([`web/scripts/analytics.ts`](../web/scripts/analytics.ts), called from [`src/index.ts`](../src/index.ts)) sends a content-free beacon, `POST /api/event?o=<success|error>&l=<locale>&s=<source>[&e=<kind>]`, only when it's served from md2word.app, so local and self-hosted copies send nothing. The Worker accepts it only from the site's own pages (same `Origin`, `Sec-Fetch-Site: same-origin`), bounds each value to a fixed list (anything else becomes `other`), and writes one [Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/) data point to `md2word_events` (previews write to `md2word_events_preview`). It never records the Markdown, a filename, a size, an IP address, or an identifier, and the [privacy policy](../web/content/legal/privacy.md) says so.
 
-| Field     | Value                                                                                                                   |
-| --------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `blob1`   | `convert`                                                                                                               |
-| `blob2`   | `success` or `error`                                                                                                    |
-| `blob3`   | the page's locale key from [`locales.ts`](../web/i18n/locales.ts), or `other`                                           |
-| `blob4`   | how it started: `drop`, `paste`, `webmcp` ([`conversion-sources.ts`](../web/scripts/conversion-sources.ts)), or `other` |
-| `double1` | `1`                                                                                                                     |
+| Field     | Value                                                                                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `blob1`   | `convert`                                                                                                                                                  |
+| `blob2`   | `success` or `error`                                                                                                                                       |
+| `blob3`   | the page's locale key from [`locales.ts`](../web/i18n/locales.ts), or `other`                                                                              |
+| `blob4`   | how it started: `drop`, `paste`, `webmcp` ([`conversion-sources.ts`](../web/scripts/conversion-sources.ts)), or `other`                                    |
+| `blob5`   | for an error, its kind: `load`, `too-complex`, `conversion` ([`conversion-errors.ts`](../web/scripts/conversion-errors.ts)), or `other`; `none` on success |
+| `double1` | `1`                                                                                                                                                        |
 
-`drop` is a `.md` file dropped or chosen; `paste` is Markdown pasted or typed into the box and converted with the button or Ctrl/⌘+Enter; `webmcp` is an agent's `convert_markdown_to_docx` call. A conversion counts once, when its `.docx` is made or fails. Downloads and **Copy formatted text** reuse that result, so they aren't counted, and neither are files rejected before converting (a Word file, too large, binary) or a conversion superseded by a newer one. The blob order matches word2md.com's, so the same queries work on both; add new dimensions at the end so saved queries keep working.
+`drop` is a `.md` file dropped or chosen; `paste` is Markdown pasted or typed into the box and converted with the button or Ctrl/⌘+Enter; `webmcp` is an agent's `convert_markdown_to_docx` call. A failure's kind is the one `classifyConversionError` in `src/index.ts` picks for the message the visitor sees: `load` (the converter's code didn't download), `too-complex` (out of stack or memory), or `conversion` (anything else). A conversion counts once, when its `.docx` is made or fails. Only attempted conversions count: downloads and **Copy formatted text** reuse that result, so they aren't counted, and neither is input refused before converting (a Word file, too large, binary, an empty box) or a conversion superseded by a newer one. The blob order matches word2md.com's, so the same queries work on both; add new dimensions at the end so saved queries keep working.
 
-Query it with the [SQL API](https://developers.cloudflare.com/analytics/analytics-engine/sql-api/) (the dataset appears on the first write):
+Query it with the [SQL API](https://developers.cloudflare.com/analytics/analytics-engine/sql-api/) (the dataset appears on the first write). Analytics Engine may sample, so weight by `_sample_interval` for correct totals:
 
 ```sql
-SELECT SUM(double1) FROM md2word_events WHERE blob1 = 'convert'
-SELECT blob2, SUM(double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob2  -- by outcome
-SELECT blob3, SUM(double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob3  -- by locale
-SELECT blob4, SUM(double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob4  -- by source
+SELECT SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert'
+SELECT blob2, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob2  -- by outcome
+SELECT blob3, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob3  -- by locale
+SELECT blob4, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob4  -- by source
+SELECT blob5, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' AND blob2 = 'error' GROUP BY blob5  -- by error kind
 ```
 
 ## Bot and crawler settings

@@ -5,6 +5,7 @@
 import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
 import { registerWebMcpTools } from '../web/scripts/webmcp.ts';
 import { recordConversion } from '../web/scripts/analytics.ts';
+import type { ConversionErrorKind } from '../web/scripts/conversion-errors.ts';
 import type { ConversionSource } from '../web/scripts/conversion-sources.ts';
 
 // Markdown is text, so this is generous; it bounds the in-browser render.
@@ -38,17 +39,16 @@ const loadParser = (): Promise<ParserModule> =>
 
 /**
  * Why a conversion failed, as far as the page can tell, for the message it
- * shows. `load`: the converter's code didn't download. `too-complex`: the
- * engine ran out of stack or memory (RangeError in Chrome and Safari,
- * InternalError for Firefox's "too much recursion"), which in practice means
- * very deep nesting or a huge document. Anything else is `generic`.
+ * shows and the anonymous counter's error kind (so the two agree). `load`:
+ * the converter's code didn't download. `too-complex`: the engine ran out of
+ * stack or memory (RangeError in Chrome and Safari, InternalError for
+ * Firefox's "too much recursion"), which in practice means very deep nesting
+ * or a huge document. Anything else is `conversion`.
  */
-type ConversionFailure = 'load' | 'too-complex' | 'generic';
-
 function classifyConversionError(
   error: unknown,
   stage: 'load' | 'convert'
-): ConversionFailure {
+): ConversionErrorKind {
   if (stage === 'load') return 'load';
   // The converter wraps what it catches ("Failed to generate Word document",
   // with the parser's own wrapper as its cause), so look down the chain.
@@ -63,7 +63,7 @@ function classifyConversionError(
       return 'too-complex';
     }
   }
-  return 'generic';
+  return 'conversion';
 }
 
 const FAILURE_STRINGS = {
@@ -75,11 +75,14 @@ const FAILURE_STRINGS = {
     'tooComplexError',
     'This Markdown is too large or too deeply nested to convert in your browser. Try splitting it into smaller documents.',
   ],
-  generic: [
+  conversion: [
     'errorGeneric',
     'Something went wrong while converting your Markdown. Please try again.',
   ],
-} as const satisfies Record<ConversionFailure, readonly [UIStringKey, string]>;
+} as const satisfies Record<
+  ConversionErrorKind,
+  readonly [UIStringKey, string]
+>;
 
 let lastDocument: Blob | null = null;
 let lastFilename = 'document.docx';
@@ -305,7 +308,9 @@ function looksBinary(text: string): boolean {
 const WORD_FILE = /\.(docx?|dotx?|odt|rtf)$/i;
 
 // Read a chosen or dropped file into the paste box, then convert it, so a
-// file is one step, like word2md.com's dropzone.
+// file is one step, like word2md.com's dropzone. A file refused here (a Word
+// file, too large, unreadable, or not text) never reaches convert(), so the
+// anonymous counter, which counts attempted conversions, doesn't count it.
 async function processFile(
   file: File | undefined,
   ignoredFiles = 0
@@ -403,6 +408,7 @@ async function convert(
   source: ConversionSource
 ): Promise<boolean> {
   const markdown = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
+  // Nothing to convert isn't an attempted conversion, so it isn't counted.
   if (markdown.trim() === '') {
     showError(
       uiString('emptyError', 'Paste some Markdown or choose a .md file first.')
@@ -456,11 +462,11 @@ async function convert(
     if (token !== activeConversion) return false;
     endBusy();
     announce('');
-    recordConversion('error', source);
+    const kind = classifyConversionError(error, stage);
+    recordConversion('error', source, kind);
     // The converter logs its own errors, and the browser logs a failed chunk
     // download; the visitor gets the alert.
-    const [key, fallback] =
-      FAILURE_STRINGS[classifyConversionError(error, stage)];
+    const [key, fallback] = FAILURE_STRINGS[kind];
     showError(uiString(key, fallback));
     return false;
   }

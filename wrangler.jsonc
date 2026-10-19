@@ -39,9 +39,12 @@
   // word2md.com. The Worker writes one fire-and-forget data point per
   // conversion (no content, filename, size, IP, or per-user id): blob1
   // 'convert', blob2 the outcome, blob3 the page's locale, blob4 how it
-  // started (drop, paste, webmcp). Query via the SQL API:
-  //   SELECT SUM(double1) FROM md2word_events WHERE blob1 = 'convert'
-  //   SELECT blob4, SUM(double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob4
+  // started (drop, paste, webmcp), blob5 the error kind ('none' on success).
+  // Query via the SQL API, weighting by _sample_interval in case Analytics
+  // Engine samples:
+  //   SELECT SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert'
+  //   SELECT blob4, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob4
+  //   SELECT blob5, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' AND blob2 = 'error' GROUP BY blob5
   "analytics_engine_datasets": [
     { "binding": "EVENTS", "dataset": "md2word_events" },
   ],

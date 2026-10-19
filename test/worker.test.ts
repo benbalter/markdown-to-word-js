@@ -7,7 +7,8 @@ import {
   vi,
   type Mock,
 } from 'vitest';
-import worker, { SOURCES } from '../worker/index.js';
+import worker, { ERROR_KINDS, SOURCES } from '../worker/index.js';
+import { CONVERSION_ERROR_KINDS } from '../web/scripts/conversion-errors.ts';
 import { CONVERSION_SOURCES } from '../web/scripts/conversion-sources.ts';
 
 // Tests for the Cloudflare Worker fetch handler (worker/index.js): the
@@ -55,7 +56,7 @@ describe('worker fetch handler', () => {
       // No content, filename, size, or identifier — just outcome, page
       // language, and how the conversion started, in word2md's blob order.
       expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
-        blobs: ['convert', 'success', 'de', 'drop'],
+        blobs: ['convert', 'success', 'de', 'drop', 'none'],
         doubles: [1],
       });
       // The counter must not fall through to asset serving.
@@ -66,13 +67,13 @@ describe('worker fetch handler', () => {
       const env = makeEnv();
       await worker.fetch(
         new Request(
-          'https://md2word.app/api/event?o=error&l=zh-hant&s=webmcp',
+          'https://md2word.app/api/event?o=error&l=zh-hant&s=webmcp&e=too-complex',
           SAME_ORIGIN_POST
         ),
         env
       );
       expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
-        blobs: ['convert', 'error', 'zh-hant', 'webmcp'],
+        blobs: ['convert', 'error', 'zh-hant', 'webmcp', 'too-complex'],
         doubles: [1],
       });
     });
@@ -89,7 +90,7 @@ describe('worker fetch handler', () => {
           env
         );
         expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
-          blobs: ['convert', 'success', 'en', source],
+          blobs: ['convert', 'success', 'en', source, 'none'],
           doubles: [1],
         });
       }
@@ -106,7 +107,7 @@ describe('worker fetch handler', () => {
         env
       );
       expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
-        blobs: ['convert', 'success', 'other', 'other'],
+        blobs: ['convert', 'success', 'other', 'other', 'none'],
         doubles: [1],
       });
     });
@@ -124,7 +125,7 @@ describe('worker fetch handler', () => {
         env
       );
       expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
-        blobs: ['convert', 'success', 'en', 'other'],
+        blobs: ['convert', 'success', 'en', 'other', 'none'],
         doubles: [1],
       });
     });
@@ -136,9 +137,66 @@ describe('worker fetch handler', () => {
         env
       );
       expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
-        blobs: ['convert', 'success', 'other', 'other'],
+        blobs: ['convert', 'success', 'other', 'other', 'none'],
         doubles: [1],
       });
+    });
+
+    it.each(['load', 'too-complex', 'conversion'])(
+      'records error kind %s as blob5, after the source',
+      async (kind) => {
+        const env = makeEnv();
+        await worker.fetch(
+          new Request(
+            `https://md2word.app/api/event?o=error&l=en&s=paste&e=${kind}`,
+            SAME_ORIGIN_POST
+          ),
+          env
+        );
+        expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
+          blobs: ['convert', 'error', 'en', 'paste', kind],
+          doubles: [1],
+        });
+      }
+    );
+
+    it.each([
+      // not-docx is a word2md kind; md2word has no such failure.
+      ['an unknown kind', '&e=not-docx'],
+      ['a long caller-supplied string', `&e=${'x'.repeat(500)}`],
+      ['no kind', ''],
+    ])('records an error with %s as other', async (_, param) => {
+      const env = makeEnv();
+      await worker.fetch(
+        new Request(
+          `https://md2word.app/api/event?o=error&l=en&s=drop${param}`,
+          SAME_ORIGIN_POST
+        ),
+        env
+      );
+      expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
+        blobs: ['convert', 'error', 'en', 'drop', 'other'],
+        doubles: [1],
+      });
+    });
+
+    it('records none as the error kind of a success, whatever e says', async () => {
+      const env = makeEnv();
+      await worker.fetch(
+        new Request(
+          'https://md2word.app/api/event?o=success&l=en&s=drop&e=load',
+          SAME_ORIGIN_POST
+        ),
+        env
+      );
+      expect(env.EVENTS!.writeDataPoint).toHaveBeenCalledWith({
+        blobs: ['convert', 'success', 'en', 'drop', 'none'],
+        doubles: [1],
+      });
+    });
+
+    it('bounds error kinds to the list the browser classifies errors into', () => {
+      expect(ERROR_KINDS).toBe(CONVERSION_ERROR_KINDS);
     });
 
     it('bounds sources to the list the browser beacon sends', () => {

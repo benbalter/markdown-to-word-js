@@ -160,7 +160,7 @@ test.describe('conversion beacon', () => {
       .toEqual([{ o: 'success', l: 'en', s: 'webmcp' }]);
   });
 
-  test('a failed conversion sends o=error with its source', async ({
+  test('a converter that fails to load sends o=error, its source, and e=load', async ({
     page,
     baseURL,
   }) => {
@@ -170,10 +170,12 @@ test.describe('conversion beacon', () => {
     await expect(page.locator('#error-alert')).toBeVisible({ timeout: 15000 });
     await expect
       .poll(() => beacons(page))
-      .toEqual([{ o: 'error', l: 'en', s: 'paste' }]);
+      .toEqual([{ o: 'error', l: 'en', s: 'paste', e: 'load' }]);
   });
 
   test('a rejected file sends nothing', async ({ page, baseURL }) => {
+    // Only attempted conversions count, so a Word file, which the page turns
+    // away before converting, isn't one.
     await openAsProduction(page, baseURL!);
     await page.locator('#file').setInputFiles({
       name: 'report.docx',
