@@ -22,7 +22,14 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/", "/privacy/", "/terms/"],
+    "run_worker_first": [
+      "/",
+      "/chatgpt-to-word/",
+      "/markdown-tables-to-word/",
+      "/developers/",
+      "/privacy/",
+      "/terms/",
+    ],
     // Unknown paths get the branded web/pages/404.astro with a 404 status.
     "not_found_handling": "404-page",
   },
