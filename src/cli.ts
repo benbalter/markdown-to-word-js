@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+
+// The `md2w` command (also installed as `markdown-to-word`): converts a
+// Markdown file, or stdin, to a .docx on disk. Patterned on word2md.com's
+// `w2m` CLI (benbalter/word-to-markdown-js), in reverse. It loads the Node
+// entry, which supplies the DOM APIs the converter needs.
+
+import { Command, Option } from 'commander';
+import { createRequire } from 'module';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import path from 'path';
+import { convertMarkdownToWord, FONT_PRESETS } from './node.js';
+
+// Read our own version from package.json. createRequire resolves relative to
+// this module, so `../package.json` points at the package root both from the
+// TypeScript source (src/) and the compiled CLI (build/) after publish.
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json') as { version: string };
+
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString('utf8');
+}
+
+/** `notes.md` → `notes.docx`, next to the input. */
+function defaultOutputPath(input: string): string {
+  const { dir, name } = path.parse(input);
+  return path.join(dir, `${name}.docx`);
+}
+
+const EXAMPLES = `
+Examples:
+  $ md2w report.md                 # writes report.docx
+  $ md2w report.md -o out/report.docx
+  $ md2w --font-preset chinese-official notice.md
+  $ cat reply.md | md2w -o reply.docx
+  $ md2w - -o - < report.md > report.docx`;
+
+const program = new Command();
+program.name('md2w');
+program.description('Convert Markdown to a formatted Word (.docx) document');
+program.version(version);
+program.addHelpText(
+  'after',
+  `\nRun "md2w convert --help" for all conversion options.\n${EXAMPLES}`
+);
+program
+  .command('mcp')
+  .description(
+    'Run a local MCP server on stdio so AI agents can convert Markdown to ' +
+      '.docx files on this machine (e.g. claude mcp add markdown-to-word -- ' +
+      'npx -y markdown-to-word mcp)'
+  )
+  .action(async () => {
+    // Loaded only here, so conversions never pay for the MCP SDK.
+    const { startMcpServer } = await import('./mcp.js');
+    await startMcpServer(version);
+  });
+const convert = program
+  .command('convert', { isDefault: true })
+  .argument(
+    '[file]',
+    'The Markdown file to convert. Use - (or omit it and pipe the Markdown ' +
+      'in) to read from stdin.'
+  )
+  .option(
+    '-o, --output <file>',
+    'Write the .docx to <file> (- means stdout). Defaults to the input ' +
+      'file name with .docx; required when reading stdin.'
+  )
+  .addOption(
+    new Option(
+      '--font-preset <name>',
+      'Restyle the document with a font preset, e.g. chinese-official for ' +
+        'a Chinese official document (公文) after GB/T 9704-2012'
+    ).choices(Object.keys(FONT_PRESETS))
+  )
+  .option('-q, --quiet', 'Print nothing to stderr except errors')
+  .addHelpText('after', EXAMPLES)
+  .action(async (file: string | undefined, options) => {
+    const note = (message: string): void => {
+      if (!options.quiet) console.error(message);
+    };
+    try {
+      // An explicit `-`, or no file with something piped in, reads stdin. No
+      // file at an interactive terminal would just hang, so ask for one.
+      const fromStdin = file === '-' || (!file && !process.stdin.isTTY);
+      if (!file && !fromStdin) {
+        convert.help({ error: true });
+      }
+      if (fromStdin && !options.output) {
+        throw new Error(
+          'Reading from stdin, so there is no file name to name the .docx after. Pass -o report.docx (or -o - for stdout).'
+        );
+      }
+
+      const markdown = fromStdin
+        ? await readStdin()
+        : await readFile(file as string, 'utf8').catch((error: unknown) => {
+            if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+              throw new Error(`${file} was not found.`);
+            }
+            throw error;
+          });
+      if (markdown.trim() === '') {
+        throw new Error(
+          fromStdin
+            ? 'Nothing was piped to stdin. Pass a Markdown file, or pipe one in: md2w -o report.docx < report.md'
+            : `${file} is empty.`
+        );
+      }
+
+      const blob = await convertMarkdownToWord(markdown, {
+        fontPreset: options.fontPreset
+          ? FONT_PRESETS[options.fontPreset]
+          : undefined,
+      });
+      const bytes = Buffer.from(await blob.arrayBuffer());
+
+      const output: string = options.output ?? defaultOutputPath(file!);
+      if (output === '-') {
+        process.stdout.write(bytes);
+      } else {
+        await mkdir(path.dirname(output), { recursive: true });
+        await writeFile(output, bytes);
+        note(`Wrote ${output}`);
+      }
+    } catch (error) {
+      console.error(
+        'Error:',
+        error instanceof Error ? error.message : String(error)
+      );
+      process.exit(1);
+    }
+  });
+
+await program.parseAsync();

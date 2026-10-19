@@ -31,6 +31,9 @@ test.describe('Agent-readable surfaces', () => {
     const llms = await (await request.get('/llms.txt')).text();
     expect(llms).toMatch(/^# Markdown to Word$/m);
     expect(llms).toContain('npm install markdown-to-word');
+    expect(llms).toContain('npx markdown-to-word report.md');
+    expect(llms).toContain('npx -y markdown-to-word mcp');
+    expect(llms).toContain('convert_markdown_to_docx');
     expect(llms).toContain(`${WORD_TO_MARKDOWN_URL}/`);
 
     const twins = [

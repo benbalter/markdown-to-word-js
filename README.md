@@ -96,6 +96,73 @@ Conversion happens entirely in your browser: your Markdown and the Word document
 - Very large documents can be slow, since everything runs in the browser. Files are limited to 5 MB.
 - The site works in current versions of Chrome, Edge, Firefox, and Safari. The end-to-end tests run in Chrome.
 
+## Command line
+
+Run it directly with `npx` (downloads and runs the latest published version):
+
+```console
+npx markdown-to-word report.md
+```
+
+Or install it globally to get the `md2w` command:
+
+```console
+npm install -g markdown-to-word
+md2w report.md
+```
+
+It writes the `.docx` next to the input with the same name (`report.md` becomes `report.docx`), replacing any file already there, and prints where it wrote it to **stderr**. It needs Node 22.12 or later, and exits with status 1 and a message if the file is missing or empty.
+
+To read the Markdown from **stdin**, pass `-` as the file, or leave it out and pipe the Markdown in. There's no file name to go on then, so `-o` is required:
+
+```console
+cat reply.md | md2w -o reply.docx
+md2w - -o - < report.md > report.docx
+```
+
+Options:
+
+- `-o, --output <file>`: write the `.docx` to `<file>`, creating folders as needed. `-o -` writes it to stdout.
+- `--font-preset <name>`: restyle the document with a font preset. `chinese-official` is the Chinese official document (公文) style described in [Optional Font Presets](#optional-font-presets).
+- `-q, --quiet`: print nothing to stderr except errors.
+- `-V, --version`: print the version.
+
+## MCP server
+
+`md2w mcp` runs a local [Model Context Protocol](https://modelcontextprotocol.io) server on stdio, so AI agents can turn Markdown into Word documents on your machine. Like the website, it never uploads anything: the server converts in-process and writes the `.docx` to disk.
+
+Add it to Claude Code:
+
+```console
+claude mcp add markdown-to-word -- npx -y markdown-to-word mcp
+```
+
+Or to any MCP client that takes a JSON config:
+
+```json
+{
+  "mcpServers": {
+    "markdown-to-word": {
+      "command": "npx",
+      "args": ["-y", "markdown-to-word", "mcp"]
+    }
+  }
+}
+```
+
+It has one tool, `convert_markdown_to_word`:
+
+- `markdown` or `path` (exactly one): the Markdown as a string, or the path of a Markdown file (`.md`, `.markdown`, `.mdown`, or `.txt`). Prefer absolute paths; relative ones resolve against the server's working directory.
+- `output_path` (required): where to write the `.docx`; it must end in `.docx`. Missing folders are created.
+- `overwrite`: replace `output_path` if it already exists. Off by default, so the tool refuses to clobber an existing file and says so.
+- `font_preset`: `chinese-official` for the 公文 style; omit for Word's default styling.
+
+It returns the `output_path`, the file's size in `bytes`, and any `warnings` (remote images it didn't download, or a `.docx` patch that had to be skipped), also as structured content.
+
+An agent may be following instructions from a document or web page it read, so the tool limits what it can be talked into: it reads only Markdown files, writes only `.docx` files, never writes through a symlink, and never replaces a file unless asked. It also never downloads remote images, since a URL in a document could point anywhere, your own network included: they appear in the document as links. An agent that wants an image embedded can fetch it itself and put it in the Markdown as a `data:` URI. The CLI, run by you, has none of these limits and embeds remote images like the website.
+
+In the browser, md2word.app registers the same conversion as a [WebMCP](https://webmachinelearning.github.io/webmcp/) tool, `convert_markdown_to_docx` (`markdown`, plus optional `filename` and `font_preset`), for agents in browsers that support it. It runs in the tab like a paste, shows the result on the page, and returns the `.docx` as base64. The page also tries to download the file, which a browser may block when no one clicked.
+
 ## Use it from code
 
 The converter is also on npm as [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word), for Node 22.12+ and for browsers through a bundler (Vite, webpack, esbuild):

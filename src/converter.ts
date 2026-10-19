@@ -31,7 +31,9 @@ export async function convertMarkdownToWord(
 ): Promise<Blob> {
   try {
     let html = parseMarkdownToHtml(markdown);
-    if (html.includes('<img')) {
+    // Case-insensitive: raw HTML in the Markdown can say <IMG>, and an image
+    // this skips is left for html-to-docx to download on its own.
+    if (/<img/i.test(html)) {
       // Before generation, so a failed image can keep its alt text.
       html = await embedImages(html);
     }
