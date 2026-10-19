@@ -39,6 +39,14 @@ GitHub Actions ([`ci.yml`](../.github/workflows/ci.yml)) runs lint, typecheck, t
 
 4. Turn on Cloudflare Web Analytics for the zone.
 
+## Bot and crawler settings
+
+These live in the Cloudflare zone, not the repo, and were last set through the API on 2026-10-19:
+
+- AI-bot blocking, content-bot blocking and the crawler link maze are all off, so crawlers and AI agents can read the site.
+- Managed robots.txt (`is_robots_txt_managed`) and Bot Preference Sync (`bot_preference_sync_enabled`) are off, so the committed [`public/robots.txt`](../public/robots.txt) is the only robots.txt. Otherwise Cloudflare would prepend its own rules, which could contradict the file's `Content-Signal`. Check with `GET /zones/{zone_id}/bot_management`.
+- Crawler Hints (IndexNow) is a dashboard-only toggle under Caching → Configuration, with no public API as of 2026-10. It keys off cache misses, which Workers Static Assets mostly bypass, so expect little from it. It's on for word2md.com.
+
 ## Local checks
 
 ```sh
