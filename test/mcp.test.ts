@@ -197,6 +197,26 @@ describe('md2w mcp', () => {
     expect(value).toContain('a chart');
   });
 
+  it.each([
+    [
+      'raw uppercase HTML',
+      (url: string): string => `<IMG SRC="${url}" ALT="raw">`,
+    ],
+    [
+      'an SVG image',
+      (url: string): string =>
+        `<svg width="10" height="10"><image href="${url}" /></svg>`,
+    ],
+  ])("doesn't fetch an image in %s either", async (_name, html) => {
+    const output = path.join(tmp, `raw-${Math.random()}.docx`);
+    const result = await convert({
+      markdown: `# Raw\n\n${html(imageUrl)}\n`,
+      output_path: output,
+    });
+    expect(result.isError).toBeFalsy();
+    expect(imageRequests).toBe(0);
+  });
+
   it('handles overlapping calls', async () => {
     const results = await Promise.all(
       ['one', 'two', 'three'].map((name) =>

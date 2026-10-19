@@ -6,8 +6,8 @@
 // An agent may be acting on instructions it read somewhere untrusted, so the
 // tool limits what it can be talked into: it reads only Markdown files,
 // writes only .docx files, never through a symlink and never over an
-// existing file unless asked, and fetches no remote images (the converter's
-// only network access). An agent that wants an image embedded can fetch it
+// existing file unless asked, and makes no network connections at all (the
+// converter's only network use is fetching images). An agent that wants an image embedded can fetch it
 // itself and pass it as a data: URI.
 //
 // The CLI loads this module only for the `mcp` subcommand (a dynamic
@@ -17,6 +17,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { AsyncLocalStorage } from 'async_hooks';
 import { constants } from 'fs';
+import net from 'net';
 import { lstat, mkdir, open, readFile } from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
@@ -68,6 +69,19 @@ function installGuards(): void {
       ?.skippedImages.add(input instanceof Request ? input.url : String(input));
     throw new Error('Remote images are not downloaded by the MCP server.');
   };
+
+  // The fetch guard alone isn't enough: html-to-docx bundles its own Node
+  // HTTP client and downloads any image the converter didn't embed (raw
+  // <IMG> or SVG <image> HTML in the Markdown, say). This server speaks over
+  // stdio and needs no network at all, so refuse every outbound TCP
+  // connection, which covers every HTTP client, TLS, and the DNS lookup a
+  // connect would start.
+  net.Socket.prototype.connect = function (this: net.Socket): net.Socket {
+    process.nextTick(() =>
+      this.destroy(new Error('The MCP server makes no network connections.'))
+    );
+    return this;
+  } as typeof net.Socket.prototype.connect;
 }
 
 function toolError(message: string): {
