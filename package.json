@@ -1,6 +1,6 @@
 {
   "name": "markdown-to-word",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "mcpName": "io.github.benbalter/markdown-to-word",
   "description": "Convert GitHub Flavored Markdown to Word (.docx) documents in Node or the browser",
   "type": "module",
