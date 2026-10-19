@@ -11,7 +11,9 @@ const en = JSON.parse(
   readFileSync(new URL('../../web/i18n/en.json', import.meta.url), 'utf8')
 ) as { faqs: { q: string }[]; steps: { t: string }[] };
 
-const escaped = SITE_URL.replace(/[.]/g, '\\.');
+// Escape every regex metacharacter (and backslash), not just dots, so the
+// pattern stays correct whatever SITE_URL holds.
+const escaped = SITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 test.describe('Agent-readable surfaces', () => {
   test('robots.txt welcomes crawlers and states content signals', async ({
