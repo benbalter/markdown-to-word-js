@@ -47,16 +47,20 @@ function codeCell(text: string): string {
   return `${fence}${pad}${text.replaceAll('|', '\\|')}${pad}${fence}`;
 }
 
-/** How to convert without the page: MCP, WebMCP, the CLI, and the library. */
-function developerMarkdown(): string {
+/**
+ * A quick start for agents in llms.txt and the home twin. Deliberately
+ * brief: the full reference is the /developers/ guide
+ * (web/content/guides/developers.md), linked here.
+ */
+function developerMarkdown(site: URL): string {
   return `## Use it from code or an agent
 
-The web page converts Markdown you paste or drop into it. Agents and scripts can use the same converter on their own machine. Nothing is uploaded either way.
+Agents and scripts can run the same converter on their own machine. Nothing is uploaded either way. Full reference: ${new URL('/developers.md', site).href}
 
-- **MCP server (local):** \`npx -y markdown-to-word mcp\` runs a stdio MCP server with one tool, \`convert_markdown_to_word\`, which takes \`markdown\` (a string) or \`path\` (a .md file), writes the .docx to \`output_path\`, and returns its path and size. It won't replace an existing file unless \`overwrite\` is true, and leaves remote images as links (pass them as \`data:\` URIs to embed them); \`font_preset: "chinese-official"\` applies the 公文 style. Add it to Claude Code with \`claude mcp add markdown-to-word -- npx -y markdown-to-word mcp\`, or to any MCP client as the command \`npx\` with args \`["-y", "markdown-to-word", "mcp"]\`. [MCP docs](${REPO_URL}#mcp-server)
-- **WebMCP (in the browser):** in a browser with WebMCP, the converter page registers \`convert_markdown_to_docx\` (takes \`markdown\`, optional \`filename\` and \`font_preset\`; returns the .docx as base64). It runs in the tab and shows the result on the page, like a paste.
-- **Command line:** \`npx markdown-to-word report.md\` writes report.docx next to it; \`-o out.docx\` picks the path. Pipe Markdown in with \`cat reply.md | npx markdown-to-word -o reply.docx\` (\`-o -\` writes the .docx to stdout). \`--font-preset chinese-official\` applies the 公文 style. Install it globally (\`npm install -g markdown-to-word\`) to get the \`md2w\` command. [CLI docs](${REPO_URL}#command-line)
-- **Node library:** \`npm install markdown-to-word\`, then \`await convertMarkdownToWord(markdown, { fontPreset })\` returns the .docx as a \`Blob\`; write it with \`Buffer.from(await blob.arrayBuffer())\`. \`FONT_PRESETS['chinese-official']\` is the 公文 style. Remote images are downloaded to embed them. [API docs](${REPO_URL}#use-it-from-code) · [npm](${NPM_URL})
+- **MCP server (local):** \`claude mcp add markdown-to-word -- npx -y markdown-to-word mcp\`, or in any MCP client the command \`npx\` with args \`["-y", "markdown-to-word", "mcp"]\`. Its tool \`convert_markdown_to_word\` takes \`markdown\` or a .md \`path\`, writes the .docx to \`output_path\`, and never fetches remote images.
+- **Command line:** \`npx markdown-to-word report.md\` writes report.docx next to it.
+- **Node library:** \`convertMarkdownToWord(markdown)\` from the [\`markdown-to-word\`](${NPM_URL}) package returns the .docx as a \`Blob\`.
+- **WebMCP:** in a browser with WebMCP, the converter page registers \`convert_markdown_to_docx\`, which returns the .docx as base64.
 `;
 }
 
@@ -98,7 +102,7 @@ ${rows}
 
 ${t.reverseBody} [${t.reverseCta}](${SIBLING_URL})
 
-${developerMarkdown()}
+${developerMarkdown(site)}
 ## ${t.faqHeading}
 
 ${faqs}
@@ -110,6 +114,17 @@ ${aboutMarkdown()}`;
 export async function agentPages(site: URL): Promise<AgentPage[]> {
   const t = useTranslations('en');
   const legal = await getCollection('legal');
+  const guides = await getCollection('guides');
+  // Both collections render the same way: their Markdown source is the twin.
+  const fromEntry = (
+    entry: (typeof legal)[number] | (typeof guides)[number]
+  ): AgentPage => ({
+    path: `/${entry.id}/`,
+    slug: entry.id,
+    title: entry.data.title,
+    description: entry.data.description,
+    markdown: `${(entry.body ?? '').trim()}\n`,
+  });
   return [
     {
       path: '/',
@@ -118,15 +133,8 @@ export async function agentPages(site: URL): Promise<AgentPage[]> {
       description: t.metaDescription,
       markdown: homeMarkdown(site),
     },
-    ...legal
-      .sort((a, b) => a.id.localeCompare(b.id))
-      .map((entry) => ({
-        path: `/${entry.id}/`,
-        slug: entry.id,
-        title: entry.data.title,
-        description: entry.data.description,
-        markdown: `${(entry.body ?? '').trim()}\n`,
-      })),
+    ...guides.sort((a, b) => a.data.order - b.data.order).map(fromEntry),
+    ...legal.sort((a, b) => a.id.localeCompare(b.id)).map(fromEntry),
   ];
 }
 
@@ -150,7 +158,7 @@ Markdown to Word runs entirely client-side: the web page converts Markdown in th
 
 ${links}
 
-${developerMarkdown()}
+${developerMarkdown(site)}
 ## Optional
 
 - [Word to Markdown](${SIBLING_URL}): The sibling converter, Word (.docx) to Markdown, by the same maker.
