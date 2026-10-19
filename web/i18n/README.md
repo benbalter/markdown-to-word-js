@@ -17,7 +17,7 @@ JSON is used because it's the standard interchange format for translation manage
 1. Add an entry to `locales.ts`.
 2. Generate the dictionary: `npm run gen:i18n -- <locale>` machine-translates `en.json` through Azure OpenAI (set `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and `AZURE_OPENAI_DEPLOYMENT`, e.g. with `op run --env-file=.env`). Or write `<locale>.json` by hand.
 3. Import the JSON into `dictionaries` in `index.ts`.
-4. Generate its social card: `npm run build && npm run gen:og`.
+4. Generate its social card: `npm run build && npm run gen:og -- <locale>` (no argument regenerates every locale and guide card; `-- guides` just the cards for `web/content/guides`, which a test requires for each guide).
 5. Run `npm test` and `npm run build`.
 
 Routing (`/<locale>/`), the sitemap's hreflang alternates, the head's hreflang cluster, and the footer language switcher, and the edge redirect in [`worker/index.js`](../../worker/index.js) pick it up from there. To also suggest the locale to English-browsing visitors from a country, add `countries` to its entry (see `id` and `vi`).

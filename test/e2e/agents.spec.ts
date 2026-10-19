@@ -90,6 +90,11 @@ test.describe('Agent-readable surfaces', () => {
       await expect(
         page.locator('link[rel="alternate"][type="text/markdown"]')
       ).toHaveAttribute('href', `${path.slice(0, -1)}.md`);
+      // Its own social card, not the site default (scripts/gen-og.mjs).
+      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+        'content',
+        `${SITE_URL}/og/guides${path.slice(0, -1)}.png`
+      );
       const json = await page
         .locator('script[type="application/ld+json"]')
         .textContent();
