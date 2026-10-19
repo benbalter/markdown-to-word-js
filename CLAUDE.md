@@ -43,9 +43,13 @@ The patches find their paragraphs by matching, in order, against counts and text
 - **i18n:** every string lives in [`web/i18n/en.json`](web/i18n/en.json), typed by [`types.ts`](web/i18n/types.ts). English is the source; the other 20 locales (the same set as word2md.com, including right-to-left Arabic) are listed in [`locales.ts`](web/i18n/locales.ts), and [`web/i18n/README.md`](web/i18n/README.md) covers adding more.
 - **Design:** follow word2md's [DESIGN.md](https://github.com/benbalter/word-to-markdown-js/blob/main/DESIGN.md) (tokens in [`web/styles/global.css`](web/styles/global.css)): one filled accent button per screen, chartreuse only on the output or the next action.
 
+## Agents and crawlers
+
+[`web/agent/markdown.ts`](web/agent/markdown.ts) builds Markdown for machines from the same sources the HTML renders (`web/i18n/en.json`, the `legal` collection): `/llms.txt` and `/llms-full.txt` ([`web/pages/llms*.txt.ts`](web/pages)) and a Markdown twin of every English page ([`web/pages/[page].md.ts`](web/pages/[page].md.ts): `/index.md`, `/privacy.md`, `/terms.md`). Don't hand-edit copies in `public/`. Layout advertises a page's twin with `<link rel="alternate" type="text/markdown">` (the `markdownPath` prop), and the Worker serves it for `Accept: text/markdown`. A new English page with a twin goes in `agentPages()` and in `run_worker_first` in `wrangler.jsonc`; [`test/agent-markdown.test.ts`](test/agent-markdown.test.ts) checks the two agree, and [`test/e2e/agents.spec.ts`](test/e2e/agents.spec.ts) checks the generated files and the JSON-LD. [`public/robots.txt`](public/robots.txt) sets `Content-Signal: search=yes, ai-input=yes, ai-train=yes`, a deliberate choice to welcome AI use.
+
 ## Deploying
 
-- [`worker/index.js`](worker/index.js) runs only for `/`: it redirects first-time visitors to their Accept-Language locale and tags the English page for the "also available in" banner. Everything else is a static asset.
+- [`worker/index.js`](worker/index.js) runs only for `/` and the English pages with a Markdown twin (`run_worker_first` in [`wrangler.jsonc`](wrangler.jsonc)). A request whose `Accept` prefers `text/markdown` gets the page's twin, ahead of everything else (see [Agents and crawlers](#agents-and-crawlers)). Otherwise it redirects first-time visitors on `/` to their Accept-Language locale and tags the English page for the "also available in" banner. Everything else is a static asset.
 - Pushing to `main` is a production deploy: Workers Builds runs `npm run build && npm test`, then `wrangler deploy`. Branches get preview URLs. See [docs/cloudflare.md](docs/cloudflare.md).
 - Push or merge to `main` only when the owner says to, and never run `wrangler deploy` yourself.
 - Publishing a GitHub Release publishes to npm ([release.yml](.github/workflows/release.yml); steps in [CONTRIBUTING.md](CONTRIBUTING.md#releasing-to-npm)). Never create a release, a `v*` tag, or run `npm publish` without the owner's OK.

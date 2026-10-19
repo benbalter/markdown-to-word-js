@@ -1,25 +1,11 @@
 ---
 // "What gets converted" reference table. The Markdown column is universal
-// syntax, so it stays literal here and pairs with t.conversionRows (the Word
-// result, translated) by index — the two arrays must stay the same length.
-// List only what the converter really produces; test/converter.test.ts
-// round-trips each of these through a .docx.
+// syntax, so it stays literal (in markdown-inputs.ts, shared with the
+// Markdown twin of the home page) and pairs with t.conversionRows by index.
 import { useTranslations } from '../../i18n';
+import { markdownInputs } from './markdown-inputs';
 
 const t = useTranslations(Astro.currentLocale);
-
-const markdownInputs = [
-  '# Heading',
-  '**bold** *italic*',
-  '~~text~~',
-  '- item · 1. item',
-  '- [x] task',
-  '| a | b |',
-  '[text](url)',
-  '`code` · ```',
-  '> quote',
-  '---',
-];
 ---
 
 <section class="mx-auto mt-20 max-w-2xl">

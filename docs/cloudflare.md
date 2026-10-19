@@ -1,6 +1,6 @@
 # Hosting on Cloudflare
 
-The site is static: `npm run build` writes `dist/`, and Cloudflare [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/) serves it at the domain in [`web/site.ts`](../web/site.ts). A small Worker, [`worker/index.js`](../worker/index.js), runs first on `/` only (`run_worker_first` in [`wrangler.jsonc`](../wrangler.jsonc)): it redirects first-time visitors to their browser's language and can tag the English page with a language suggestion. The setup matches [word2md.com](https://github.com/benbalter/word-to-markdown-js).
+The site is static: `npm run build` writes `dist/`, and Cloudflare [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/) serves it at the domain in [`web/site.ts`](../web/site.ts). A small Worker, [`worker/index.js`](../worker/index.js), runs first on `/` and the English pages with a Markdown twin (`run_worker_first` in [`wrangler.jsonc`](../wrangler.jsonc)): it serves the twin to agents that ask for `text/markdown`, redirects first-time visitors to their browser's language, and can tag the English page with a language suggestion. The Markdown twins and negotiation are built in the repo instead of using Cloudflare's zone-level Markdown for Agents conversion, so they're reviewable, tested, and don't depend on the zone's plan. The setup matches [word2md.com](https://github.com/benbalter/word-to-markdown-js).
 
 ## What lives where
 
