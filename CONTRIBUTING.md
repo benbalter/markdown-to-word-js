@@ -96,6 +96,7 @@ The site and the npm package ship separately: a push to `main` deploys [md2word.
 1. Bump `version` in `package.json` (`npm version <patch|minor|major> --no-git-tag-version`), and merge that to `main`.
 2. Check what will ship: `npm pack --dry-run` lists the files, all under `build/`.
 3. Publish a GitHub Release whose tag is `v` plus that version (e.g. `v0.1.0`). The workflow checks that the two match, runs the tests, and publishes with provenance.
+4. [mcpb.yml](.github/workflows/mcpb.yml) builds `markdown-to-word.mcpb`, the one-click Claude Desktop install, and attaches it to the release. To attach one to a release cut before that workflow was on `main`, or to rebuild it, run `gh workflow run mcpb.yml -f tag=v0.4.0` (once the workflow is on the default branch). `npm run pack:mcpb` builds the same bundle locally.
 
 The workflow authenticates with npm [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so there's no npm token to store or rotate. npm only lets you add a trusted publisher to a package that already exists, so the first version is published by hand:
 

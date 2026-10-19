@@ -131,6 +131,8 @@ Options:
 
 `md2w mcp` runs a local [Model Context Protocol](https://modelcontextprotocol.io) server on stdio, so AI agents can turn Markdown into Word documents on your machine. Like the website, it never uploads anything: the server converts in-process and writes the `.docx` to disk.
 
+In Claude Desktop, it's one click: [download `markdown-to-word.mcpb`](https://github.com/benbalter/markdown-to-word-js/releases/latest/download/markdown-to-word.mcpb) and double-click it. Claude Desktop installs it as an extension. You don't need Node or a terminal, since Claude Desktop includes Node.
+
 Add it to Claude Code:
 
 ```console
