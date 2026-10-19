@@ -47,6 +47,7 @@ describe('Markdown twins', () => {
     expect(markdownTwin('/_astro/x.js')).toBeNull();
     expect(markdownTwin('/a/b/')).toBeNull();
     expect(markdownTwin('/de/')).toBeNull();
+    expect(markdownTwin('/api/event')).toBeNull();
   });
 });
 

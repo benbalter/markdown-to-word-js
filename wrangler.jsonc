@@ -3,8 +3,8 @@
 // worker/index.js only for "/", where it applies the Accept-Language redirect
 // (or tags the page with a language suggestion), and for every page with a
 // Markdown twin, which answers `Accept: text/markdown` with it (keep this list
-// in step with web/agent/markdown.ts; test/agent-markdown.test.ts checks).
-// Every other request is a static asset that never reaches the Worker. Deploys run in Workers Builds
+// in step with web/agent/markdown.ts; test/agent-markdown.test.ts checks), and
+// for "/api/event", the anonymous conversion counter. Every other request is a static asset that never reaches the Worker. Deploys run in Workers Builds
 // on push (see docs/cloudflare.md); don't run `wrangler deploy` by hand.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
@@ -29,12 +29,31 @@
       "/developers/",
       "/privacy/",
       "/terms/",
+      "/api/event",
     ],
     // Unknown paths get the branded web/pages/404.astro with a 404 status.
     "not_found_handling": "404-page",
   },
   "observability": { "enabled": true },
+  // Workers Analytics Engine dataset backing the conversion counter, as on
+  // word2md.com. The Worker writes one fire-and-forget data point per
+  // conversion (no content, filename, size, IP, or per-user id): blob1
+  // 'convert', blob2 the outcome, blob3 the page's locale, blob4 how it
+  // started (drop, paste, webmcp), blob5 the error kind ('none' on success).
+  // Query via the SQL API, weighting by _sample_interval in case Analytics
+  // Engine samples:
+  //   SELECT SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert'
+  //   SELECT blob4, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' GROUP BY blob4
+  //   SELECT blob5, SUM(_sample_interval * double1) FROM md2word_events WHERE blob1 = 'convert' AND blob2 = 'error' GROUP BY blob5
+  "analytics_engine_datasets": [
+    { "binding": "EVENTS", "dataset": "md2word_events" },
+  ],
   // Branch builds run `wrangler preview` (Worker Previews), which refuses to
-  // run without this block. Empty: previews reuse the top-level settings.
-  "previews": {},
+  // run without this block. Previews write to a separate dataset so beacons
+  // from preview pages never count in production totals.
+  "previews": {
+    "analytics_engine_datasets": [
+      { "binding": "EVENTS", "dataset": "md2word_events_preview" },
+    ],
+  },
 }

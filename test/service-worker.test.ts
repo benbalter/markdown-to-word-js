@@ -11,7 +11,7 @@ import en from '../web/i18n/en.json';
 // The offline service worker (web/pwa/) ships on every push to main, and a bad
 // one keeps running on visitors' devices until a fix reaches them. These tests
 // pin the rules the e2e suite can't easily see: what's precached, that
-// non-GET and cross-origin requests are never intercepted, that navigations
+// the counter, non-GET, and cross-origin requests are never intercepted, that navigations
 // stay network-first, and that /sw.js is never cached as immutable. Ported
 // from word2md.com's src/__tests__/service-worker.test.ts.
 
@@ -180,8 +180,19 @@ describe('service worker fetch handling', () => {
   const offline = (): Promise<Response> =>
     Promise.reject(new TypeError('Failed to fetch'));
 
-  it('never intercepts non-GET requests, other origins, or plain files', async () => {
+  it('never intercepts the counter, non-GET requests, other origins, or plain files', async () => {
     const { dispatch } = loadWorker(offline);
+    // The conversion counter's beacon (a POST), and a stray GET or navigation
+    // to it: always left to the network and never cached.
+    expect(
+      await dispatch(`${ORIGIN}/api/event?o=success&l=en&s=drop`, {
+        method: 'POST',
+      })
+    ).toBeUndefined();
+    expect(await dispatch(`${ORIGIN}/api/event`)).toBeUndefined();
+    expect(
+      await dispatch(`${ORIGIN}/api/event`, { mode: 'navigate' })
+    ).toBeUndefined();
     expect(
       await dispatch(`${ORIGIN}/`, { method: 'POST', mode: 'navigate' })
     ).toBeUndefined();

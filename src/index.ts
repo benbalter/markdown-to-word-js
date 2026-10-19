@@ -4,6 +4,9 @@
 // reverse: Markdown in, a .docx out.
 import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
 import { registerWebMcpTools } from '../web/scripts/webmcp.ts';
+import { recordConversion } from '../web/scripts/analytics.ts';
+import type { ConversionErrorKind } from '../web/scripts/conversion-errors.ts';
+import type { ConversionSource } from '../web/scripts/conversion-sources.ts';
 
 // Markdown is text, so this is generous; it bounds the in-browser render.
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -36,17 +39,16 @@ const loadParser = (): Promise<ParserModule> =>
 
 /**
  * Why a conversion failed, as far as the page can tell, for the message it
- * shows. `load`: the converter's code didn't download. `too-complex`: the
- * engine ran out of stack or memory (RangeError in Chrome and Safari,
- * InternalError for Firefox's "too much recursion"), which in practice means
- * very deep nesting or a huge document. Anything else is `generic`.
+ * shows and the anonymous counter's error kind (so the two agree). `load`:
+ * the converter's code didn't download. `too-complex`: the engine ran out of
+ * stack or memory (RangeError in Chrome and Safari, InternalError for
+ * Firefox's "too much recursion"), which in practice means very deep nesting
+ * or a huge document. Anything else is `conversion`.
  */
-type ConversionFailure = 'load' | 'too-complex' | 'generic';
-
 function classifyConversionError(
   error: unknown,
   stage: 'load' | 'convert'
-): ConversionFailure {
+): ConversionErrorKind {
   if (stage === 'load') return 'load';
   // The converter wraps what it catches ("Failed to generate Word document",
   // with the parser's own wrapper as its cause), so look down the chain.
@@ -61,7 +63,7 @@ function classifyConversionError(
       return 'too-complex';
     }
   }
-  return 'generic';
+  return 'conversion';
 }
 
 const FAILURE_STRINGS = {
@@ -73,11 +75,14 @@ const FAILURE_STRINGS = {
     'tooComplexError',
     'This Markdown is too large or too deeply nested to convert in your browser. Try splitting it into smaller documents.',
   ],
-  generic: [
+  conversion: [
     'errorGeneric',
     'Something went wrong while converting your Markdown. Please try again.',
   ],
-} as const satisfies Record<ConversionFailure, readonly [UIStringKey, string]>;
+} as const satisfies Record<
+  ConversionErrorKind,
+  readonly [UIStringKey, string]
+>;
 
 let lastDocument: Blob | null = null;
 let lastFilename = 'document.docx';
@@ -303,7 +308,9 @@ function looksBinary(text: string): boolean {
 const WORD_FILE = /\.(docx?|dotx?|odt|rtf)$/i;
 
 // Read a chosen or dropped file into the paste box, then convert it, so a
-// file is one step, like word2md.com's dropzone.
+// file is one step, like word2md.com's dropzone. A file refused here (a Word
+// file, too large, unreadable, or not text) never reaches convert(), so the
+// anonymous counter, which counts attempted conversions, doesn't count it.
 async function processFile(
   file: File | undefined,
   ignoredFiles = 0
@@ -377,7 +384,11 @@ async function processFile(
   if (textarea) textarea.value = text;
   updateConvertButton();
   updatePresetHint();
-  await convert(file.name.replace(/\.[^/.]+$/, '') || 'document', ignoredNote);
+  await convert(
+    file.name.replace(/\.[^/.]+$/, '') || 'document',
+    ignoredNote,
+    'drop'
+  );
 }
 
 function processFiles(files: ArrayLike<File> | null | undefined): void {
@@ -386,10 +397,18 @@ function processFiles(files: ArrayLike<File> | null | undefined): void {
 }
 
 // Convert the paste box's Markdown. `sourceName` (an uploaded file's base
-// name) names the download when the Markdown has no H1. Resolves true once
-// the result shows, false if it failed (the alert says why) or was superseded.
-async function convert(sourceName?: string, note = ''): Promise<boolean> {
+// name) names the download when the Markdown has no H1. `source`, how the
+// conversion started, goes to the anonymous counter, which counts each
+// conversion once when its .docx is made (or fails), not per download or
+// copy. Resolves true once the result shows, false if it failed (the alert
+// says why) or was superseded.
+async function convert(
+  sourceName: string | undefined,
+  note: string,
+  source: ConversionSource
+): Promise<boolean> {
   const markdown = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
+  // Nothing to convert isn't an attempted conversion, so it isn't counted.
   if (markdown.trim() === '') {
     showError(
       uiString('emptyError', 'Paste some Markdown or choose a .md file first.')
@@ -437,15 +456,17 @@ async function convert(sourceName?: string, note = ''): Promise<boolean> {
 
     showResults(markdown, lastPreviewHtml);
     if (note) showError(note);
+    recordConversion('success', source);
     return true;
   } catch (error) {
     if (token !== activeConversion) return false;
     endBusy();
     announce('');
+    const kind = classifyConversionError(error, stage);
+    recordConversion('error', source, kind);
     // The converter logs its own errors, and the browser logs a failed chunk
     // download; the visitor gets the alert.
-    const [key, fallback] =
-      FAILURE_STRINGS[classifyConversionError(error, stage)];
+    const [key, fallback] = FAILURE_STRINGS[kind];
     showError(uiString(key, fallback));
     return false;
   }
@@ -473,7 +494,7 @@ async function convertForAgent(
   updatePresetHint();
 
   const sourceName = options.filename?.replace(/\.docx$/i, '');
-  const converted = await convert(sourceName);
+  const converted = await convert(sourceName, '', 'webmcp');
   // Read before anything else can run: a later conversion would replace it.
   const blob = lastDocument;
   if (!converted || !blob) {
@@ -708,7 +729,7 @@ function init(): void {
   byId('input')?.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
-      void convert();
+      void convert(undefined, '', 'paste');
     }
   });
   showShortcutModifier();
@@ -718,7 +739,10 @@ function init(): void {
   updatePresetHint();
 
   byId('font-preset')?.addEventListener('change', rememberPreset);
-  byId('convert-button')?.addEventListener('click', () => void convert());
+  byId('convert-button')?.addEventListener(
+    'click',
+    () => void convert(undefined, '', 'paste')
+  );
 
   const dropzone = byId('dropzone');
   if (dropzone) {

@@ -8,9 +8,10 @@
 //   still reach the Cloudflare Worker (locale redirect, language suggestion,
 //   Accept: text/markdown). The cached copy is only an offline fallback.
 // - Only content-hashed /_astro/ assets are served cache-first.
-// - Anything that isn't a same-origin GET passes straight through, including
-//   the remote images a document links to, so they never end up in a cache.
-//   Documents are read locally and never fetched.
+// - /api/ (the anonymous conversion counter, a POST beacon) and anything that
+//   isn't a same-origin GET pass straight through, including the remote images
+//   a document links to, so they never end up in a cache. Documents are read
+//   locally and never fetched.
 // - No skipWaiting: a new version waits until every tab on the old one closes,
 //   so an open tab keeps the chunks it was built against.
 const VERSION = '__SW_VERSION__';
@@ -125,6 +126,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return;
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(event));
   } else if (url.pathname.startsWith('/_astro/')) {
