@@ -609,4 +609,93 @@ describe('converter UI', () => {
       expect(document.activeElement?.id).toBe('markdown-input');
     });
   });
+
+  describe('WebMCP', () => {
+    interface Tool {
+      name: string;
+      execute: (input: Record<string, unknown>) => Promise<{
+        isError?: boolean;
+        content: { text: string }[];
+        structuredContent?: Record<string, unknown>;
+      }>;
+    }
+    let tools: Record<string, Tool>;
+
+    beforeEach(() => {
+      tools = {};
+      Object.defineProperty(document, 'modelContext', {
+        configurable: true,
+        value: {
+          registerTool: (tool: Tool) => {
+            tools[tool.name] = tool;
+          },
+        },
+      });
+      // jsdom has no object URLs; the best-effort download needs them.
+      URL.createObjectURL = vi.fn(() => 'blob:x');
+      URL.revokeObjectURL = vi.fn();
+    });
+
+    afterEach(() => {
+      delete (document as { modelContext?: unknown }).modelContext;
+    });
+
+    const run = (input: Record<string, unknown>): ReturnType<Tool['execute']> =>
+      tools.convert_markdown_to_docx.execute(input);
+
+    it('registers nothing without WebMCP', async () => {
+      delete (document as { modelContext?: unknown }).modelContext;
+      await initApp();
+      expect(tools).toEqual({});
+    });
+
+    it('converts on the page and returns the .docx as base64', async () => {
+      await initApp();
+      const result = await run({
+        markdown: '# Hi',
+        filename: 'report',
+        font_preset: 'chinese-official',
+      });
+
+      expect(result.isError).toBeFalsy();
+      expect(result.structuredContent).toEqual({
+        filename: 'report.docx',
+        bytes: 4,
+        docx_base64: btoa('test'),
+      });
+      expect(mockedConvert).toHaveBeenCalledWith('# Hi', {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      });
+      expect($('filename').textContent).toBe('report.docx');
+      expect(isHidden('results')).toBe(false);
+      expect(URL.createObjectURL).toHaveBeenCalled();
+    });
+
+    it("keeps the page's style unless told, and starts over from a result", async () => {
+      await initApp();
+      $<HTMLSelectElement>('font-preset').value = 'chinese-official';
+      await run({ markdown: 'One' });
+      expect(mockedConvert).toHaveBeenLastCalledWith('One', {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      });
+
+      await run({ markdown: 'Two', font_preset: 'default' });
+      expect(mockedConvert).toHaveBeenLastCalledWith('Two', {
+        fontPreset: undefined,
+      });
+      expect($('source').textContent).toBe('Two');
+    });
+
+    it('reports bad input and failed conversions as tool errors', async () => {
+      await initApp();
+      expect((await run({ markdown: ' ' })).isError).toBe(true);
+      const unknown = await run({ markdown: '# A', font_preset: 'fancy' });
+      expect(unknown.content[0].text).toMatch(/Unknown font_preset/);
+
+      mockedConvert.mockRejectedValueOnce(new Error('boom'));
+      const failed = await run({ markdown: '# A' });
+      expect(failed.isError).toBe(true);
+      expect(failed.content[0].text).toMatch(/Something went wrong/);
+    });
+  });
 });

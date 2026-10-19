@@ -47,12 +47,15 @@ function codeCell(text: string): string {
   return `${fence}${pad}${text.replaceAll('|', '\\|')}${pad}${fence}`;
 }
 
-/** How to convert without the page: the npm library. */
+/** How to convert without the page: MCP, WebMCP, the CLI, and the library. */
 function developerMarkdown(): string {
   return `## Use it from code or an agent
 
-The web page converts Markdown you paste or drop into it, which an agent without a browser can't do. The same converter is published to npm, so run it locally instead. Nothing is uploaded either way.
+The web page converts Markdown you paste or drop into it. Agents and scripts can use the same converter on their own machine. Nothing is uploaded either way.
 
+- **MCP server (local):** \`npx -y markdown-to-word mcp\` runs a stdio MCP server with one tool, \`convert_markdown_to_word\`, which takes \`markdown\` (a string) or \`path\` (a .md file), writes the .docx to \`output_path\`, and returns its path and size. It won't replace an existing file unless \`overwrite\` is true, and leaves remote images as links (pass them as \`data:\` URIs to embed them); \`font_preset: "chinese-official"\` applies the 公文 style. Add it to Claude Code with \`claude mcp add markdown-to-word -- npx -y markdown-to-word mcp\`, or to any MCP client as the command \`npx\` with args \`["-y", "markdown-to-word", "mcp"]\`. [MCP docs](${REPO_URL}#mcp-server)
+- **WebMCP (in the browser):** in a browser with WebMCP, the converter page registers \`convert_markdown_to_docx\` (takes \`markdown\`, optional \`filename\` and \`font_preset\`; returns the .docx as base64). It runs in the tab and shows the result on the page, like a paste.
+- **Command line:** \`npx markdown-to-word report.md\` writes report.docx next to it; \`-o out.docx\` picks the path. Pipe Markdown in with \`cat reply.md | npx markdown-to-word -o reply.docx\` (\`-o -\` writes the .docx to stdout). \`--font-preset chinese-official\` applies the 公文 style. Install it globally (\`npm install -g markdown-to-word\`) to get the \`md2w\` command. [CLI docs](${REPO_URL}#command-line)
 - **Node library:** \`npm install markdown-to-word\`, then \`await convertMarkdownToWord(markdown, { fontPreset })\` returns the .docx as a \`Blob\`; write it with \`Buffer.from(await blob.arrayBuffer())\`. \`FONT_PRESETS['chinese-official']\` is the 公文 style. Remote images are downloaded to embed them. [API docs](${REPO_URL}#use-it-from-code) · [npm](${NPM_URL})
 `;
 }

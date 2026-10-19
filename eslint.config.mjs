@@ -41,6 +41,13 @@ export default defineConfig(
     languageOptions: { globals: { ...globals.browser } },
   },
 
+  // The CLI and the MCP server it loads run in Node, and print by design.
+  {
+    files: ['src/cli.ts', 'src/mcp.ts'],
+    languageOptions: { globals: { ...globals.node } },
+    rules: { 'no-console': 'off' },
+  },
+
   // The Worker runs on Cloudflare's runtime (service-worker globals plus
   // HTMLRewriter), not Node.
   {

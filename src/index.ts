@@ -3,6 +3,7 @@
 // Patterned on word2md.com's src/index.ts (benbalter/word-to-markdown-js), in
 // reverse: Markdown in, a .docx out.
 import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
+import { registerWebMcpTools } from '../web/scripts/webmcp.ts';
 
 // Markdown is text, so this is generous; it bounds the in-browser render.
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -385,14 +386,15 @@ function processFiles(files: ArrayLike<File> | null | undefined): void {
 }
 
 // Convert the paste box's Markdown. `sourceName` (an uploaded file's base
-// name) names the download when the Markdown has no H1.
-async function convert(sourceName?: string, note = ''): Promise<void> {
+// name) names the download when the Markdown has no H1. Resolves true once
+// the result shows, false if it failed (the alert says why) or was superseded.
+async function convert(sourceName?: string, note = ''): Promise<boolean> {
   const markdown = byId<HTMLTextAreaElement>('markdown-input')?.value ?? '';
   if (markdown.trim() === '') {
     showError(
       uiString('emptyError', 'Paste some Markdown or choose a .md file first.')
     );
-    return;
+    return false;
   }
 
   const token = ++activeConversion;
@@ -422,7 +424,7 @@ async function convert(sourceName?: string, note = ''): Promise<void> {
     stage = 'convert';
     const preset = FONT_PRESETS[selectedPreset()];
     const blob = await convertMarkdownToWord(markdown, { fontPreset: preset });
-    if (token !== activeConversion) return;
+    if (token !== activeConversion) return false;
     endBusy();
 
     const title = parser.extractTitle(markdown);
@@ -435,8 +437,9 @@ async function convert(sourceName?: string, note = ''): Promise<void> {
 
     showResults(markdown, lastPreviewHtml);
     if (note) showError(note);
+    return true;
   } catch (error) {
-    if (token !== activeConversion) return;
+    if (token !== activeConversion) return false;
     endBusy();
     announce('');
     // The converter logs its own errors, and the browser logs a failed chunk
@@ -444,7 +447,54 @@ async function convert(sourceName?: string, note = ''): Promise<void> {
     const [key, fallback] =
       FAILURE_STRINGS[classifyConversionError(error, stage)];
     showError(uiString(key, fallback));
+    return false;
   }
+}
+
+// Convert for an agent (WebMCP) through the same path as the Convert button:
+// the Markdown goes in the paste box and the result shows on the page, so
+// the person sees what the agent did. Then try the download the button
+// would start; a browser may block it without a user gesture, so the tool
+// returns the .docx itself and never depends on it.
+async function convertForAgent(
+  markdown: string,
+  options: { filename?: string; fontPreset?: string }
+): Promise<{ filename: string; blob: Blob }> {
+  const textarea = byId<HTMLTextAreaElement>('markdown-input');
+  if (!textarea) throw new Error('The converter is not on this page.');
+  // From the results view, start over as "Convert another" would.
+  if (!byId('results')?.classList.contains('hidden')) resetConverter();
+  textarea.value = markdown;
+  const select = byId<HTMLSelectElement>('font-preset');
+  if (select && options.fontPreset !== undefined) {
+    select.value = options.fontPreset;
+  }
+  updateConvertButton();
+  updatePresetHint();
+
+  const sourceName = options.filename?.replace(/\.docx$/i, '');
+  const converted = await convert(sourceName);
+  // Read before anything else can run: a later conversion would replace it.
+  const blob = lastDocument;
+  if (!converted || !blob) {
+    throw new Error(
+      byId('error-message')?.textContent ||
+        'The conversion was superseded by another one.'
+    );
+  }
+  if (options.filename) {
+    lastFilename = /\.docx$/i.test(options.filename)
+      ? options.filename
+      : `${options.filename}.docx`;
+    const filename = byId('filename');
+    if (filename) filename.textContent = lastFilename;
+  }
+  try {
+    saveBlob(blob, lastFilename);
+  } catch {
+    // Best effort: the agent has the bytes either way.
+  }
+  return { filename: lastFilename, blob };
 }
 
 function showResults(markdown: string, previewHtml: string): void {
@@ -633,6 +683,10 @@ function initDragAndDrop(dropzone: HTMLElement): void {
 
 function init(): void {
   restorePreset();
+  registerWebMcpTools({
+    fontPresets: Object.keys(FONT_PRESETS),
+    convert: convertForAgent,
+  });
 
   byId<HTMLInputElement>('file')?.addEventListener(
     'change',

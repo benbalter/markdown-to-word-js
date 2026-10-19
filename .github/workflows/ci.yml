@@ -45,9 +45,9 @@ jobs:
       - run: npm run test:coverage
 
       # Pack the npm package as `npm publish` would, install it into an empty
-      # project, and convert with it in plain Node: this catches a missing file
-      # in `files`, a broken `exports` map, or a Node shim regression before a
-      # release does.
+      # project, and convert with it in plain Node and with the CLI: this
+      # catches a missing file in `files`, a broken `exports` map or `bin`, or a
+      # Node shim regression before a release does.
       - name: Smoke-test the npm package
         run: |
           mkdir "$RUNNER_TEMP/consumer"
@@ -57,6 +57,9 @@ jobs:
           npm install ./markdown-to-word-*.tgz
           # CommonJS too: Node 22.12+ can require() this ES module.
           node -e "require('markdown-to-word')"
+          # The md2w command, through its bin entry.
+          printf '# Hello\n' | npx md2w -o hello.docx
+          test -s hello.docx
           node --input-type=module -e "
             import { convertMarkdownToWord } from 'markdown-to-word';
             const blob = await convertMarkdownToWord('# Hello\n\n| A |\n| - |\n| 1 |');
