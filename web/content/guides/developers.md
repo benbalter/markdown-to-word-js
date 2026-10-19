@@ -63,6 +63,14 @@ See the [MCP reference](https://github.com/benbalter/markdown-to-word-js#mcp-ser
 
 In a browser with [WebMCP](https://webmachinelearning.github.io/webmcp/), md2word.app registers a `convert_markdown_to_docx` tool for agents working in the tab. It takes Markdown, shows the result on the page, and returns the `.docx` as base64. As with pasting, the conversion runs in the tab and nothing is uploaded.
 
+## Related MCP server
+
+[Open and Async MCP](https://github.com/open-and-async/mcp), from the same author, gives an agent async-first writing tools: draft a decision doc, swap a planned meeting for an async alternative, or score a status update. If your team drafts in Markdown and still owes some readers a Word file, this converter covers that step. The book behind it is [_Open and Async_](https://open-and-async.com/?utm_source=md2word&utm_medium=guide&utm_campaign=agents).
+
+```console
+claude mcp add open-async -- npx -y @open-and-async/mcp
+```
+
 ## For crawlers and LLMs
 
 - [`/llms.txt`](/llms.txt) indexes the site, and [`/llms-full.txt`](/llms-full.txt) has all of it in one file.

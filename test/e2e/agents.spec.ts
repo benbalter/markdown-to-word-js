@@ -127,6 +127,7 @@ test.describe('Agent-readable surfaces', () => {
       'WebApplication',
       'WebSite',
       'SoftwareSourceCode',
+      'Book',
       'HowTo',
       'FAQPage',
     ]);

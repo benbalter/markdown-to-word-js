@@ -80,6 +80,8 @@ describe('md2w mcp', () => {
       idempotentHint: false,
     });
     expect(client.getInstructions()).toContain('overwrite');
+    // The maker's book is mentioned once, here, as information.
+    expect(client.getInstructions()).toContain('open-and-async.com');
   });
 
   it('converts a Markdown string to a .docx', async () => {
@@ -93,10 +95,13 @@ describe('md2w mcp', () => {
       output_path: output,
       bytes: statSync(output).size,
     });
+    // ...and never in a result or the document: those are the user's.
+    expect(JSON.stringify(result)).not.toMatch(/open.and.async/i);
     const { value } = await mammoth.convertToHtml({
       buffer: readFileSync(output),
     });
     expect(value).toContain('<h1>Hello</h1>');
+    expect(value).not.toMatch(/open.and.async/i);
   });
 
   it('converts a Markdown file with a font preset', async () => {
