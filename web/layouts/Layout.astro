@@ -18,6 +18,7 @@ import {
   type LocaleMeta,
 } from '../i18n';
 import { REPO_URL, WORD_TO_MARKDOWN_URL } from '../site';
+import PwaRegister from '../components/PwaRegister.astro';
 
 interface Props {
   title: string;
@@ -135,6 +136,7 @@ const footerLinks = [
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
     {!noindex && <link rel="canonical" href={canonical} />}
@@ -292,5 +294,6 @@ const footerLinks = [
         /* cookies unavailable — fine, redirect simply re-evaluates next visit */
       }
     </script>
+    <PwaRegister />
   </body>
 </html>
