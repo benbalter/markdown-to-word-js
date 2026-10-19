@@ -1,7 +1,9 @@
 name: Release
 
 # Publishes the package to npm when a GitHub Release is published. The release
-# tag (e.g. v0.1.0) must match the version in package.json. Publishing doesn't
+# tag (e.g. v0.1.0) must match the version in package.json. (mcp-registry.yml
+# then lists the MCP server; it's a separate file so its OIDC token can never
+# satisfy npm Trusted Publishing, which is tied to this workflow's filename.) Publishing doesn't
 # touch the site: Cloudflare Workers Builds deploys md2word.app from main.
 #
 # Authentication uses npm Trusted Publishing (OIDC), so there's no long-lived

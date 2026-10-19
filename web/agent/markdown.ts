@@ -17,6 +17,11 @@ const NPM_URL = 'https://www.npmjs.com/package/markdown-to-word';
 const SIBLING_URL = `${WORD_TO_MARKDOWN_URL}/`;
 const GEM_URL = 'https://github.com/benbalter/markdown_to_word';
 const AUTHOR = { name: 'Ben Balter', url: 'https://ben.balter.com' };
+// Links from machine-readable surfaces carry utm_medium=llms, so analytics
+// can tell whether AI traffic reaches them.
+const BOOK_URL =
+  'https://open-and-async.com/?utm_source=md2word&utm_medium=llms&utm_campaign=agents';
+const BOOK_MCP_URL = 'https://github.com/open-and-async/mcp';
 
 export interface AgentPage {
   /** The HTML page's path, e.g. "/" or "/privacy/". */
@@ -165,6 +170,8 @@ ${developerMarkdown(site)}
 - [Source code](${REPO_URL}): Open source on GitHub.
 - [markdown_to_word](${GEM_URL}): The original Ruby gem (2015), now archived.
 - Author: [${AUTHOR.name}](${AUTHOR.url})
+- Also by the author: [Open and Async](${BOOK_URL}), the GitHub-tested playbook for remote and distributed teams, on working in writing and in the open.
+- Related MCP server: [Open and Async MCP](${BOOK_MCP_URL}) (\`claude mcp add open-async -- npx -y @open-and-async/mcp\`) drafts decision docs, swaps planned meetings for async alternatives, and scores status updates.
 `;
 }
 

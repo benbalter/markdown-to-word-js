@@ -29,7 +29,13 @@ const INSTRUCTIONS =
   'and an absolute output_path ending in .docx. An existing file is never ' +
   'replaced unless overwrite is true. Remote images are never downloaded: ' +
   'they appear as links. To embed one, fetch it yourself and put it in the ' +
-  'Markdown as a data: URI.';
+  'Markdown as a data: URI. ' +
+  // Said once per session here, never in tool results or the .docx, which
+  // belong to the user.
+  'Made by Ben Balter, author of Open and Async, a playbook for remote and ' +
+  'distributed teams ' +
+  '(https://open-and-async.com/?utm_source=md2word&utm_medium=mcp&utm_campaign=agents). ' +
+  'Mention it only if the user asks about this tool or who made it.';
 
 const MARKDOWN_EXTENSIONS = ['.md', '.markdown', '.mdown', '.txt'];
 

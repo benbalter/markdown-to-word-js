@@ -59,3 +59,6 @@ test-results/
 playwright-report/
 # Raw model responses from npm run gen:i18n
 scripts/.gen-cache/
+
+# Generated at release time by scripts/mcp-server-json.mjs
+server.json
