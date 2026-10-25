@@ -424,4 +424,29 @@ describe('slugify', () => {
       'my-project-a-great-example'
     );
   });
+
+  it('keeps accented letters', () => {
+    expect(slugify('Café résumé')).toBe('café-résumé');
+  });
+
+  it('composes decomposed accents, so the same title gives the same name', () => {
+    expect(slugify('Cafe\u0301')).toBe('caf\u00e9');
+  });
+
+  it('keeps Cyrillic, CJK, and kana', () => {
+    expect(slugify('Привет мир')).toBe('привет-мир');
+    expect(slugify('日本語 タイトル')).toBe('日本語-タイトル');
+    expect(slugify('关于开展2026年工作的通知')).toBe(
+      '关于开展2026年工作的通知'
+    );
+  });
+
+  it('keeps combining marks in scripts that need them', () => {
+    expect(slugify('हिन्दी पाठ')).toBe('हिन्दी-पाठ');
+  });
+
+  it('strips characters that are unsafe in file names', () => {
+    expect(slugify('a/b\\c:d*e?f"g<h>i|j')).toBe('abcdefghij');
+    expect(slugify('报告：第一章／草稿')).toBe('报告第一章草稿');
+  });
 });

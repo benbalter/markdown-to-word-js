@@ -98,17 +98,19 @@ function plainText(tokens: Token[]): string {
 }
 
 /**
- * Convert a string into a URL/filename-safe slug.
- * Lowercases, replaces whitespace and underscores with hyphens,
- * strips characters that are not word characters (\w), whitespace, or hyphens,
- * and collapses consecutive hyphens. Note that \w includes [a-zA-Z0-9_] and
- * Unicode letters/digits, so accented characters are preserved.
+ * Convert a string into a URL/filename-safe slug, used to name the download.
+ * NFC-normalizes and lowercases, keeps letters, combining marks, and digits
+ * in any script (so 关于开展2026年工作的通知, Привет мир, and Café survive),
+ * strips everything else, including punctuation and the characters file
+ * systems reject (/ \ : * ? " < > |), then turns runs of whitespace,
+ * underscores, and hyphens into one hyphen.
  */
 export function slugify(text: string): string {
   return text
+    .normalize('NFC')
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '')
+    .replace(/[^\p{L}\p{M}\p{N}\s_-]/gu, '')
     .replace(/[\s_]+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '');
