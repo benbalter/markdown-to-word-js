@@ -183,7 +183,7 @@ describe('images', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('leaves data: URIs for the generator, without fetching', async () => {
+  it('passes a valid data: URI through, without fetching', async () => {
     const fetch = vi.fn();
     vi.stubGlobal('fetch', fetch);
     const html = `<img src="data:image/png;base64,${PIXEL_BASE64}">`;
@@ -350,6 +350,39 @@ describe('images', () => {
     expect(result.match(/src="data:/g)).toHaveLength(MAX_IMAGES);
     expect(result).toContain(
       `<a href="https://example.com/${count - 1}.png">img ${count - 1}</a>`
+    );
+  });
+});
+
+describe('image content types', () => {
+  // A 1×1 GIF and a 1×1 BMP: formats html-to-docx embeds but doesn't declare.
+  const GIF = `data:image/gif;base64,${GIF_BASE64}`;
+  const BMP = `data:image/bmp;base64,${Buffer.from(
+    '424d3a0000000000000036000000280000000100000001000000010018000000000004000000130b0000130b00000000000000000000ffffff00',
+    'hex'
+  ).toString('base64')}`;
+
+  it('declares a content type for every embedded image', async () => {
+    const blob = await convertMarkdownToWord(
+      `![gif](${GIF}) ![bmp](${BMP}) ![png](data:image/png;base64,${PIXEL_BASE64})\n`
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const types = await zip.file('[Content_Types].xml')!.async('string');
+    const declared = new Set(
+      Array.from(types.matchAll(/<Default Extension="([^"]+)"/g), (match) =>
+        match[1].toLowerCase()
+      )
+    );
+    const extensions = Object.keys(zip.files)
+      .filter((name) => /^word\/media\/.+\.[^.]+$/.test(name))
+      .map((name) => name.split('.').pop()!.toLowerCase());
+
+    expect(new Set(extensions)).toEqual(new Set(['gif', 'bmp', 'png']));
+    for (const extension of extensions) {
+      expect(declared).toContain(extension);
+    }
+    expect(types).toContain(
+      '<Default Extension="gif" ContentType="image/gif"/>'
     );
   });
 });
