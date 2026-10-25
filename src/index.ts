@@ -3,6 +3,7 @@
 // Patterned on word2md.com's src/index.ts (benbalter/word-to-markdown-js), in
 // reverse: Markdown in, a .docx out.
 import { FONT_PRESETS, isMostlyChinese } from './font-presets.js';
+import { looksBinary, WORD_FILE } from './input-checks.js';
 import { registerWebMcpTools } from '../web/scripts/webmcp.ts';
 import { recordConversion } from '../web/scripts/analytics.ts';
 import type { ConversionErrorKind } from '../web/scripts/conversion-errors.ts';
@@ -299,13 +300,6 @@ function rememberPreset(): void {
   }
   updatePresetHint();
 }
-
-// A file that's mostly binary isn't Markdown. NUL never appears in text.
-function looksBinary(text: string): boolean {
-  return text.slice(0, 8192).includes('\u0000');
-}
-
-const WORD_FILE = /\.(docx?|dotx?|odt|rtf)$/i;
 
 // Read a chosen or dropped file into the paste box, then convert it, so a
 // file is one step, like word2md.com's dropzone. A file refused here (a Word
