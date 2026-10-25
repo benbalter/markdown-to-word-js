@@ -15,6 +15,15 @@ const PIXEL_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 const PIXEL = Buffer.from(PIXEL_BASE64, 'base64');
 
+// A 1×1 GIF.
+const GIF_BASE64 = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+// The start of a HEIC file, which Word can't show.
+const HEIC_BASE64 = 'AAAAGGZ0eXBoZWljAAAAAG1pZjFoZWlj';
+
+const SVG =
+  '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
+
 function image(
   body: Uint8Array,
   contentType: string | null = 'image/png'
@@ -180,6 +189,66 @@ describe('images', () => {
     const html = `<img src="data:image/png;base64,${PIXEL_BASE64}">`;
     expect(await embedImages(html)).toBe(html);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('keeps the alt text of a data: URI that is not an image', async () => {
+    const { xml, paragraphs } = await convert(
+      'Before\n\n![A chart](data:image/png;base64,bm90IGFuIGltYWdl)\n\nAfter\n'
+    );
+    expect(xml).not.toContain('<w:drawing>');
+    expect(paragraphs).toEqual(['Before', 'A chart', 'After']);
+  });
+
+  it('keeps the alt text of an image type Word cannot show, such as HEIC', async () => {
+    expect(
+      await embedImages(
+        `<p><img alt="photo" src="data:image/heic;base64,${HEIC_BASE64}"></p>`
+      )
+    ).toBe('<p>photo</p>');
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => image(Buffer.from(HEIC_BASE64, 'base64'), 'image/heic'))
+    );
+    const { xml, media, links } = await convert(
+      '![photo](https://example.com/photo.heic)\n'
+    );
+    expect(xml).not.toContain('<w:drawing>');
+    expect(media.filter((name) => !name.endsWith('/'))).toEqual([]);
+    expect(links).toEqual([['photo', 'https://example.com/photo.heic']]);
+  });
+
+  it('labels a data: URI with the type its bytes show', async () => {
+    expect(
+      await embedImages(`<img src="data:image/jpeg;base64,${PIXEL_BASE64}">`)
+    ).toBe(`<img src="data:image/png;base64,${PIXEL_BASE64}">`);
+  });
+
+  it('embeds GIF and SVG data: URIs, including URL-encoded SVG', async () => {
+    expect(
+      await embedImages(`<img src="data:image/gif;base64,${GIF_BASE64}">`)
+    ).toBe(`<img src="data:image/gif;base64,${GIF_BASE64}">`);
+
+    const encoded = `<img src="data:image/svg+xml,${encodeURIComponent(SVG)}">`;
+    expect(await embedImages(encoded)).toBe(
+      `<img src="data:image/svg+xml;base64,${Buffer.from(SVG).toString('base64')}">`
+    );
+    const { xml } = await convert(
+      `![logo](data:image/svg+xml,${encodeURIComponent(SVG)})\n`
+    );
+    expect(xml).toContain('<w:drawing>');
+  });
+
+  it('does not take an HTML page with an inline SVG for an SVG image', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        image(new TextEncoder().encode(`<html>${SVG}</html>`), 'text/html')
+      )
+    );
+    expect(
+      await embedImages('<img alt="logo" src="https://example.com/logo">')
+    ).toBe('<a href="https://example.com/logo">logo</a>');
   });
 
   it('only fetches the URLs html-to-docx would', async () => {
