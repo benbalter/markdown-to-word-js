@@ -111,10 +111,13 @@ const CELL_BLOCKS = new Set([
  *   justified paragraph. Its paragraphs and headings are kept apart instead,
  *   left aligned and indented one step per level of nesting.
  * - Elements it doesn't know (`<kbd>`, `<abbr>`, `<q>`, `<my-element>`,
- *   ...): their text is dropped. Some are replaced by a span or `<em>` (see
- *   UNKNOWN_INLINE), the rest by their children. A placeholder like
- *   `<your-name>` that's never closed isn't markup at all, so it stays as
- *   literal text. `<mark>` loses its highlight, so it's set as a shading.
+ *   ...): the generator drops their text, so this keeps it. Some are
+ *   replaced by a span or `<em>` (see UNKNOWN_INLINE), the rest by their
+ *   children; content a browser wouldn't show as text (HIDDEN_CONTENT) is
+ *   left for the generator to drop. A placeholder like `<your-name>` that's
+ *   never closed isn't markup at all, so it stays as literal text, spelled
+ *   as in the source. `<mark>` loses its highlight, so it's set as a
+ *   shading.
  * - Footnotes: the reference and back links point into the page, which a
  *   Word reader can't follow, so references keep only their number and the
  *   back links (↩) go. So does the footnotes heading, which the page only
