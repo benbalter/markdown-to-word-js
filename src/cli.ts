@@ -7,9 +7,10 @@
 
 import { Command, Option } from 'commander';
 import { createRequire } from 'module';
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'fs/promises';
 import path from 'path';
 import { convertMarkdownToWord, FONT_PRESETS } from './node.js';
+import { looksBinary, WORD_FILE } from './input-checks.js';
 
 // Read our own version from package.json. createRequire resolves relative to
 // this module, so `../package.json` points at the package root both from the
@@ -27,6 +28,36 @@ async function readStdin(): Promise<string> {
 function defaultOutputPath(input: string): string {
   const { dir, name } = path.parse(input);
   return path.join(dir, `${name}.docx`);
+}
+
+/**
+ * Whether `a` and `b` are the same file on disk. Compares inodes, not paths,
+ * so a symlink or a different case on a case-insensitive disk still counts.
+ * BigInt stats, because some filesystems hand out inode numbers above
+ * Number.MAX_SAFE_INTEGER, where two different files could round to the same
+ * number.
+ */
+async function isSameFile(a: string, b: string): Promise<boolean> {
+  const [statA, statB] = await Promise.all([
+    stat(a, { bigint: true }).catch(() => undefined),
+    stat(b, { bigint: true }).catch(() => undefined),
+  ]);
+  return (
+    statA !== undefined &&
+    statB !== undefined &&
+    statA.dev === statB.dev &&
+    statA.ino === statB.ino
+  );
+}
+
+/**
+ * `value` as one shell word, for commands we print for the user to copy.
+ * Plain names stay bare so the common case reads cleanly.
+ */
+function shellQuote(value: string): string {
+  return /^[\w@%+=:,./-]+$/.test(value)
+    ? value
+    : `'${value.replaceAll("'", "'\\''")}'`;
 }
 
 const EXAMPLES = `
@@ -89,6 +120,13 @@ const convert = program
       if (!file && !fromStdin) {
         convert.help({ error: true });
       }
+      // A Word file would otherwise be read as garbage text and, with no -o,
+      // written back over itself as report.docx.
+      if (!fromStdin && WORD_FILE.test(file as string)) {
+        throw new Error(
+          `${file} is already a Word document. To turn it into Markdown, use word2md.com or its CLI: npx word-to-markdown ${shellQuote(file as string)} > ${shellQuote(`${path.parse(file as string).name}.md`)}`
+        );
+      }
       if (fromStdin && !options.output) {
         throw new Error(
           'Reading from stdin, so there is no file name to name the .docx after. Pass -o report.docx (or -o - for stdout).'
@@ -110,6 +148,22 @@ const convert = program
             : `${file} is empty.`
         );
       }
+      if (looksBinary(markdown)) {
+        throw new Error(
+          `${fromStdin ? 'stdin' : file} doesn't look like a Markdown or text file, so it can't be converted.`
+        );
+      }
+
+      const output: string = options.output ?? defaultOutputPath(file!);
+      if (
+        output !== '-' &&
+        !fromStdin &&
+        (await isSameFile(output, file as string))
+      ) {
+        throw new Error(
+          `${output} is the input file, so writing the .docx there would overwrite it. Pass a different -o.`
+        );
+      }
 
       const blob = await convertMarkdownToWord(markdown, {
         fontPreset: options.fontPreset
@@ -118,7 +172,6 @@ const convert = program
       });
       const bytes = Buffer.from(await blob.arrayBuffer());
 
-      const output: string = options.output ?? defaultOutputPath(file!);
       if (output === '-') {
         process.stdout.write(bytes);
       } else {

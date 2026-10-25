@@ -94,6 +94,41 @@ describe('md2w', () => {
     );
   });
 
+  it('refuses a Word file instead of overwriting it', () => {
+    const original = Buffer.from('PK\u0003\u0004 not really a docx');
+    writeFileSync(path.join(tmp, 'report.docx'), original);
+    const { status, stderr } = md2w(['report.docx']);
+    expect(status).toBe(1);
+    expect(stderr).toContain('report.docx is already a Word document');
+    expect(stderr).toContain('word-to-markdown');
+    expect(readFileSync(path.join(tmp, 'report.docx'))).toEqual(original);
+  });
+
+  it('quotes a Word file name with spaces in the suggested command', () => {
+    writeFileSync(path.join(tmp, "Q3 plan's.docx"), 'PK\u0003\u0004');
+    const { stderr } = md2w(["Q3 plan's.docx"]);
+    expect(stderr).toContain(
+      `npx word-to-markdown 'Q3 plan'\\''s.docx' > 'Q3 plan'\\''s.md'`
+    );
+  });
+
+  it('refuses to write the .docx over its input', () => {
+    const original = '# Odd name\n';
+    writeFileSync(path.join(tmp, 'odd.txt'), original);
+    const { status, stderr } = md2w(['-o', './odd.txt', 'odd.txt']);
+    expect(status).toBe(1);
+    expect(stderr).toContain('would overwrite it');
+    expect(readFileSync(path.join(tmp, 'odd.txt'), 'utf8')).toBe(original);
+  });
+
+  it('refuses binary input', () => {
+    writeFileSync(path.join(tmp, 'blob.md'), Buffer.from([0x50, 0x4b, 0, 1]));
+    const { status, stderr } = md2w(['-o', 'blob.docx', 'blob.md']);
+    expect(status).toBe(1);
+    expect(stderr).toContain("doesn't look like a Markdown or text file");
+    expect(existsSync(path.join(tmp, 'blob.docx'))).toBe(false);
+  });
+
   it('rejects an unknown font preset', () => {
     const { status, stderr } = md2w(['--font-preset', 'nope', 'notes.md']);
     expect(status).not.toBe(0);
