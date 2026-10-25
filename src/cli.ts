@@ -60,6 +60,24 @@ function shellQuote(value: string): string {
     : `'${value.replaceAll("'", "'\\''")}'`;
 }
 
+// html-to-docx logs as it works: debug lines with console.log, which would
+// land in front of a .docx written to stdout, and skipped images or a missing
+// sharp with console.warn and console.error. The convert action sends the
+// console.log family to stderr, and with -q drops all of it while the
+// generator runs; our own errors print afterward. (`md2w mcp` has its own
+// guard in src/mcp.ts.)
+async function withConsoleSilenced<T>(run: () => Promise<T>): Promise<T> {
+  const saved = { ...console };
+  const silent = (): void => {};
+  console.log = console.info = console.debug = silent;
+  console.warn = console.error = silent;
+  try {
+    return await run();
+  } finally {
+    Object.assign(console, saved);
+  }
+}
+
 const EXAMPLES = `
 Examples:
   $ md2w report.md                 # writes report.docx
@@ -110,6 +128,8 @@ const convert = program
   .option('-q, --quiet', 'Print nothing to stderr except errors')
   .addHelpText('after', EXAMPLES)
   .action(async (file: string | undefined, options) => {
+    const toStderr = console.error.bind(console);
+    console.log = console.info = console.debug = toStderr;
     const note = (message: string): void => {
       if (!options.quiet) console.error(message);
     };
@@ -165,11 +185,15 @@ const convert = program
         );
       }
 
-      const blob = await convertMarkdownToWord(markdown, {
-        fontPreset: options.fontPreset
-          ? FONT_PRESETS[options.fontPreset]
-          : undefined,
-      });
+      const generate = (): Promise<Blob> =>
+        convertMarkdownToWord(markdown, {
+          fontPreset: options.fontPreset
+            ? FONT_PRESETS[options.fontPreset]
+            : undefined,
+        });
+      const blob = options.quiet
+        ? await withConsoleSilenced(generate)
+        : await generate();
       const bytes = Buffer.from(await blob.arrayBuffer());
 
       if (output === '-') {
