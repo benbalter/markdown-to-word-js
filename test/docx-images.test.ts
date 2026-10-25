@@ -282,6 +282,15 @@ describe('images', () => {
     }
   });
 
+  it('keeps a literal % in a URL-encoded SVG', async () => {
+    const svg = SVG.replace('width="10"', 'width="100%"').replaceAll('"', "'");
+    const encoded = svg.replaceAll('<', '%3C').replaceAll('>', '%3E');
+    expect(encoded).toContain("100%'");
+    expect(await embedImages(`<img src="data:image/svg+xml,${encoded}">`)).toBe(
+      `<img src="data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}">`
+    );
+  });
+
   it('checks for SVG in linear time, whatever the comments', async () => {
     // Backtracks exponentially in a regex like (<!--[\s\S]*?-->)*<svg.
     const text = `<!--${'--><!--'.repeat(1000)}`;

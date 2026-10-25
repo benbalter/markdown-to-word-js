@@ -142,18 +142,21 @@ function base64Decode(payload: string): Uint8Array | null {
   return Buffer.from(text, 'base64');
 }
 
-/** The bytes of a URL-encoded `data:` payload. Throws on a bad escape. */
+/**
+ * The bytes of a URL-encoded `data:` payload. A `%` without two hex digits
+ * after it stays a `%`, as in a browser, so `width="100%"` in an SVG works.
+ */
 function percentDecode(payload: string): Uint8Array {
   // `%` and hex digits are ASCII, so escapes can be read off the UTF-8 bytes.
   const encoded = new TextEncoder().encode(payload);
   const bytes = new Uint8Array(encoded.length);
   let length = 0;
   for (let index = 0; index < encoded.length; index++) {
-    if (encoded[index] === PERCENT) {
-      const hex = String.fromCharCode(
-        ...encoded.subarray(index + 1, index + 3)
-      );
-      if (!/^[0-9a-f]{2}$/i.test(hex)) throw new Error('Bad escape');
+    const hex =
+      encoded[index] === PERCENT
+        ? String.fromCharCode(...encoded.subarray(index + 1, index + 3))
+        : '';
+    if (/^[0-9a-f]{2}$/i.test(hex)) {
       bytes[length++] = parseInt(hex, 16);
       index += 2;
     } else {
