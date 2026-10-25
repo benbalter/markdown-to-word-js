@@ -61,6 +61,18 @@ const TEXT_NODE = 3;
 /** The highlight browsers give `<mark>`; the generator drops it. */
 const MARK_COLOR = '#FFFF00';
 
+/** `Node.ELEMENT_NODE`, which Node's globals lack too. */
+const ELEMENT_NODE = 1;
+
+/**
+ * Elements that start their own paragraph in a table cell. Anything else is
+ * inline, and a run of it is kept together in one paragraph.
+ */
+const CELL_BLOCKS = new Set([
+  ...['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'pre', 'blockquote'],
+  ...['ul', 'ol', 'table', 'hr', 'section'],
+]);
+
 /**
  * Adjusts the parser's HTML for html-to-docx, which drops or flattens some of
  * what the browser preview renders:
@@ -69,9 +81,12 @@ const MARK_COLOR = '#FFFF00';
  *   the same. Each becomes a ☒ or ☐ character.
  * - Inline code: `<code>` keeps the body font. Its text is wrapped in a span
  *   naming the code block font, which the generator does carry over.
- * - Table header cells: `<th>` isn't bold, so its content is wrapped in
- *   `<strong>`. Column alignment from GFM's `align` attribute is ignored, but
- *   the same value as a `text-align` style is honored.
+ * - Table cells: the generator makes each inline child of a cell its own
+ *   paragraph, so `**bold** text` would read as two lines. Each run of
+ *   inline content is wrapped in one `<p>`. `<th>` isn't bold, so its
+ *   content is wrapped in `<strong>`. Column alignment from GFM's `align`
+ *   attribute is ignored, but the same value as a `text-align` style is
+ *   honored.
  * - Horizontal rules: `<hr>` is dropped, so it becomes a centered RULE_TEXT
  *   paragraph for the structure patch to draw as a rule.
  * - Block quotes: the generator joins everything in a `<blockquote>` into one
@@ -119,6 +134,7 @@ export function prepareHtmlForDocx(html: string): string {
       strong.append(...Array.from(cell.childNodes));
       cell.append(strong);
     }
+    wrapInlineRuns(cell);
   }
 
   for (const quote of Array.from(dom.querySelectorAll('blockquote'))) {
@@ -176,6 +192,40 @@ export function prepareHtmlForDocx(html: string): string {
   return dom.body.innerHTML.replace(/<[^>]+>/g, (tag) =>
     tag.replace(` ${STYLE_PLACEHOLDER}=`, ' style=')
   );
+}
+
+/**
+ * Wraps each run of `cell`'s inline children (text, links, emphasis, `<br>`)
+ * in a `<p>`, which the generator keeps as one paragraph. Whitespace-only runs
+ * are left alone, so an empty cell stays empty.
+ */
+function wrapInlineRuns(cell: Element): void {
+  const document = cell.ownerDocument;
+  let run: ChildNode[] = [];
+  const flush = (before: ChildNode | null): void => {
+    const hasContent = run.some(
+      (node) =>
+        node.nodeType === ELEMENT_NODE ||
+        (node.nodeType === TEXT_NODE && node.textContent?.trim())
+    );
+    if (hasContent) {
+      const paragraph = document.createElement('p');
+      cell.insertBefore(paragraph, before);
+      paragraph.append(...run);
+    }
+    run = [];
+  };
+  for (const child of Array.from(cell.childNodes)) {
+    const isBlock =
+      child.nodeType === ELEMENT_NODE &&
+      CELL_BLOCKS.has((child as Element).localName);
+    if (isBlock) {
+      flush(child);
+    } else {
+      run.push(child);
+    }
+  }
+  flush(null);
 }
 
 /**

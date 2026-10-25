@@ -221,6 +221,38 @@ describe('Blob output verification', () => {
 
 /*
  * =====================================================
+ * Round-trip: table cells
+ * =====================================================
+ */
+describe('Round-trip: table cells', () => {
+  it('keeps mixed inline content in one paragraph, with its formatting', async () => {
+    const recoveredHtml = await markdownThroughDocxToHtml(
+      '| Cell |\n| --- |\n| **bold** [link](https://example.com) plain |\n'
+    );
+    expect(recoveredHtml).toContain(
+      '<td><p><strong>bold</strong> <a href="https://example.com">link</a> plain</p></td>'
+    );
+  });
+
+  it('keeps a line break inside one paragraph', async () => {
+    const recoveredHtml = await markdownThroughDocxToHtml(
+      '| Cell |\n| --- |\n| line<br>break |\n'
+    );
+    expect(recoveredHtml).toContain('<td><p>line<br />break</p></td>');
+  });
+
+  it('keeps a header cell bold and in one paragraph', async () => {
+    const recoveredHtml = await markdownThroughDocxToHtml(
+      '| *Name* and more |\n| --- |\n| x |\n'
+    );
+    expect(recoveredHtml).toContain(
+      '<th><p><strong><em>Name</em> and more</strong></p></th>'
+    );
+  });
+});
+
+/*
+ * =====================================================
  * Round-trip: code blocks
  * =====================================================
  */

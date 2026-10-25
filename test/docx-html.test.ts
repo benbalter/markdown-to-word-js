@@ -117,14 +117,16 @@ describe('prepareHtmlForDocx', () => {
     const table = '| Name | Age |\n| :-- | --: |\n| Alice | 30 |\n';
 
     it('bolds header cells', () => {
-      expect(prepare(table)).toMatch(/<th[^>]*><strong>Name<\/strong><\/th>/);
+      expect(prepare(table)).toMatch(
+        /<th[^>]*><p><strong>Name<\/strong><\/p><\/th>/
+      );
     });
 
     it('turns GFM column alignment into a style the generator honors', () => {
       const html = prepare(table);
       expect(html).not.toContain('align=');
-      expect(html).toContain('<td style="text-align: right;">30</td>');
-      expect(html).toContain('<td style="text-align: left;">Alice</td>');
+      expect(html).toContain('<td style="text-align: right;"><p>30</p></td>');
+      expect(html).toContain('<td style="text-align: left;"><p>Alice</p></td>');
     });
 
     it('leaves an empty header cell empty', () => {
