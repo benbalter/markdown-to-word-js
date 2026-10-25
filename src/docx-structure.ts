@@ -2,6 +2,20 @@ import JSZip from 'jszip';
 import { RULE_TEXT } from './docx-html.js';
 import { keepXmlDeclaration, WORDPROCESSING_NS as W_NS } from './xml-part.js';
 
+const CONTENT_TYPES = '[Content_Types].xml';
+const CONTENT_TYPES_NS =
+  'http://schemas.openxmlformats.org/package/2006/content-types';
+
+/** The media type of each image extension html-to-docx can write. */
+const IMAGE_CONTENT_TYPES: Record<string, string> = {
+  png: 'image/png',
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  gif: 'image/gif',
+  bmp: 'image/bmp',
+  svg: 'image/svg+xml',
+};
+
 /** What the source HTML says about the document's rules and tables. */
 export interface DocumentStructure {
   /** How many `<hr>` the HTML has. */
@@ -24,6 +38,10 @@ export interface DocumentStructure {
  * - Section properties: the generator writes the body's `<w:sectPr>` (page
  *   size and margins) as its first child. The schema requires it last, and
  *   strict readers ignore it elsewhere, so it's moved to the end.
+ * - Image content types: the generator declares only JPEG, PNG and SVG in
+ *   `[Content_Types].xml`, but embeds GIF and BMP too. Every part needs a
+ *   declared type, and Word offers to repair a file that lacks one, so each
+ *   image extension in `word/media/` gets a `<Default>`.
  */
 export async function patchStructure(
   wordDocument: Blob,
@@ -39,14 +57,57 @@ export async function patchStructure(
 
   const documentXml = await documentEntry.async('string');
   const patched = patchDocumentXml(documentXml, structure);
-  if (patched === documentXml) {
+  const typesEntry = zip.file(CONTENT_TYPES);
+  const typesXml = typesEntry ? await typesEntry.async('string') : null;
+  const patchedTypes =
+    typesXml === null
+      ? null
+      : patchContentTypes(typesXml, Object.keys(zip.files));
+  if (patched === documentXml && patchedTypes === typesXml) {
     return wordDocument;
   }
 
   zip.file('word/document.xml', patched);
+  if (patchedTypes !== null) zip.file(CONTENT_TYPES, patchedTypes);
   return new Blob([await zip.generateAsync({ type: 'arraybuffer' })], {
     type: wordDocument.type,
   });
+}
+
+/**
+ * Adds a `<Default>` to `typesXml` for each image extension among `paths`
+ * under `word/media/` that it doesn't declare yet. Exported for testing.
+ */
+export function patchContentTypes(typesXml: string, paths: string[]): string {
+  const dom = new DOMParser().parseFromString(typesXml, 'application/xml');
+  const types = dom.documentElement;
+  const declared = new Set(
+    Array.from(types.getElementsByTagNameNS(CONTENT_TYPES_NS, 'Default'), (d) =>
+      (d.getAttribute('Extension') ?? '').toLowerCase()
+    )
+  );
+  let changed = false;
+  for (const path of paths) {
+    if (!path.startsWith('word/media/')) continue;
+    const extension = /\.([^./]+)$/.exec(path)?.[1].toLowerCase();
+    const contentType = extension && IMAGE_CONTENT_TYPES[extension];
+    if (!contentType || declared.has(extension)) continue;
+    const entry = dom.createElementNS(CONTENT_TYPES_NS, 'Default');
+    entry.setAttribute('Extension', extension);
+    entry.setAttribute('ContentType', contentType);
+    // Defaults come before Overrides in the schema.
+    types.insertBefore(
+      entry,
+      types.getElementsByTagNameNS(CONTENT_TYPES_NS, 'Override')[0] ?? null
+    );
+    declared.add(extension);
+    changed = true;
+  }
+  if (!changed) return typesXml;
+  return keepXmlDeclaration(
+    typesXml,
+    new XMLSerializer().serializeToString(dom)
+  );
 }
 
 /** Exported for testing. */

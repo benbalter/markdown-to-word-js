@@ -15,6 +15,15 @@ const PIXEL_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 const PIXEL = Buffer.from(PIXEL_BASE64, 'base64');
 
+// A 1×1 GIF.
+const GIF_BASE64 = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+// The start of a HEIC file, which Word can't show.
+const HEIC_BASE64 = 'AAAAGGZ0eXBoZWljAAAAAG1pZjFoZWlj';
+
+const SVG =
+  '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>';
+
 function image(
   body: Uint8Array,
   contentType: string | null = 'image/png'
@@ -174,12 +183,129 @@ describe('images', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('leaves data: URIs for the generator, without fetching', async () => {
+  it('passes a valid data: URI through, without fetching', async () => {
     const fetch = vi.fn();
     vi.stubGlobal('fetch', fetch);
     const html = `<img src="data:image/png;base64,${PIXEL_BASE64}">`;
     expect(await embedImages(html)).toBe(html);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('keeps the alt text of a data: URI that is not an image', async () => {
+    const { xml, paragraphs } = await convert(
+      'Before\n\n![A chart](data:image/png;base64,bm90IGFuIGltYWdl)\n\nAfter\n'
+    );
+    expect(xml).not.toContain('<w:drawing>');
+    expect(paragraphs).toEqual(['Before', 'A chart', 'After']);
+  });
+
+  it('keeps the alt text of an image type Word cannot show, such as HEIC', async () => {
+    expect(
+      await embedImages(
+        `<p><img alt="photo" src="data:image/heic;base64,${HEIC_BASE64}"></p>`
+      )
+    ).toBe('<p>photo</p>');
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => image(Buffer.from(HEIC_BASE64, 'base64'), 'image/heic'))
+    );
+    const { xml, media, links } = await convert(
+      '![photo](https://example.com/photo.heic)\n'
+    );
+    expect(xml).not.toContain('<w:drawing>');
+    expect(media.filter((name) => !name.endsWith('/'))).toEqual([]);
+    expect(links).toEqual([['photo', 'https://example.com/photo.heic']]);
+  });
+
+  it('labels a data: URI with the type its bytes show', async () => {
+    expect(
+      await embedImages(`<img src="data:image/jpeg;base64,${PIXEL_BASE64}">`)
+    ).toBe(`<img src="data:image/png;base64,${PIXEL_BASE64}">`);
+  });
+
+  it('decodes base64 as a browser does, refusing stray characters', async () => {
+    const png = `data:image/png;base64,${PIXEL_BASE64}`;
+    // Whitespace and percent-escapes are fine.
+    const spaced = `data:image/png;base64,${PIXEL_BASE64.replace(
+      /(.{8})/g,
+      '$1 '
+    )
+      .replaceAll('+', '%2B')
+      .replaceAll('/', '%2F')}`;
+    expect(await embedImages(`<img src="${spaced}">`)).toBe(
+      `<img src="${png}">`
+    );
+    // Buffer.from would skip the "!" and embed a corrupted picture.
+    const stray = `${PIXEL_BASE64.slice(0, 12)}!${PIXEL_BASE64.slice(12)}`;
+    expect(
+      await embedImages(`<img alt="x" src="data:image/png;base64,${stray}">`)
+    ).toBe('x');
+  });
+
+  it('embeds GIF and SVG data: URIs, including URL-encoded SVG', async () => {
+    expect(
+      await embedImages(`<img src="data:image/gif;base64,${GIF_BASE64}">`)
+    ).toBe(`<img src="data:image/gif;base64,${GIF_BASE64}">`);
+
+    const encoded = `<img src="data:image/svg+xml,${encodeURIComponent(SVG)}">`;
+    expect(await embedImages(encoded)).toBe(
+      `<img src="data:image/svg+xml;base64,${Buffer.from(SVG).toString('base64')}">`
+    );
+    const { xml } = await convert(
+      `![logo](data:image/svg+xml,${encodeURIComponent(SVG)})\n`
+    );
+    expect(xml).toContain('<w:drawing>');
+  });
+
+  it('finds an SVG after a byte-order mark, comments and a doctype', async () => {
+    const svg = `\uFEFF<?xml version="1.0"?>\n<!-- a -- b --><!---->\n<!DOCTYPE svg>\n${SVG.slice(SVG.indexOf('<svg'))}`;
+    expect(
+      await embedImages(
+        `<img src="data:image/svg+xml,${encodeURIComponent(svg)}">`
+      )
+    ).toMatch(/^<img src="data:image\/svg\+xml;base64,/);
+    // Not SVG: a comment that never ends, or <svgx>.
+    for (const text of ['<!-- <svg>', '<svgx></svgx>']) {
+      expect(
+        await embedImages(
+          `<img alt="x" src="data:image/svg+xml,${encodeURIComponent(text)}">`
+        )
+      ).toBe('x');
+    }
+  });
+
+  it('keeps a literal % in a URL-encoded SVG', async () => {
+    const svg = SVG.replace('width="10"', 'width="100%"').replaceAll('"', "'");
+    const encoded = svg.replaceAll('<', '%3C').replaceAll('>', '%3E');
+    expect(encoded).toContain("100%'");
+    expect(await embedImages(`<img src="data:image/svg+xml,${encoded}">`)).toBe(
+      `<img src="data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}">`
+    );
+  });
+
+  it('checks for SVG in linear time, whatever the comments', async () => {
+    // Backtracks exponentially in a regex like (<!--[\s\S]*?-->)*<svg.
+    const text = `<!--${'--><!--'.repeat(1000)}`;
+    const started = performance.now();
+    expect(
+      await embedImages(
+        `<img alt="x" src="data:image/svg+xml,${encodeURIComponent(text)}">`
+      )
+    ).toBe('x');
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it('does not take an HTML page with an inline SVG for an SVG image', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        image(new TextEncoder().encode(`<html>${SVG}</html>`), 'text/html')
+      )
+    );
+    expect(
+      await embedImages('<img alt="logo" src="https://example.com/logo">')
+    ).toBe('<a href="https://example.com/logo">logo</a>');
   });
 
   it('only fetches the URLs html-to-docx would', async () => {
@@ -281,6 +407,39 @@ describe('images', () => {
     expect(result.match(/src="data:/g)).toHaveLength(MAX_IMAGES);
     expect(result).toContain(
       `<a href="https://example.com/${count - 1}.png">img ${count - 1}</a>`
+    );
+  });
+});
+
+describe('image content types', () => {
+  // A 1×1 GIF and a 1×1 BMP: formats html-to-docx embeds but doesn't declare.
+  const GIF = `data:image/gif;base64,${GIF_BASE64}`;
+  const BMP = `data:image/bmp;base64,${Buffer.from(
+    '424d3a0000000000000036000000280000000100000001000000010018000000000004000000130b0000130b00000000000000000000ffffff00',
+    'hex'
+  ).toString('base64')}`;
+
+  it('declares a content type for every embedded image', async () => {
+    const blob = await convertMarkdownToWord(
+      `![gif](${GIF}) ![bmp](${BMP}) ![png](data:image/png;base64,${PIXEL_BASE64})\n`
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const types = await zip.file('[Content_Types].xml')!.async('string');
+    const declared = new Set(
+      Array.from(types.matchAll(/<Default Extension="([^"]+)"/g), (match) =>
+        match[1].toLowerCase()
+      )
+    );
+    const extensions = Object.keys(zip.files)
+      .filter((name) => /^word\/media\/.+\.[^.]+$/.test(name))
+      .map((name) => name.split('.').pop()!.toLowerCase());
+
+    expect(new Set(extensions)).toEqual(new Set(['gif', 'bmp', 'png']));
+    for (const extension of extensions) {
+      expect(declared).toContain(extension);
+    }
+    expect(types).toContain(
+      '<Default Extension="gif" ContentType="image/gif"/>'
     );
   });
 });

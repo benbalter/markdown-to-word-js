@@ -29,7 +29,12 @@ const GENERATOR_URL =
   /http(s)?:\/\/(\w+:?\w*@)?(\S+)(:\d+)?((?<=\.)\w+)+(\/([\w#!:.?+=&%@!\-/])*)?/i;
 const WEB_URL = /^https?:\/\//i;
 
-/** Leading bytes of the image formats Word embeds, for servers that don't say. */
+/**
+ * Leading bytes of the bitmap formats Word embeds. An image is checked
+ * against them whatever its declared type: html-to-docx drops a file it can't
+ * read (with its alt text), and embeds a format Word can't show, such as
+ * HEIC, as a broken picture.
+ */
 const SIGNATURES: [string, number[]][] = [
   ['image/png', [0x89, 0x50, 0x4e, 0x47]],
   ['image/jpeg', [0xff, 0xd8, 0xff]],
@@ -37,12 +42,25 @@ const SIGNATURES: [string, number[]][] = [
   ['image/bmp', [0x42, 0x4d]],
 ];
 
+/** The other format Word embeds, recognized by its root element. */
+const SVG_TYPE = 'image/svg+xml';
+
+/** How far into a file to look for SVG_START. */
+const SVG_SNIFF_BYTES = 4096;
+
+/** `data:[type][;params][;base64],payload` */
+const DATA_URI = /^data:([^,]*?)(;base64)?,(.*)$/is;
+
+const PERCENT = 0x25;
+
 /**
  * Downloads each web image in `html` and swaps its `src` for a `data:` URI,
  * which html-to-docx embeds without downloading it again. An image that can't
  * be fetched becomes its alt text, linked to its URL, where html-to-docx would
  * drop it without a trace. Other sources it can't embed either, such as a
- * relative path, keep their alt text too.
+ * relative path, keep their alt text too. So does a `data:` URI that isn't a
+ * PNG, JPEG, GIF, BMP or SVG image; one that is gets rewritten as base64 of
+ * the type its bytes show, which is the form html-to-docx reads.
  *
  * Each URL is fetched once, however many times it appears: at most
  * MAX_IMAGES of them, CONCURRENCY at a time.
@@ -71,8 +89,9 @@ export async function embedImages(html: string): Promise<string> {
 
   for (const image of images) {
     const src = image.getAttribute('src') ?? '';
-    if (src.startsWith('data:')) continue;
-    const dataUri = downloads.get(src);
+    const dataUri = /^data:/i.test(src)
+      ? checkDataUri(src)
+      : downloads.get(src);
     if (dataUri) {
       image.setAttribute('src', dataUri);
     } else {
@@ -81,6 +100,70 @@ export async function embedImages(html: string): Promise<string> {
   }
 
   return dom.body.innerHTML;
+}
+
+/**
+ * `src`, a `data:` URI, as base64 of the image type its bytes show, or null
+ * if it's malformed, too large, or not an image Word embeds.
+ */
+function checkDataUri(src: string): string | null {
+  const match = DATA_URI.exec(src);
+  if (!match) return null;
+  const [, type, base64, payload] = match;
+  // At most four characters of payload make one byte (an escaped base64
+  // character, %2B, is a quarter of three bytes), so one this long decodes
+  // to more than the limit: turn it away before decoding allocates it.
+  if (payload.length > MAX_IMAGE_BYTES * 4 + 4) return null;
+  let bytes: Uint8Array | null;
+  try {
+    bytes = base64 ? base64Decode(payload) : percentDecode(payload);
+  } catch {
+    return null;
+  }
+  if (!bytes || bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) {
+    return null;
+  }
+  const actual = imageType(type, bytes);
+  if (!actual) return null;
+  return `data:${actual};base64,${Buffer.from(bytes).toString('base64')}`;
+}
+
+/**
+ * The bytes of a base64 `data:` payload, or null if it isn't base64. Decoded
+ * as a browser does (the fetch spec's forgiving-base64): percent-escapes and
+ * whitespace are allowed, any other stray character fails. `Buffer.from`
+ * alone skips stray characters, which would embed a corrupted picture.
+ */
+function base64Decode(payload: string): Uint8Array | null {
+  let text = new TextDecoder().decode(percentDecode(payload));
+  text = text.replace(/[\t\n\f\r ]+/g, '');
+  if (text.length % 4 === 0) text = text.replace(/={1,2}$/, '');
+  if (text.length % 4 === 1 || !/^[A-Za-z0-9+/]*$/.test(text)) return null;
+  return Buffer.from(text, 'base64');
+}
+
+/**
+ * The bytes of a URL-encoded `data:` payload. A `%` without two hex digits
+ * after it stays a `%`, as in a browser, so `width="100%"` in an SVG works.
+ */
+function percentDecode(payload: string): Uint8Array {
+  // `%` and hex digits are ASCII, so escapes can be read off the UTF-8 bytes.
+  const encoded = new TextEncoder().encode(payload);
+  const bytes = new Uint8Array(encoded.length);
+  let length = 0;
+  for (let index = 0; index < encoded.length; index++) {
+    const hex =
+      encoded[index] === PERCENT
+        ? String.fromCharCode(...encoded.subarray(index + 1, index + 3))
+        : '';
+    if (/^[0-9a-f]{2}$/i.test(hex)) {
+      bytes[length++] = parseInt(hex, 16);
+      index += 2;
+    } else {
+      bytes[length++] = encoded[index];
+    }
+  }
+  return bytes.subarray(0, length);
 }
 
 function isFetchable(src: string): boolean {
@@ -156,20 +239,62 @@ async function readBody(
 }
 
 /**
- * The image's media type: the server's, if it says it's an image, or else
- * read from the file's first bytes. Null for anything else (an error page
- * served with 200, say), which html-to-docx would fail to measure and drop.
+ * The image's media type, read from its first bytes: PNG, JPEG, GIF or BMP,
+ * whatever `declared` says, or SVG if it says so (or names no image type)
+ * and the file starts like one. Null for anything else, such as an error
+ * page served with 200, or HEIC, which html-to-docx would embed but Word
+ * can't show.
  */
-function imageType(
-  contentType: string | null,
-  bytes: Uint8Array
-): string | null {
-  const declared = contentType?.split(';')[0].trim().toLowerCase();
-  if (declared?.startsWith('image/')) return declared;
+function imageType(declared: string | null, bytes: Uint8Array): string | null {
   const match = SIGNATURES.find(([, signature]) =>
     signature.every((byte, index) => bytes[index] === byte)
   );
-  return match?.[0] ?? null;
+  if (match) return match[0];
+  const type = declared?.split(';')[0].trim().toLowerCase() ?? '';
+  if (type !== SVG_TYPE && type.startsWith('image/')) return null;
+  const head = new TextDecoder().decode(bytes.subarray(0, SVG_SNIFF_BYTES));
+  return startsWithSvg(head) ? SVG_TYPE : null;
+}
+
+/**
+ * Whether `text` is an SVG file: `<svg` first, after at most a byte-order
+ * mark, an XML declaration, comments and a doctype. Anchored, so an HTML page
+ * with an inline icon doesn't count. A scan rather than one regular
+ * expression, which backtracks exponentially on input like
+ * `<!----><!----><!--...` (a comment's end can also be read as part of a
+ * longer comment).
+ */
+function startsWithSvg(text: string): boolean {
+  let at = text.startsWith('\uFEFF') ? 1 : 0;
+  const skipSpace = (): void => {
+    while (at < text.length && /\s/.test(text[at] as string)) at++;
+  };
+  const startsHere = (prefix: string): boolean =>
+    text.slice(at, at + prefix.length).toLowerCase() === prefix;
+  /** Moves past `end`, searching from `from`; false if it never comes. */
+  const skipPast = (end: string, from: number): boolean => {
+    const index = text.indexOf(end, from);
+    if (index === -1) return false;
+    at = index + end.length;
+    return true;
+  };
+
+  skipSpace();
+  if (startsHere('<?xml')) {
+    if (!skipPast('>', at)) return false;
+    skipSpace();
+  }
+  for (;;) {
+    if (startsHere('<!--')) {
+      if (!skipPast('-->', at + 4)) return false;
+    } else if (startsHere('<!doctype')) {
+      if (!skipPast('>', at)) return false;
+    } else {
+      break;
+    }
+    skipSpace();
+  }
+  return startsHere('<svg') && /[\s>]/.test(text[at + 4] ?? '');
 }
 
 /**
