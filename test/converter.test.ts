@@ -280,6 +280,29 @@ describe('Round-trip: blockquotes', () => {
 
 /*
  * =====================================================
+ * Round-trip: HTML tags the generator does not know
+ * =====================================================
+ */
+describe('Round-trip: unknown HTML tags', () => {
+  it('keeps an unclosed placeholder tag, and the text after it, as written', async () => {
+    const recoveredHtml = await markdownThroughDocxToHtml(
+      'Replace <your-name> with your name and keep going.'
+    );
+    expect(recoveredHtml).toBe(
+      '<p>Replace &lt;your-name&gt; with your name and keep going.</p>'
+    );
+  });
+
+  it('keeps the text of a custom element', async () => {
+    const recoveredHtml = await markdownThroughDocxToHtml(
+      'A <custom-el>custom</custom-el> element.'
+    );
+    expect(recoveredHtml).toBe('<p>A custom element.</p>');
+  });
+});
+
+/*
+ * =====================================================
  * Options handling
  * =====================================================
  */
