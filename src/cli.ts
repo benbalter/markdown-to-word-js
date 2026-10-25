@@ -33,11 +33,14 @@ function defaultOutputPath(input: string): string {
 /**
  * Whether `a` and `b` are the same file on disk. Compares inodes, not paths,
  * so a symlink or a different case on a case-insensitive disk still counts.
+ * BigInt stats, because some filesystems hand out inode numbers above
+ * Number.MAX_SAFE_INTEGER, where two different files could round to the same
+ * number.
  */
 async function isSameFile(a: string, b: string): Promise<boolean> {
   const [statA, statB] = await Promise.all([
-    stat(a).catch(() => undefined),
-    stat(b).catch(() => undefined),
+    stat(a, { bigint: true }).catch(() => undefined),
+    stat(b, { bigint: true }).catch(() => undefined),
   ]);
   return (
     statA !== undefined &&
@@ -45,6 +48,16 @@ async function isSameFile(a: string, b: string): Promise<boolean> {
     statA.dev === statB.dev &&
     statA.ino === statB.ino
   );
+}
+
+/**
+ * `value` as one shell word, for commands we print for the user to copy.
+ * Plain names stay bare so the common case reads cleanly.
+ */
+function shellQuote(value: string): string {
+  return /^[\w@%+=:,./-]+$/.test(value)
+    ? value
+    : `'${value.replaceAll("'", "'\\''")}'`;
 }
 
 const EXAMPLES = `
@@ -111,7 +124,7 @@ const convert = program
       // written back over itself as report.docx.
       if (!fromStdin && WORD_FILE.test(file as string)) {
         throw new Error(
-          `${file} is already a Word document. To turn it into Markdown, use word2md.com or its CLI: npx word-to-markdown ${file} > ${path.parse(file as string).name}.md`
+          `${file} is already a Word document. To turn it into Markdown, use word2md.com or its CLI: npx word-to-markdown ${shellQuote(file as string)} > ${shellQuote(`${path.parse(file as string).name}.md`)}`
         );
       }
       if (fromStdin && !options.output) {

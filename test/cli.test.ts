@@ -104,6 +104,14 @@ describe('md2w', () => {
     expect(readFileSync(path.join(tmp, 'report.docx'))).toEqual(original);
   });
 
+  it('quotes a Word file name with spaces in the suggested command', () => {
+    writeFileSync(path.join(tmp, "Q3 plan's.docx"), 'PK\u0003\u0004');
+    const { stderr } = md2w(["Q3 plan's.docx"]);
+    expect(stderr).toContain(
+      `npx word-to-markdown 'Q3 plan'\\''s.docx' > 'Q3 plan'\\''s.md'`
+    );
+  });
+
   it('refuses to write the .docx over its input', () => {
     const original = '# Odd name\n';
     writeFileSync(path.join(tmp, 'odd.txt'), original);
