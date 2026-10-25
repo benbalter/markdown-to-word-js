@@ -264,6 +264,33 @@ describe('inline HTML the generator does not know', () => {
     );
   });
 
+  it('keeps the text of tags it has no rule for, custom ones included', async () => {
+    const paragraphs = await bodyParagraphs(
+      'A <custom-el>custom</custom-el> tag, <time>noon</time> and <label>this</label>.\n'
+    );
+    expect(paragraphs.map(({ text }) => text)).toEqual([
+      'A custom tag, noon and this.',
+    ]);
+  });
+
+  it('shows a placeholder tag that is never closed as written', async () => {
+    const paragraphs = await bodyParagraphs(
+      'Replace <your-name> with your name.\n\nUse <Foo Bar="1"> here.\n'
+    );
+    expect(paragraphs.map(({ text }) => text)).toEqual([
+      'Replace <your-name> with your name.',
+      'Use <foo bar="1"> here.',
+    ]);
+  });
+
+  it('still leaves out what a browser would not show as text', () => {
+    const html = prepare(
+      'a <script>alert(1)</script> <svg><text>t</text></svg> b\n'
+    );
+    expect(html).toContain('<script>alert(1)</script>');
+    expect(html).toContain('<svg><text>t</text></svg>');
+  });
+
   it('leaves the same tags alone inside a code block', () => {
     const markdown = '```\n<kbd>x</kbd>\n```\n';
     expect(prepare(markdown)).toBe(parseMarkdownToHtml(markdown));
