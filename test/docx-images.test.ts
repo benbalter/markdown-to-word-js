@@ -224,6 +224,32 @@ describe('images', () => {
     ).toBe(`<img src="data:image/png;base64,${PIXEL_BASE64}">`);
   });
 
+  it('decodes base64 as a browser does, refusing stray characters', async () => {
+    const png = `data:image/png;base64,${PIXEL_BASE64}`;
+    // Whitespace and percent-escapes are fine.
+    const spaced = `data:image/png;base64,${PIXEL_BASE64.replace(
+      /(.{8})/g,
+      '$1 '
+    )
+      .replaceAll('+', '%2B')
+      .replaceAll('/', '%2F')}`;
+    expect(await embedImages(`<img src="${spaced}">`)).toBe(
+      `<img src="${png}">`
+    );
+    // Buffer.from would skip the "!" and embed a corrupted picture.
+    const stray = `${PIXEL_BASE64.slice(0, 12)}!${PIXEL_BASE64.slice(12)}`;
+    expect(
+      await embedImages(`<img alt="x" src="data:image/png;base64,${stray}">`)
+    ).toBe('x');
+  });
+
+  it('turns away an oversized data: URI before decoding it', async () => {
+    const payload = 'A'.repeat(MAX_IMAGE_BYTES * 4 + 8);
+    expect(
+      await embedImages(`<img alt="x" src="data:image/png;base64,${payload}">`)
+    ).toBe('x');
+  });
+
   it('embeds GIF and SVG data: URIs, including URL-encoded SVG', async () => {
     expect(
       await embedImages(`<img src="data:image/gif;base64,${GIF_BASE64}">`)

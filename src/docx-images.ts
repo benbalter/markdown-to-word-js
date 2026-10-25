@@ -110,18 +110,36 @@ function checkDataUri(src: string): string | null {
   const match = DATA_URI.exec(src);
   if (!match) return null;
   const [, type, base64, payload] = match;
-  let bytes: Uint8Array;
+  // At most four characters of payload make one byte (an escaped base64
+  // character, %2B, is a quarter of three bytes), so one this long decodes
+  // to more than the limit: turn it away before decoding allocates it.
+  if (payload.length > MAX_IMAGE_BYTES * 4 + 4) return null;
+  let bytes: Uint8Array | null;
   try {
-    bytes = base64
-      ? Buffer.from(payload.replace(/\s+/g, ''), 'base64')
-      : percentDecode(payload);
+    bytes = base64 ? base64Decode(payload) : percentDecode(payload);
   } catch {
     return null;
   }
-  if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) return null;
+  if (!bytes || bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) {
+    return null;
+  }
   const actual = imageType(type, bytes);
   if (!actual) return null;
   return `data:${actual};base64,${Buffer.from(bytes).toString('base64')}`;
+}
+
+/**
+ * The bytes of a base64 `data:` payload, or null if it isn't base64. Decoded
+ * as a browser does (the fetch spec's forgiving-base64): percent-escapes and
+ * whitespace are allowed, any other stray character fails. `Buffer.from`
+ * alone skips stray characters, which would embed a corrupted picture.
+ */
+function base64Decode(payload: string): Uint8Array | null {
+  let text = new TextDecoder().decode(percentDecode(payload));
+  text = text.replace(/[\t\n\f\r ]+/g, '');
+  if (text.length % 4 === 0) text = text.replace(/={1,2}$/, '');
+  if (text.length % 4 === 1 || !/^[A-Za-z0-9+/]*$/.test(text)) return null;
+  return Buffer.from(text, 'base64');
 }
 
 /** The bytes of a URL-encoded `data:` payload. Throws on a bad escape. */
