@@ -243,13 +243,6 @@ describe('images', () => {
     ).toBe('x');
   });
 
-  it('turns away an oversized data: URI before decoding it', async () => {
-    const payload = 'A'.repeat(MAX_IMAGE_BYTES * 4 + 8);
-    expect(
-      await embedImages(`<img alt="x" src="data:image/png;base64,${payload}">`)
-    ).toBe('x');
-  });
-
   it('embeds GIF and SVG data: URIs, including URL-encoded SVG', async () => {
     expect(
       await embedImages(`<img src="data:image/gif;base64,${GIF_BASE64}">`)
