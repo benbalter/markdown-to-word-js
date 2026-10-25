@@ -162,7 +162,9 @@ export function prepareHtmlForDocx(html: string): string {
     if (quote.isConnected) unwrapQuote(quote, 1);
   }
 
-  for (const element of Array.from(dom.body.querySelectorAll('*'))) {
+  const elements = Array.from(dom.body.querySelectorAll('*'));
+  const startTags = new SourceStartTags(html, elements);
+  for (const element of elements) {
     const name = element.localName;
     if (GENERATOR_ELEMENTS.has(name) || element.closest('pre')) continue;
     if (HIDDEN_CONTENT.has(name) || element.closest('svg, math')) continue;
@@ -170,7 +172,7 @@ export function prepareHtmlForDocx(html: string): string {
     if (!kind) {
       const children = Array.from(element.childNodes);
       if (isUnclosedPlaceholder(element, html)) {
-        element.replaceWith(openingTag(element), ...children);
+        element.replaceWith(startTags.of(element), ...children);
       } else {
         element.replaceWith(...children);
       }
@@ -296,8 +298,56 @@ function isUnclosedPlaceholder(element: Element, html: string): boolean {
   return isMadeUp && !html.toLowerCase().includes(`</${element.localName}`);
 }
 
-/** The element's start tag, as it would be written in the source. */
-function openingTag(element: Element): string {
+/**
+ * Each element's start tag as written in the source, so a placeholder shown
+ * as text keeps its exact spelling (case, quotes, entities). The DOM only
+ * has decoded attribute values, which can't say whether the source wrote
+ * `&` or `&amp;`.
+ */
+class SourceStartTags {
+  private readonly ordinals = new Map<Element, number>();
+  private readonly counts = new Map<string, number>();
+  private readonly tags = new Map<string, string[]>();
+
+  constructor(
+    private readonly html: string,
+    elements: Element[]
+  ) {
+    // Document order is source order of start tags, so the nth <x> element
+    // is the nth `<x` in the source.
+    for (const element of elements) {
+      const count = this.counts.get(element.localName) ?? 0;
+      this.ordinals.set(element, count);
+      this.counts.set(element.localName, count + 1);
+    }
+  }
+
+  of(element: Element): string {
+    const name = element.localName;
+    let tags = this.tags.get(name);
+    if (!tags) {
+      // Quoted values may hold `>`. Each alternative starts with a different
+      // character, so this can't backtrack.
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const startTag = new RegExp(
+        `<${escaped}(?=[\\s/>])(?:"[^"]*"|'[^']*'|[^'">])*>`,
+        'gi'
+      );
+      tags = this.html.match(startTag) ?? [];
+      this.tags.set(name, tags);
+    }
+    // A mismatch means a `<x` the parser didn't turn into an element (in a
+    // comment, say), so the ordinal can't be trusted: rebuild the tag.
+    const tag =
+      tags.length === this.counts.get(name)
+        ? tags[this.ordinals.get(element) ?? -1]
+        : undefined;
+    return tag ?? rebuiltStartTag(element);
+  }
+}
+
+/** A start tag for `element` rebuilt from the DOM. */
+function rebuiltStartTag(element: Element): string {
   const attributes = Array.from(element.attributes)
     .map(({ name, value }) => (value ? ` ${name}="${value}"` : ` ${name}`))
     .join('');

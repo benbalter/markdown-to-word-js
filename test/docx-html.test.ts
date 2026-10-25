@@ -279,7 +279,16 @@ describe('inline HTML the generator does not know', () => {
     );
     expect(paragraphs.map(({ text }) => text)).toEqual([
       'Replace <your-name> with your name.',
-      'Use <foo bar="1"> here.',
+      'Use <Foo Bar="1"> here.',
+    ]);
+  });
+
+  it('keeps a placeholder tag spelled exactly as in the source', async () => {
+    const paragraphs = await bodyParagraphs(
+      "Fill in <your-name title='A &quot;b&quot; & c > d'> and <your-name>.\n"
+    );
+    expect(paragraphs.map(({ text }) => text)).toEqual([
+      "Fill in <your-name title='A &quot;b&quot; & c > d'> and <your-name>.",
     ]);
   });
 
