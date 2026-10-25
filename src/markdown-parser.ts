@@ -99,21 +99,27 @@ function plainText(tokens: Token[]): string {
 
 /**
  * Convert a string into a URL/filename-safe slug, used to name the download.
- * NFC-normalizes and lowercases, keeps letters, combining marks, and digits
- * in any script (so 关于开展2026年工作的通知, Привет мир, and Café survive),
- * strips everything else, including punctuation and the characters file
+ * NFC-normalizes and lowercases, keeps letters, digits, and the combining
+ * marks attached to them in any script (so 关于开展2026年工作的通知,
+ * Привет мир, and Café survive), strips everything else, including punctuation and the characters file
  * systems reject (/ \ : * ? " < > |), then turns runs of whitespace,
  * underscores, and hyphens into one hyphen.
  */
 export function slugify(text: string): string {
-  return text
-    .normalize('NFC')
-    .toLowerCase()
-    .trim()
-    .replace(/[^\p{L}\p{M}\p{N}\s_-]/gu, '')
-    .replace(/[\s_]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  return (
+    text
+      .normalize('NFC')
+      .toLowerCase()
+      .trim()
+      // A mark left with nothing to attach to (the U+FE0F after an emoji) is
+      // invisible, and would keep an all-emoji title from falling back to
+      // "document".
+      .replace(/(?<![\p{L}\p{M}\p{N}])\p{M}+/gu, '')
+      .replace(/[^\p{L}\p{M}\p{N}\s_-]/gu, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+  );
 }
 
 const HTML_ESCAPES: Record<string, string> = {

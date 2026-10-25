@@ -445,6 +445,12 @@ describe('slugify', () => {
     expect(slugify('हिन्दी पाठ')).toBe('हिन्दी-पाठ');
   });
 
+  it('drops marks left without a letter, like the emoji variation selector', () => {
+    expect(slugify('\u2764\uFE0F')).toBe('');
+    expect(slugify('Notes \u2764\uFE0F')).toBe('notes');
+    expect(slugify('a\u2764\uFE0Fb')).toBe('ab');
+  });
+
   it('strips characters that are unsafe in file names', () => {
     expect(slugify('a/b\\c:d*e?f"g<h>i|j')).toBe('abcdefghij');
     expect(slugify('报告：第一章／草稿')).toBe('报告第一章草稿');
