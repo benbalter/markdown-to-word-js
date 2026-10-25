@@ -45,13 +45,6 @@ const SIGNATURES: [string, number[]][] = [
 /** The other format Word embeds, recognized by its root element. */
 const SVG_TYPE = 'image/svg+xml';
 
-/**
- * An SVG file's start: `<svg`, after at most an XML declaration, comments and
- * a doctype. Anchored, so an HTML page with an inline icon doesn't count.
- */
-const SVG_START =
-  /^\uFEFF?\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*|<!DOCTYPE[^>]*>\s*)*<svg[\s>]/i;
-
 /** How far into a file to look for SVG_START. */
 const SVG_SNIFF_BYTES = 4096;
 
@@ -239,7 +232,48 @@ function imageType(declared: string | null, bytes: Uint8Array): string | null {
   const type = declared?.split(';')[0].trim().toLowerCase() ?? '';
   if (type !== SVG_TYPE && type.startsWith('image/')) return null;
   const head = new TextDecoder().decode(bytes.subarray(0, SVG_SNIFF_BYTES));
-  return SVG_START.test(head) ? SVG_TYPE : null;
+  return startsWithSvg(head) ? SVG_TYPE : null;
+}
+
+/**
+ * Whether `text` is an SVG file: `<svg` first, after at most a byte-order
+ * mark, an XML declaration, comments and a doctype. Anchored, so an HTML page
+ * with an inline icon doesn't count. A scan rather than one regular
+ * expression, which backtracks exponentially on input like
+ * `<!----><!----><!--...` (a comment's end can also be read as part of a
+ * longer comment).
+ */
+function startsWithSvg(text: string): boolean {
+  let at = text.startsWith('\uFEFF') ? 1 : 0;
+  const skipSpace = (): void => {
+    while (at < text.length && /\s/.test(text[at] as string)) at++;
+  };
+  const startsHere = (prefix: string): boolean =>
+    text.slice(at, at + prefix.length).toLowerCase() === prefix;
+  /** Moves past `end`, searching from `from`; false if it never comes. */
+  const skipPast = (end: string, from: number): boolean => {
+    const index = text.indexOf(end, from);
+    if (index === -1) return false;
+    at = index + end.length;
+    return true;
+  };
+
+  skipSpace();
+  if (startsHere('<?xml')) {
+    if (!skipPast('>', at)) return false;
+    skipSpace();
+  }
+  for (;;) {
+    if (startsHere('<!--')) {
+      if (!skipPast('-->', at + 4)) return false;
+    } else if (startsHere('<!doctype')) {
+      if (!skipPast('>', at)) return false;
+    } else {
+      break;
+    }
+    skipSpace();
+  }
+  return startsHere('<svg') && /[\s>]/.test(text[at + 4] ?? '');
 }
 
 /**

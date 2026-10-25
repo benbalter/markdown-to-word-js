@@ -239,6 +239,35 @@ describe('images', () => {
     expect(xml).toContain('<w:drawing>');
   });
 
+  it('finds an SVG after a byte-order mark, comments and a doctype', async () => {
+    const svg = `\uFEFF<?xml version="1.0"?>\n<!-- a -- b --><!---->\n<!DOCTYPE svg>\n${SVG.slice(SVG.indexOf('<svg'))}`;
+    expect(
+      await embedImages(
+        `<img src="data:image/svg+xml,${encodeURIComponent(svg)}">`
+      )
+    ).toMatch(/^<img src="data:image\/svg\+xml;base64,/);
+    // Not SVG: a comment that never ends, or <svgx>.
+    for (const text of ['<!-- <svg>', '<svgx></svgx>']) {
+      expect(
+        await embedImages(
+          `<img alt="x" src="data:image/svg+xml,${encodeURIComponent(text)}">`
+        )
+      ).toBe('x');
+    }
+  });
+
+  it('checks for SVG in linear time, whatever the comments', async () => {
+    // Backtracks exponentially in a regex like (<!--[\s\S]*?-->)*<svg.
+    const text = `<!--${'--><!--'.repeat(1000)}`;
+    const started = performance.now();
+    expect(
+      await embedImages(
+        `<img alt="x" src="data:image/svg+xml,${encodeURIComponent(text)}">`
+      )
+    ).toBe('x');
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
   it('does not take an HTML page with an inline SVG for an SVG image', async () => {
     vi.stubGlobal(
       'fetch',
