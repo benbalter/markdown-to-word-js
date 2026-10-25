@@ -56,6 +56,14 @@ function installGuards(): void {
   if (guarded) return;
   guarded = true;
 
+  // stdout carries only JSON-RPC messages, but html-to-docx logs debug lines
+  // with console.log (a broken data: image, say). Send all of it to stderr.
+  const error = console.error;
+  console.log =
+    console.info =
+    console.debug =
+      (...args: unknown[]): void => error(...args);
+
   const warn = console.warn;
   console.warn = (...args: unknown[]): void => {
     conversion

@@ -8,6 +8,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from 'fs';
+import { spawn } from 'child_process';
 import { createServer, type Server } from 'http';
 import type { AddressInfo } from 'net';
 import os from 'os';
@@ -15,6 +16,7 @@ import path from 'path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import mammoth from 'mammoth';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { LATEST_PROTOCOL_VERSION } from '@modelcontextprotocol/sdk/types.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { cliPath } from './build-cli.ts';
 import { mcpbManifest } from '../scripts/mcpb-manifest.mjs';
@@ -222,6 +224,68 @@ describe('md2w mcp', () => {
     });
     expect(result.isError).toBeFalsy();
     expect(imageRequests).toBe(0);
+  });
+
+  // The SDK client skips lines it can't parse, so read the raw stream.
+  it('writes only JSON-RPC to stdout, even when the generator logs', async () => {
+    const server = spawn(process.execPath, [cliPath, 'mcp'], { cwd: tmp });
+    const closed = new Promise((resolve) => server.once('close', resolve));
+    let stdout = '';
+    server.stdout.on('data', (chunk: Buffer) => (stdout += chunk));
+    // Complete (newline-terminated) lines only: a chunk can end mid-message.
+    const completeLines = (): string[] =>
+      stdout
+        .split('\n')
+        .slice(0, -1)
+        .filter((line) => line !== '');
+    const isResponseTo = (line: string, id: number): boolean => {
+      try {
+        return (JSON.parse(line) as { id?: unknown }).id === id;
+      } catch {
+        return false;
+      }
+    };
+    const send = (message: object): void => {
+      server.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', ...message })}\n`);
+    };
+    try {
+      send({
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: LATEST_PROTOCOL_VERSION,
+          capabilities: {},
+          clientInfo: { name: 'raw', version: '0.0.0' },
+        },
+      });
+      send({ method: 'notifications/initialized' });
+      // A data: image that won't decode makes html-to-docx console.log a
+      // [DEBUG] line.
+      send({
+        id: 2,
+        method: 'tools/call',
+        params: {
+          name: 'convert_markdown_to_word',
+          arguments: {
+            markdown:
+              '# Hi\n\n<img src="data:image/png;base64,AAAA" alt="x">\n',
+            output_path: path.join(tmp, 'broken-image.docx'),
+          },
+        },
+      });
+      await expect
+        .poll(() => completeLines().some((line) => isResponseTo(line, 2)), {
+          timeout: 20000,
+        })
+        .toBe(true);
+      const lines = completeLines();
+      expect(lines.length).toBeGreaterThanOrEqual(2);
+      for (const line of lines) expect(() => JSON.parse(line)).not.toThrow();
+    } finally {
+      // Even when the poll times out, so the child can't hold the run open.
+      server.kill();
+      await closed;
+    }
   });
 
   it('handles overlapping calls', async () => {

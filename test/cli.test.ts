@@ -69,6 +69,19 @@ describe('md2w', () => {
     expect(await docxHtml(stdout)).toContain('<h1>From stdin</h1>');
   });
 
+  it("keeps the generator's logging out of a .docx on stdout", () => {
+    // A data: image that won't decode makes html-to-docx console.log a
+    // [DEBUG] line, and console.error an [ERROR] one.
+    const markdown = '# Hi\n\n<img src="data:image/png;base64,AAAA" alt="x">\n';
+    const loud = md2w(['-', '-o', '-'], markdown);
+    expect(loud.status).toBe(0);
+    expect(loud.stdout.subarray(0, 2).toString()).toBe('PK');
+    const quiet = md2w(['-q', '-', '-o', '-'], markdown);
+    expect(quiet.status).toBe(0);
+    expect(quiet.stdout.subarray(0, 2).toString()).toBe('PK');
+    expect(quiet.stderr).toBe('');
+  });
+
   it('applies a font preset', () => {
     const { status } = md2w([
       '--font-preset',
