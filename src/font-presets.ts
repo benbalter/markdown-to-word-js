@@ -37,6 +37,21 @@ export interface ParagraphStyle {
   firstLineIndentChars?: number;
 }
 
+/** How lists are laid out beyond the paragraph rules they share with the body. */
+export interface ListStyle {
+  /**
+   * Bullet glyph per nesting level, the way Word's multi-level bullet library
+   * goes ● then ○ then ▪. Levels deeper than the list repeat its last glyph.
+   */
+  bullets: string[];
+  /**
+   * Number nested ordered levels across the parent's number, so they read
+   * 1.1 and 1.1.1 the way Word's multi-level list does. This also makes every
+   * level of a list share one numbering definition, which is how Word counts
+   * them; without it the generator's per-level counters restart at 1.
+   */
+  multilevelNumbers: boolean;
+}
 /** Paper and text block, in millimeters. */
 export interface PageLayout {
   widthMm: number;
@@ -57,6 +72,8 @@ export interface FontPreset {
    * `pageMargins` take precedence.
    */
   page?: PageLayout;
+  /** List layout, written into the numbering definitions. */
+  list?: ListStyle;
 }
 
 const LATIN_FONT = 'Times New Roman';
@@ -66,6 +83,12 @@ const BODY_FONT = '仿宋';
 const SIZE_ER = 22;
 /** Chinese size 3 (三号). */
 const SIZE_SAN = 16;
+
+/**
+ * Bullets per nesting level, as in Word's multi-level bullet library. The
+ * generator gives every level the same Symbol glyph, so nesting is invisible.
+ */
+const BULLET_GLYPHS = ['●', '○', '▪'];
 
 /**
  * Chinese official documents (公文), after GB/T 9704-2012 《党政机关公文格式》:
@@ -121,6 +144,7 @@ export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
     marginsMm: { top: 37, right: 26, bottom: 35, left: 28 },
     grid: { linesPerPage: 22, charsPerLine: 28 },
   },
+  list: { bullets: BULLET_GLYPHS, multilevelNumbers: true },
 };
 
 /** Twips (1/20 point) per millimeter. */

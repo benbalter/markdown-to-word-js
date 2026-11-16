@@ -57,7 +57,9 @@ The preset also sets the page:
 
 - **Paper and margins (5.1, 5.2.1):** A4, with a 37mm top margin (天头) and a 28mm left margin (订口) around a 156 × 225mm text block (版心).
 - **22 lines of 28 characters (5.2.3):** a Word document grid (文档网格) with exact line spacing at its pitch, 28.95pt. Widow control (孤行控制) is off, so it can't push a line to the next page and leave 21.
-- **Indent (7.3.3):** paragraphs, and the headings below the title, start two characters in (首行缩进 2 字符). Table cells, list items, and code blocks don't.
+- **Indent (7.3.3):** paragraphs, and the headings below the title, start two characters in (首行缩进 2 字符). Table cells and code blocks don't.
+- **Lists:** every level of an ordered or unordered list is laid out like a 公文 paragraph — the item's first line starts two characters in (首行缩进 2 字符) and one space, not a tab, separates the mark from its content (编号与内容的间距: 适中). Ordered levels stay flush with the text block (文本之前 0) at every depth, and a nested number carries its parent: the second item of the third item reads `3.2`. Bulleted levels step out by two characters per level so nesting is visible, and each level gets its own bullet, as Word's multi-level library does: ● then ○ then ▪, repeated for deeper levels, drawn in the body font.
+- **Multi-level numbering:** to count a nested list the way Word does, the preset points every level of one list at a single numbering definition (`w:numId`) and rewrites the level text to `%1.`, `%1.%2.`, `%1.%2.%3.`. The generator gives each depth its own definition, which is why a nested item restarts at `1.` on its own. Separate lists keep separate counters, and a bullet nested inside a numbered list keeps its own definition.
 - **Title (7.3.1):** Heading 1 is centered.
 - **Spacing:** 段前段后 0 行 on every level.
 
