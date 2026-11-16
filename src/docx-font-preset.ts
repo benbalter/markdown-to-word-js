@@ -1,5 +1,11 @@
 import JSZip from 'jszip';
-import type { FontPreset, LevelStyle, ParagraphStyle } from './font-presets.js';
+import type {
+  FontPreset,
+  LevelStyle,
+  LineSpacing,
+  ParagraphStyle,
+  TableStyle,
+} from './font-presets.js';
 import {
   keepXmlDeclaration,
   paragraphProperty,
@@ -150,18 +156,26 @@ export function patchStylesXml(
 
 function resolveLayout(preset: FontPreset, grid: Grid | null): Layout {
   const { lineSpacing, firstLineIndentChars = 0 } = preset.paragraph;
-  if (lineSpacing === 'grid' && !grid) {
+  return {
+    spacing: spacingFor(lineSpacing, grid),
+    firstLineIndent: Math.round(firstLineIndentChars * preset.body.sizePt * 20),
+  };
+}
+
+/** The `<w:spacing>` pair a line-spacing choice resolves to on this page. */
+function spacingFor(
+  lineSpacing: LineSpacing,
+  grid: Grid | null
+): { line: string; rule: string } {
+  if (lineSpacing !== 'grid') {
+    return SINGLE_SPACING;
+  }
+  if (!grid) {
     throw new Error(
       "Cannot apply font preset: lineSpacing 'grid' needs page.grid"
     );
   }
-  return {
-    spacing:
-      lineSpacing === 'grid' && grid
-        ? { line: String(grid.linePitch), rule: 'exact' }
-        : SINGLE_SPACING,
-    firstLineIndent: Math.round(firstLineIndentChars * preset.body.sizePt * 20),
-  };
+  return { line: String(grid.linePitch), rule: 'exact' };
 }
 
 /**
@@ -176,6 +190,9 @@ function resolveLayout(preset: FontPreset, grid: Grid | null): Layout {
  *   with a drawing keep single spacing; the grid then rounds them up to whole
  *   lines.
  * - Table cells drop the first-line indent; it only crowds narrow columns.
+ * - When the preset describes table cells, they are laid out on their own
+ *   terms instead of inheriting the page grid: vertical alignment, line
+ *   spacing and grid snapping.
  */
 export function patchDocumentXml(
   documentXml: string,
@@ -200,10 +217,12 @@ export function patchDocumentXml(
   }
 
   const gridSpacing = preset.paragraph.lineSpacing === 'grid';
+  const table = preset.table;
   for (const paragraph of Array.from(dom.getElementsByTagNameNS(W_NS, 'p'))) {
     const pPr = children(paragraph).find((child) => child.localName === 'pPr');
+    const inTableCell = isInTableCell(paragraph);
 
-    if (gridSpacing) {
+    if (gridSpacing && !inTableCell) {
       if (paragraph.getElementsByTagNameNS(W_NS, 'drawing').length > 0) {
         const spacing = paragraphProperty(pPrOf(paragraph), 'spacing');
         spacing.setAttributeNS(W_NS, 'w:line', SINGLE_SPACING.line);
@@ -220,8 +239,22 @@ export function patchDocumentXml(
       }
     }
 
-    if (preset.paragraph.firstLineIndentChars && isInTableCell(paragraph)) {
+    if (table && inTableCell) {
+      layoutTableCell(pPrOf(paragraph), table, grid);
+    }
+
+    if (preset.paragraph.firstLineIndentChars && inTableCell) {
       removeFirstLineIndent(pPrOf(paragraph));
+    }
+  }
+
+  if (table) {
+    for (const cell of Array.from(dom.getElementsByTagNameNS(W_NS, 'tc'))) {
+      cellVerticalAlign(cell).setAttributeNS(
+        W_NS,
+        'w:val',
+        table.verticalAlign
+      );
     }
   }
 
@@ -491,6 +524,43 @@ function setNumberSeparator(lvl: Element): void {
 /** The paragraph properties a numbering level carries, created when absent. */
 function numberingParagraphOf(lvl: Element): Element {
   return childOrCreate(lvl, 'pPr', 'last');
+}
+
+/**
+ * Cells sit outside the page grid: exact spacing at the line pitch would
+ * stretch every row to a whole pitch and clip what wraps, so a cell paragraph
+ * takes its own line spacing and stops snapping to the grid (Word's 如果定义了
+ * 文档网格，则与网格对齐 checkbox, `w:snapToGrid`).
+ */
+function layoutTableCell(
+  pPr: Element,
+  table: TableStyle,
+  grid: Grid | null
+): void {
+  const spacing = spacingFor(table.lineSpacing, grid);
+  const spacingElement = paragraphProperty(pPr, 'spacing');
+  spacingElement.setAttributeNS(W_NS, 'w:line', spacing.line);
+  spacingElement.setAttributeNS(W_NS, 'w:lineRule', spacing.rule);
+
+  paragraphProperty(pPr, 'snapToGrid').setAttributeNS(
+    W_NS,
+    'w:val',
+    table.snapToGrid ? '1' : '0'
+  );
+}
+
+/** `<w:vAlign>` in a cell's properties, created where Word writes it. */
+function cellVerticalAlign(cell: Element): Element {
+  const tcPr = childOrCreate(cell, 'tcPr', 'first');
+  const existing = children(tcPr).find((child) => child.localName === 'vAlign');
+  if (existing) {
+    return existing;
+  }
+  const created = tcPr.ownerDocument.createElementNS(W_NS, 'w:vAlign');
+  const hideMark = children(tcPr).find(
+    (child) => child.localName === 'hideMark'
+  );
+  return tcPr.insertBefore(created, hideMark ?? null);
 }
 
 /**

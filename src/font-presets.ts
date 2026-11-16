@@ -37,6 +37,19 @@ export interface ParagraphStyle {
   firstLineIndentChars?: number;
 }
 
+/**
+ * How table cells are laid out. Cells sit outside the page grid: exact grid
+ * spacing would stretch every row and clip content that wraps.
+ */
+export interface TableStyle {
+  /** Word's 表格属性 → 单元格 → 垂直对齐方式. */
+  verticalAlign: 'top' | 'center' | 'bottom';
+  /** Line spacing of the paragraphs inside the cells. */
+  lineSpacing: LineSpacing;
+  /** Word's 如果定义了文档网格，则与网格对齐 (`w:snapToGrid`). */
+  snapToGrid: boolean;
+}
+
 /** How lists are laid out beyond the paragraph rules they share with the body. */
 export interface ListStyle {
   /**
@@ -52,6 +65,7 @@ export interface ListStyle {
    */
   multilevelNumbers: boolean;
 }
+
 /** Paper and text block, in millimeters. */
 export interface PageLayout {
   widthMm: number;
@@ -72,6 +86,8 @@ export interface FontPreset {
    * `pageMargins` take precedence.
    */
   page?: PageLayout;
+  /** Layout for table cells, which sit outside the page grid. */
+  table?: TableStyle;
   /** List layout, written into the numbering definitions. */
   list?: ListStyle;
 }
@@ -144,6 +160,7 @@ export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
     marginsMm: { top: 37, right: 26, bottom: 35, left: 28 },
     grid: { linesPerPage: 22, charsPerLine: 28 },
   },
+  table: { verticalAlign: 'center', lineSpacing: 'single', snapToGrid: false },
   list: { bullets: BULLET_GLYPHS, multilevelNumbers: true },
 };
 

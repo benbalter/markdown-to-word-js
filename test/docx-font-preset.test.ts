@@ -572,6 +572,108 @@ describe('lists under the 公文 preset', () => {
   });
 });
 
+const TABLE_MARKDOWN = `正文段落。
+
+| 阶段 | 备注 |
+| --- | --- |
+| 报送 | 含 English |
+| 抽查 | 第二行 |
+`;
+
+interface CellLayout {
+  verticalAlign: (string | null)[];
+  cellSpacing: string[];
+  cellSnapToGrid: (string | null)[];
+  bodySpacing: string[];
+  bodySnapToGrid: (string | null)[];
+}
+
+async function layoutOf(blob: Blob): Promise<CellLayout> {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const xml = await zip.file('word/document.xml')!.async('string');
+  const dom = new DOMParser().parseFromString(xml, 'application/xml');
+
+  const spacingOf = (paragraph: Element): string => {
+    const spacing = paragraph.getElementsByTagNameNS(W_NS, 'spacing')[0];
+    return spacing
+      ? `${spacing.getAttributeNS(W_NS, 'line')}/${spacing.getAttributeNS(W_NS, 'lineRule')}`
+      : '(inherited)';
+  };
+  const snapOf = (paragraph: Element): string | null =>
+    paragraph
+      .getElementsByTagNameNS(W_NS, 'snapToGrid')[0]
+      ?.getAttributeNS(W_NS, 'val') ?? null;
+
+  const cells = Array.from(dom.getElementsByTagNameNS(W_NS, 'tc'));
+  const cellParagraphs = cells.flatMap((cell) =>
+    Array.from(cell.children).filter(
+      (child) => child.namespaceURI === W_NS && child.localName === 'p'
+    )
+  );
+  const bodyParagraphs = Array.from(
+    dom.getElementsByTagNameNS(W_NS, 'p')
+  ).filter((paragraph) => !cellParagraphs.includes(paragraph));
+
+  return {
+    verticalAlign: cells.map(
+      (cell) =>
+        cell
+          .getElementsByTagNameNS(W_NS, 'vAlign')[0]
+          ?.getAttributeNS(W_NS, 'val') ?? null
+    ),
+    cellSpacing: cellParagraphs.map(spacingOf),
+    cellSnapToGrid: cellParagraphs.map(snapOf),
+    bodySpacing: [...new Set(bodyParagraphs.map(spacingOf))],
+    bodySnapToGrid: [...new Set(bodyParagraphs.map(snapOf))],
+  };
+}
+
+describe('tables under the 公文 preset', () => {
+  it('centers cell content vertically and keeps cells off the page grid', async () => {
+    const layout = await layoutOf(
+      await convertMarkdownToWord(TABLE_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+
+    // Two columns across the header row and two body rows.
+    expect(layout.verticalAlign).toEqual(Array(6).fill('center'));
+    // 单倍行距: line 240 twips with the auto rule, not the grid's exact pitch.
+    expect(layout.cellSpacing).toEqual(Array(6).fill('240/auto'));
+    expect(layout.cellSnapToGrid).toEqual(Array(6).fill('0'));
+  });
+
+  it('leaves body paragraphs on the grid spacing', async () => {
+    const layout = await layoutOf(
+      await convertMarkdownToWord(TABLE_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+
+    expect(layout.bodySpacing).toEqual(['(inherited)']);
+    expect(layout.bodySnapToGrid).toEqual([null]);
+  });
+
+  it('leaves tables untouched without a preset', async () => {
+    const layout = await layoutOf(await convertMarkdownToWord(TABLE_MARKDOWN));
+
+    expect(layout.verticalAlign).toEqual(Array(6).fill(null));
+    expect(layout.cellSpacing).toEqual(Array(6).fill('null/auto'));
+    expect(layout.cellSnapToGrid).toEqual(Array(6).fill(null));
+  });
+
+  it('still round-trips the cell text', async () => {
+    const blob = await convertMarkdownToWord(TABLE_MARKDOWN, {
+      fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+    });
+    const { value: html } = await mammoth.convertToHtml({
+      buffer: Buffer.from(await blob.arrayBuffer()),
+    });
+
+    expect(html).toContain('报送');
+    expect(html).toContain('含 English');
+  });
+});
 
 const NESTED_LIST_MARKDOWN = `- 一级甲
 - 一级乙
