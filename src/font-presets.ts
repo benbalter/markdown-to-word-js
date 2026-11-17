@@ -161,6 +161,18 @@ export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
     grid: { linesPerPage: 22, charsPerLine: 28 },
   },
   table: { verticalAlign: 'center', lineSpacing: 'single', snapToGrid: false },
+  // GB/T 9704-2012 §7.3.3 numbers its levels 一、 （一） 1. （1）, not 1.1, so a
+  // 公文 does not count across parents. See CHINESE_OFFICIAL_MULTILEVEL_FONTS.
+  list: { bullets: BULLET_GLYPHS, multilevelNumbers: false },
+};
+
+/**
+ * The 公文 preset with multi-level numbering: nested items read 1.1 and 1.1.1,
+ * which is how contracts and similar instruments number their clauses rather
+ * than how a 公文 does.
+ */
+export const CHINESE_OFFICIAL_MULTILEVEL_FONTS: FontPreset = {
+  ...CHINESE_OFFICIAL_DOC_FONTS,
   list: { bullets: BULLET_GLYPHS, multilevelNumbers: true },
 };
 
@@ -174,6 +186,7 @@ export function mmToTwips(mm: number): number {
 /** The presets offered in the UI, keyed by the value of their `<option>`. */
 export const FONT_PRESETS: Record<string, FontPreset> = {
   'chinese-official': CHINESE_OFFICIAL_DOC_FONTS,
+  'chinese-official-multilevel': CHINESE_OFFICIAL_MULTILEVEL_FONTS,
 };
 
 /**

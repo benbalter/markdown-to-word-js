@@ -14,6 +14,7 @@
   "styleLabel": "スタイル",
   "styleDefault": "デフォルト",
   "styleChineseOfficial": "中国の公文書式（公文）",
+  "styleChineseOfficialMultilevel": "中国の公文書（公文）、1.1 番号",
   "styleChineseHint": "中国語のテキストのようです。公文スタイルのフォントを使うには「中国の公文書式（公文）」を選んでください。",
   "convertButton": "Word に変換",
   "shortcutHint": "または {keys} を押す",

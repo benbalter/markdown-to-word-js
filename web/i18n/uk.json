@@ -14,6 +14,7 @@
   "styleLabel": "Стиль",
   "styleDefault": "За замовчуванням",
   "styleChineseOfficial": "Китайський офіційний документ (公文)",
+  "styleChineseOfficialMultilevel": "Офіційний документ КНР (公文), нумерація 1.1",
   "styleChineseHint": "Схоже, це текст китайською. Щоб застосувати шрифти в стилі 公文, виберіть «Китайський офіційний документ (公文)».",
   "convertButton": "Конвертувати у Word",
   "shortcutHint": "або натисніть {keys}",

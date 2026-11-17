@@ -14,6 +14,7 @@
   "styleLabel": "樣式",
   "styleDefault": "預設",
   "styleChineseOfficial": "中國大陸公文格式",
+  "styleChineseOfficialMultilevel": "公文格式（多級編號 1.1）",
   "styleChineseHint": "這看起來是中文文字。如需中國大陸公文字型，請選擇「中國大陸公文格式」。",
   "convertButton": "轉換為 Word",
   "shortcutHint": "或按 {keys}",

@@ -14,6 +14,7 @@
   "styleLabel": "스타일",
   "styleDefault": "기본",
   "styleChineseOfficial": "중국 공문서 서식(公文)",
+  "styleChineseOfficialMultilevel": "중국 공식 문서(公文), 1.1 번호 매기기",
   "styleChineseHint": "중국어 텍스트로 보입니다. 公文 스타일 글꼴을 사용하려면 “중국 공문서 서식(公文)”을 선택하세요.",
   "convertButton": "Word로 변환",
   "shortcutHint": "또는 {keys} 누르기",

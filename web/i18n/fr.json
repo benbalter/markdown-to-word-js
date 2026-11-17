@@ -14,6 +14,7 @@
   "styleLabel": "Style",
   "styleDefault": "Par défaut",
   "styleChineseOfficial": "Document officiel chinois (公文)",
+  "styleChineseOfficialMultilevel": "Document officiel chinois (公文), numérotation 1.1",
   "styleChineseHint": "Ce texte semble être en chinois. Pour les polices de style 公文, choisissez « Document officiel chinois (公文) ».",
   "convertButton": "Convertir en Word",
   "shortcutHint": "ou appuyez sur {keys}",

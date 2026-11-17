@@ -14,6 +14,7 @@
   "styleLabel": "样式",
   "styleDefault": "默认",
   "styleChineseOfficial": "公文格式",
+  "styleChineseOfficialMultilevel": "公文格式（多级编号 1.1）",
   "styleChineseHint": "这看起来是中文文本。如需公文格式，请选择“公文格式”。",
   "convertButton": "转换为 Word",
   "shortcutHint": "或按 {keys}",

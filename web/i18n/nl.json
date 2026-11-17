@@ -14,6 +14,7 @@
   "styleLabel": "Stijl",
   "styleDefault": "Standaard",
   "styleChineseOfficial": "Chinees officieel document (公文)",
+  "styleChineseOfficialMultilevel": "Chinees officieel document (公文), 1.1-nummering",
   "styleChineseHint": "Dit lijkt Chinese tekst. Kies voor lettertypen in 公文-stijl “Chinees officieel document (公文)”.",
   "convertButton": "Converteren naar Word",
   "shortcutHint": "of druk op {keys}",

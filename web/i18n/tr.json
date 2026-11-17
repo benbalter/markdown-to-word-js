@@ -14,6 +14,7 @@
   "styleLabel": "Stil",
   "styleDefault": "Varsayılan",
   "styleChineseOfficial": "Çin resmî belgesi (公文)",
+  "styleChineseOfficialMultilevel": "Çince resmî belge (公文), 1.1 numaralama",
   "styleChineseHint": "Bu metin Çince gibi görünüyor. 公文 tarzı yazı tipleri için “Çin resmî belgesi (公文)” seçeneğini seçin.",
   "convertButton": "Word'e dönüştür",
   "shortcutHint": "veya {keys} tuşlarına basın",

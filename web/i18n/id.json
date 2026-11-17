@@ -14,6 +14,7 @@
   "styleLabel": "Gaya",
   "styleDefault": "Bawaan",
   "styleChineseOfficial": "Dokumen resmi Tiongkok (公文)",
+  "styleChineseOfficialMultilevel": "Dokumen resmi Tiongkok (公文), penomoran 1.1",
   "styleChineseHint": "Ini tampaknya teks berbahasa Mandarin. Untuk format 公文, pilih “Dokumen resmi Tiongkok (公文)”.",
   "convertButton": "Konversi ke Word",
   "shortcutHint": "atau tekan {keys}",

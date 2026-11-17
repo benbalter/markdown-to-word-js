@@ -14,6 +14,7 @@
   "styleLabel": "Stil",
   "styleDefault": "Standard",
   "styleChineseOfficial": "Chinesisches Amtsdokument (公文)",
+  "styleChineseOfficialMultilevel": "Chinesisches offizielles Dokument (公文), 1.1-Nummerierung",
   "styleChineseHint": "Das sieht nach chinesischem Text aus. Für Schriften im 公文-Stil wählen Sie „Chinesisches Amtsdokument (公文)“.",
   "convertButton": "In Word umwandeln",
   "shortcutHint": "oder {keys} drücken",

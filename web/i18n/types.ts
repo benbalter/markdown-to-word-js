@@ -48,6 +48,8 @@ export interface UIStrings {
   styleDefault: string;
   /** The 公文 preset. Keep "公文" literal so Chinese readers recognize it. */
   styleChineseOfficial: string;
+  /** The 公文 preset with nested numbers counted as 1.1, for contracts. */
+  styleChineseOfficialMultilevel: string;
   /** Shown when the text is mostly Chinese and no style is chosen. */
   styleChineseHint: string;
   convertButton: string;

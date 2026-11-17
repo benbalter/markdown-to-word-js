@@ -14,6 +14,7 @@
   "styleLabel": "النمط",
   "styleDefault": "الافتراضي",
   "styleChineseOfficial": "مستند رسمي صيني (公文)",
+  "styleChineseOfficialMultilevel": "مستند رسمي صيني (公文) مع ترقيم 1.1",
   "styleChineseHint": "يبدو أن هذا نص صيني. لاستخدام خطوط نمط 公文، اختر «مستند رسمي صيني (公文)».",
   "convertButton": "حوّل إلى Word",
   "shortcutHint": "أو اضغط {keys}",
