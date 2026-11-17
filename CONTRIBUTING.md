@@ -13,7 +13,7 @@ Thank you for your interest in contributing to this project! This document provi
 
 ### Prerequisites
 
-- Node.js 22.12 or later (`.nvmrc` pins the version CI uses)
+- Node.js 22.22.2+, 24.15+, or 26+ (`.nvmrc` pins the version CI uses)
 - Google Chrome, for the Playwright end-to-end tests
 
 ### Project Structure

@@ -120,7 +120,7 @@ npm install -g markdown-to-word
 md2w report.md
 ```
 
-It writes the `.docx` next to the input with the same name (`report.md` becomes `report.docx`), replacing any file already there, and prints where it wrote it to **stderr**. It needs Node 22.12 or later, and exits with status 1 and a message if the file is missing or empty.
+It writes the `.docx` next to the input with the same name (`report.md` becomes `report.docx`), replacing any file already there, and prints where it wrote it to **stderr**. It needs Node 22.22.2+, 24.15+, or 26+, and exits with status 1 and a message if the file is missing or empty.
 
 To read the Markdown from **stdin**, pass `-` as the file, or leave it out and pipe the Markdown in. There's no file name to go on then, so `-o` is required:
 
@@ -176,7 +176,7 @@ In the browser, md2word.app registers the same conversion as a [WebMCP](https://
 
 ## Use it from code
 
-The converter is also on npm as [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word), for Node 22.12+ and for browsers through a bundler (Vite, webpack, esbuild):
+The converter is also on npm as [`markdown-to-word`](https://www.npmjs.com/package/markdown-to-word), for Node 22.22.2+, 24.15+, or 26+, and for browsers through a bundler (Vite, webpack, esbuild):
 
 ```bash
 npm install markdown-to-word
@@ -204,7 +204,7 @@ On a server, treat Markdown from users as untrusted: the converter downloads eac
 
 ## Development
 
-Requires Node.js 22.12 or later (`.nvmrc` pins the version CI uses).
+Requires Node.js 22.22.2+, 24.15+, or 26+ (`.nvmrc` pins the version CI uses).
 
 ```bash
 git clone https://github.com/benbalter/markdown-to-word-js.git
