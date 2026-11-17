@@ -58,8 +58,8 @@ The preset also sets the page:
 - **Paper and margins (5.1, 5.2.1):** A4, with a 37mm top margin (天头) and a 28mm left margin (订口) around a 156 × 225mm text block (版心).
 - **22 lines of 28 characters (5.2.3):** a Word document grid (文档网格) with exact line spacing at its pitch, 28.95pt. Widow control (孤行控制) is off, so it can't push a line to the next page and leave 21.
 - **Indent (7.3.3):** paragraphs, and the headings below the title, start two characters in (首行缩进 2 字符). Table cells and code blocks don't.
-- **Lists:** every level of an ordered or unordered list is laid out like a 公文 paragraph — the item's first line starts two characters in (首行缩进 2 字符) and one space, not a tab, separates the mark from its content (编号与内容的间距: 适中). Ordered levels stay flush with the text block (文本之前 0) at every depth, and a nested number carries its parent: the second item of the third item reads `3.2`. Bulleted levels step out by two characters per level so nesting is visible, and each level gets its own bullet, as Word's multi-level library does: ● then ○ then ▪, repeated for deeper levels, drawn in the body font.
-- **Multi-level numbering:** to count a nested list the way Word does, the preset points every level of one list at a single numbering definition (`w:numId`) and rewrites the level text to `%1.`, `%1.%2.`, `%1.%2.%3.`. The generator gives each depth its own definition, which is why a nested item restarts at `1.` on its own. Separate lists keep separate counters, and a bullet nested inside a numbered list keeps its own definition.
+- **Lists:** every level of an ordered or unordered list is laid out like a 公文 paragraph — the item's first line starts two characters in (首行缩进 2 字符) and one space, not a tab, separates the mark from its content (编号与内容的间距: 适中). Ordered levels stay flush with the text block (文本之前 0) at every depth, which is what a 公文 does: its numbering text already shows the level. Bulleted levels step out by two characters per level so nesting is visible, and each level gets its own bullet, as Word's multi-level library does: ● then ○ then ▪, repeated for deeper levels, drawn in the body font.
+- **Multi-level numbering (opt-in):** the **Chinese official document (公文), 1.1 numbering** style additionally counts nested numbers through their parent, so the second item of the third item reads `3.2`. GB/T 9704-2012 §7.3.3 numbers levels 一、 （一） 1. （1） rather than 1.1, so this is a separate choice for contracts and similar instruments: it points every level of one list at a single numbering definition (`w:numId`) and rewrites the level text to `%1.`, `%1.%2.`, `%1.%2.%3.`. Separate lists keep separate counters, and a bullet nested inside a numbered list keeps its own definition.
 - **Tables:** cells are centered vertically (垂直对齐: 居中) and their paragraphs use single line spacing with grid snapping off (取消"如果定义了文档网格，则与网格对齐"). The page grid's exact 28.95pt pitch would stretch every row and clip text that wraps, so cells stay outside it.
 - **Title (7.3.1):** Heading 1 is centered.
 - **Spacing:** 段前段后 0 行 on every level.
@@ -132,7 +132,7 @@ md2w - -o - < report.md > report.docx
 Options:
 
 - `-o, --output <file>`: write the `.docx` to `<file>`, creating folders as needed. `-o -` writes it to stdout.
-- `--font-preset <name>`: restyle the document with a font preset. `chinese-official` is the Chinese official document (公文) style described in [Optional Font Presets](#optional-font-presets).
+- `--font-preset <name>`: restyle the document with a font preset. `chinese-official` is the Chinese official document (公文) style described in [Optional Font Presets](#optional-font-presets); `chinese-official-multilevel` adds the `1.1` numbering for contracts.
 - `-q, --quiet`: print nothing to stderr except errors.
 - `-V, --version`: print the version.
 
@@ -166,7 +166,7 @@ It has one tool, `convert_markdown_to_word`:
 - `markdown` or `path` (exactly one): the Markdown as a string, or the path of a Markdown file (`.md`, `.markdown`, `.mdown`, or `.txt`). Prefer absolute paths; relative ones resolve against the server's working directory.
 - `output_path` (required): where to write the `.docx`; it must end in `.docx`. Missing folders are created.
 - `overwrite`: replace `output_path` if it already exists. Off by default, so the tool refuses to clobber an existing file and says so.
-- `font_preset`: `chinese-official` for the 公文 style; omit for Word's default styling.
+- `font_preset`: `chinese-official` for the 公文 style, `chinese-official-multilevel` for 公文 plus `1.1` numbering; omit for Word's default styling.
 
 It returns the `output_path`, the file's size in `bytes`, and any `warnings` (remote images it didn't download, or a `.docx` patch that had to be skipped), also as structured content.
 
