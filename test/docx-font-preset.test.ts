@@ -3,7 +3,10 @@ import JSZip from 'jszip';
 import mammoth from 'mammoth';
 import { convertMarkdownToWord } from '../src/converter';
 import { patchDocumentXml } from '../src/docx-font-preset';
-import { CHINESE_OFFICIAL_DOC_FONTS } from '../src/font-presets';
+import {
+  CHINESE_OFFICIAL_DOC_FONTS,
+  CHINESE_OFFICIAL_MULTILEVEL_FONTS,
+} from '../src/font-presets';
 
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
@@ -746,11 +749,11 @@ describe('nested bullets under the 公文 preset', () => {
     }
   });
 
-  it('numbers ordered levels across their parents instead of restarting', async () => {
+  it('numbers ordered levels across their parents with the multi-level preset', async () => {
     const ordered = (
       await levelsOfBullets(
         await convertMarkdownToWord(NESTED_LIST_MARKDOWN, {
-          fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+          fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
         })
       )
     ).filter((levels) => levels[0]?.format === 'decimal');
@@ -797,6 +800,17 @@ const MULTILEVEL_MARKDOWN = `1. 甲
 2. 另一个列表二
 `;
 
+// A loose item: its second paragraph is unnumbered, and the sub-list follows it.
+const LOOSE_ITEM_MARKDOWN = `1. 甲
+2. 乙
+
+   第二段说明文字。
+
+   1. 乙之一
+   2. 乙之二
+3. 丙
+`;
+
 interface ListItem {
   text: string;
   ilvl: number;
@@ -834,7 +848,7 @@ describe('multi-level numbering under the 公文 preset', () => {
   it('counts one list through a single numbering definition', async () => {
     const items = await listItemsOf(
       await convertMarkdownToWord(MULTILEVEL_MARKDOWN, {
-        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+        fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
       })
     );
 
@@ -848,7 +862,7 @@ describe('multi-level numbering under the 公文 preset', () => {
   it('keeps a later list on its own counter', async () => {
     const items = await listItemsOf(
       await convertMarkdownToWord(MULTILEVEL_MARKDOWN, {
-        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+        fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
       })
     );
 
@@ -869,5 +883,38 @@ describe('multi-level numbering under the 公文 preset', () => {
     expect(
       new Set(items.slice(0, 7).map((item) => item.numId)).size
     ).toBeGreaterThan(1);
+  });
+
+  it('leaves the 公文 preset on the generator numbering', async () => {
+    // GB/T 9704 numbers levels 一、 （一） 1. （1）, so 1.1 is opt-in through
+    // the multi-level preset rather than the 公文 default.
+    const items = await listItemsOf(
+      await convertMarkdownToWord(MULTILEVEL_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+
+    expect(
+      new Set(items.slice(0, 7).map((item) => item.numId)).size
+    ).toBeGreaterThan(1);
+  });
+
+  it('keeps counting through a later, unnumbered paragraph in a list item', async () => {
+    // The continuation paragraph is unnumbered but indented under its item, so
+    // it must not end the list: without that, the sub-list below keeps its own
+    // definition and its %1 refers to nothing, so the items read 1.1 and 1.2
+    // under the third entry instead of 3.1 and 3.2.
+    const items = await listItemsOf(
+      await convertMarkdownToWord(LOOSE_ITEM_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
+      })
+    );
+
+    const parents = items.filter((item) => item.ilvl === 0);
+    const children = items.filter((item) => item.ilvl === 1);
+    expect(children.length).toBeGreaterThan(0);
+    for (const child of children) {
+      expect(child.numId).toBe(parents[0].numId);
+    }
   });
 });

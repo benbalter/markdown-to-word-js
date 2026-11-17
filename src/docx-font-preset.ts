@@ -79,7 +79,8 @@ export async function applyFontPreset(
     pageGrid ||
     preset.paragraph.lineSpacing === 'grid' ||
     preset.paragraph.firstLineIndentChars ||
-    preset.list?.multilevelNumbers
+    preset.list?.multilevelNumbers ||
+    preset.table
   ) {
     const documentEntry = zip.file('word/document.xml');
     if (!documentEntry) {
@@ -96,11 +97,9 @@ export async function applyFontPreset(
   const stylesXml = await stylesEntry.async('string');
   zip.file('word/styles.xml', patchStylesXml(stylesXml, preset, grid));
 
-  // A document without lists has no numbering part to lay out.
-  if (
-    numberingXml !== null &&
-    (preset.list || preset.paragraph.firstLineIndentChars)
-  ) {
+  // Lists are laid out only when the preset describes them; a document
+  // without lists has no numbering part anyway.
+  if (numberingXml !== null && preset.list) {
     zip.file('word/numbering.xml', patchNumberingXml(numberingXml, preset));
   }
 
@@ -363,7 +362,12 @@ function unifyListNumbering(dom: Document, formats: NumberFormats): void {
   for (const paragraph of Array.from(dom.getElementsByTagNameNS(W_NS, 'p'))) {
     const numbering = numberingOf(paragraph);
     if (!numbering) {
-      listNumId = null;
+      // A list item's later paragraphs are unnumbered but indented under the
+      // item, so only an unindented paragraph ends the list.
+      const ind = paragraph.getElementsByTagNameNS(W_NS, 'ind')[0];
+      if (Number(ind?.getAttributeNS(W_NS, 'left') ?? 0) <= 0) {
+        listNumId = null;
+      }
       continue;
     }
 
