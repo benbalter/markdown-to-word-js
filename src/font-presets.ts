@@ -37,6 +37,35 @@ export interface ParagraphStyle {
   firstLineIndentChars?: number;
 }
 
+/**
+ * How table cells are laid out. Cells sit outside the page grid: exact grid
+ * spacing would stretch every row and clip content that wraps.
+ */
+export interface TableStyle {
+  /** Word's 表格属性 → 单元格 → 垂直对齐方式. */
+  verticalAlign: 'top' | 'center' | 'bottom';
+  /** Line spacing of the paragraphs inside the cells. */
+  lineSpacing: LineSpacing;
+  /** Word's 如果定义了文档网格，则与网格对齐 (`w:snapToGrid`). */
+  snapToGrid: boolean;
+}
+
+/** How lists are laid out beyond the paragraph rules they share with the body. */
+export interface ListStyle {
+  /**
+   * Bullet glyph per nesting level, the way Word's multi-level bullet library
+   * goes ● then ○ then ▪. Levels deeper than the list repeat its last glyph.
+   */
+  bullets: string[];
+  /**
+   * Number nested ordered levels across the parent's number, so they read
+   * 1.1 and 1.1.1 the way Word's multi-level list does. This also makes every
+   * level of a list share one numbering definition, which is how Word counts
+   * them; without it the generator's per-level counters restart at 1.
+   */
+  multilevelNumbers: boolean;
+}
+
 /** Paper and text block, in millimeters. */
 export interface PageLayout {
   widthMm: number;
@@ -57,6 +86,10 @@ export interface FontPreset {
    * `pageMargins` take precedence.
    */
   page?: PageLayout;
+  /** Layout for table cells, which sit outside the page grid. */
+  table?: TableStyle;
+  /** List layout, written into the numbering definitions. */
+  list?: ListStyle;
 }
 
 const LATIN_FONT = 'Times New Roman';
@@ -66,6 +99,12 @@ const BODY_FONT = '仿宋';
 const SIZE_ER = 22;
 /** Chinese size 3 (三号). */
 const SIZE_SAN = 16;
+
+/**
+ * Bullets per nesting level, as in Word's multi-level bullet library. The
+ * generator gives every level the same Symbol glyph, so nesting is invisible.
+ */
+const BULLET_GLYPHS = ['●', '○', '▪'];
 
 /**
  * Chinese official documents (公文), after GB/T 9704-2012 《党政机关公文格式》:
@@ -121,6 +160,20 @@ export const CHINESE_OFFICIAL_DOC_FONTS: FontPreset = {
     marginsMm: { top: 37, right: 26, bottom: 35, left: 28 },
     grid: { linesPerPage: 22, charsPerLine: 28 },
   },
+  table: { verticalAlign: 'center', lineSpacing: 'single', snapToGrid: false },
+  // GB/T 9704-2012 §7.3.3 numbers its levels 一、 （一） 1. （1）, not 1.1, so a
+  // 公文 does not count across parents. See CHINESE_OFFICIAL_MULTILEVEL_FONTS.
+  list: { bullets: BULLET_GLYPHS, multilevelNumbers: false },
+};
+
+/**
+ * The 公文 preset with multi-level numbering: nested items read 1.1 and 1.1.1,
+ * which is how contracts and similar instruments number their clauses rather
+ * than how a 公文 does.
+ */
+export const CHINESE_OFFICIAL_MULTILEVEL_FONTS: FontPreset = {
+  ...CHINESE_OFFICIAL_DOC_FONTS,
+  list: { bullets: BULLET_GLYPHS, multilevelNumbers: true },
 };
 
 /** Twips (1/20 point) per millimeter. */
@@ -133,6 +186,7 @@ export function mmToTwips(mm: number): number {
 /** The presets offered in the UI, keyed by the value of their `<option>`. */
 export const FONT_PRESETS: Record<string, FontPreset> = {
   'chinese-official': CHINESE_OFFICIAL_DOC_FONTS,
+  'chinese-official-multilevel': CHINESE_OFFICIAL_MULTILEVEL_FONTS,
 };
 
 /**

@@ -14,6 +14,7 @@
   "styleLabel": "स्टाइल",
   "styleDefault": "डिफ़ॉल्ट",
   "styleChineseOfficial": "चीनी आधिकारिक दस्तावेज़ (公文)",
+  "styleChineseOfficialMultilevel": "चीनी आधिकारिक दस्तावेज़ (公文), 1.1 संख्यांकन",
   "styleChineseHint": "यह चीनी टेक्स्ट लगता है। 公文-शैली के फ़ॉन्ट के लिए “चीनी आधिकारिक दस्तावेज़ (公文)” चुनें।",
   "convertButton": "Word में बदलें",
   "shortcutHint": "या {keys} दबाएँ",

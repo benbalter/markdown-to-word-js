@@ -1,5 +1,11 @@
 import JSZip from 'jszip';
-import type { FontPreset, LevelStyle, ParagraphStyle } from './font-presets.js';
+import type {
+  FontPreset,
+  LevelStyle,
+  LineSpacing,
+  ParagraphStyle,
+  TableStyle,
+} from './font-presets.js';
 import {
   keepXmlDeclaration,
   paragraphProperty,
@@ -36,8 +42,8 @@ interface Layout {
 }
 
 /**
- * Rewrites the fonts, sizes, paragraph spacing and page grid of an already
- * generated .docx.
+ * Rewrites the fonts, sizes, paragraph spacing, page grid and list layout of an
+ * already generated .docx.
  *
  * `html-to-docx` only ever writes `w:ascii`, which WinWord applies to Latin
  * characters and digits; Chinese characters fall back to the theme font. The
@@ -59,12 +65,22 @@ export async function applyFontPreset(
     );
   }
 
+  // The numbering part is read first: laying the document's lists out needs to
+  // know which format each numbering definition uses at each level.
+  const numberingEntry = zip.file('word/numbering.xml');
+  const numberingXml = numberingEntry
+    ? await numberingEntry.async('string')
+    : null;
+  const formats = numberingXml ? numberFormatsOf(numberingXml) : undefined;
+
   let grid: Grid | null = null;
   const pageGrid = preset.page?.grid;
   if (
     pageGrid ||
     preset.paragraph.lineSpacing === 'grid' ||
-    preset.paragraph.firstLineIndentChars
+    preset.paragraph.firstLineIndentChars ||
+    preset.list?.multilevelNumbers ||
+    preset.table
   ) {
     const documentEntry = zip.file('word/document.xml');
     if (!documentEntry) {
@@ -73,13 +89,19 @@ export async function applyFontPreset(
       );
     }
     const documentXml = await documentEntry.async('string');
-    const patched = patchDocumentXml(documentXml, preset);
+    const patched = patchDocumentXml(documentXml, preset, formats);
     grid = patched.grid;
     zip.file('word/document.xml', patched.xml);
   }
 
   const stylesXml = await stylesEntry.async('string');
   zip.file('word/styles.xml', patchStylesXml(stylesXml, preset, grid));
+
+  // Lists are laid out only when the preset describes them; a document
+  // without lists has no numbering part anyway.
+  if (numberingXml !== null && preset.list) {
+    zip.file('word/numbering.xml', patchNumberingXml(numberingXml, preset));
+  }
 
   const patched = await zip.generateAsync({ type: 'arraybuffer' });
   return new Blob([patched], { type: wordDocument.type });
@@ -133,18 +155,26 @@ export function patchStylesXml(
 
 function resolveLayout(preset: FontPreset, grid: Grid | null): Layout {
   const { lineSpacing, firstLineIndentChars = 0 } = preset.paragraph;
-  if (lineSpacing === 'grid' && !grid) {
+  return {
+    spacing: spacingFor(lineSpacing, grid),
+    firstLineIndent: Math.round(firstLineIndentChars * preset.body.sizePt * 20),
+  };
+}
+
+/** The `<w:spacing>` pair a line-spacing choice resolves to on this page. */
+function spacingFor(
+  lineSpacing: LineSpacing,
+  grid: Grid | null
+): { line: string; rule: string } {
+  if (lineSpacing !== 'grid') {
+    return SINGLE_SPACING;
+  }
+  if (!grid) {
     throw new Error(
       "Cannot apply font preset: lineSpacing 'grid' needs page.grid"
     );
   }
-  return {
-    spacing:
-      lineSpacing === 'grid' && grid
-        ? { line: String(grid.linePitch), rule: 'exact' }
-        : SINGLE_SPACING,
-    firstLineIndent: Math.round(firstLineIndentChars * preset.body.sizePt * 20),
-  };
+  return { line: String(grid.linePitch), rule: 'exact' };
 }
 
 /**
@@ -159,12 +189,20 @@ function resolveLayout(preset: FontPreset, grid: Grid | null): Layout {
  *   with a drawing keep single spacing; the grid then rounds them up to whole
  *   lines.
  * - Table cells drop the first-line indent; it only crowds narrow columns.
+ * - When the preset describes table cells, they are laid out on their own
+ *   terms instead of inheriting the page grid: vertical alignment, line
+ *   spacing and grid snapping.
  */
 export function patchDocumentXml(
   documentXml: string,
-  preset: FontPreset
+  preset: FontPreset,
+  formats?: NumberFormats
 ): { xml: string; grid: Grid | null } {
   const dom = new DOMParser().parseFromString(documentXml, 'application/xml');
+
+  if (preset.list?.multilevelNumbers && formats) {
+    unifyListNumbering(dom, formats);
+  }
 
   let grid: Grid | null = null;
   const pageGrid = preset.page?.grid;
@@ -178,10 +216,12 @@ export function patchDocumentXml(
   }
 
   const gridSpacing = preset.paragraph.lineSpacing === 'grid';
+  const table = preset.table;
   for (const paragraph of Array.from(dom.getElementsByTagNameNS(W_NS, 'p'))) {
     const pPr = children(paragraph).find((child) => child.localName === 'pPr');
+    const inTableCell = isInTableCell(paragraph);
 
-    if (gridSpacing) {
+    if (gridSpacing && !inTableCell) {
       if (paragraph.getElementsByTagNameNS(W_NS, 'drawing').length > 0) {
         const spacing = paragraphProperty(pPrOf(paragraph), 'spacing');
         spacing.setAttributeNS(W_NS, 'w:line', SINGLE_SPACING.line);
@@ -198,8 +238,22 @@ export function patchDocumentXml(
       }
     }
 
-    if (preset.paragraph.firstLineIndentChars && isInTableCell(paragraph)) {
+    if (table && inTableCell) {
+      layoutTableCell(pPrOf(paragraph), table, grid);
+    }
+
+    if (preset.paragraph.firstLineIndentChars && inTableCell) {
       removeFirstLineIndent(pPrOf(paragraph));
+    }
+  }
+
+  if (table) {
+    for (const cell of Array.from(dom.getElementsByTagNameNS(W_NS, 'tc'))) {
+      cellVerticalAlign(cell).setAttributeNS(
+        W_NS,
+        'w:val',
+        table.verticalAlign
+      );
     }
   }
 
@@ -210,6 +264,307 @@ export function patchDocumentXml(
     ),
     grid,
   };
+}
+
+/** The number format a numbering definition uses at each level. */
+export type NumberFormats = ReadonlyMap<string, string[]>;
+
+/**
+ * Reads the numbering part into a `numId` → formats map, the way the document's
+ * paragraphs reference it. `<w:num>` names an `<w:abstractNum>`, so the
+ * abstract's levels answer for the id the paragraphs use.
+ */
+function numberFormatsOf(numberingXml: string): NumberFormats {
+  const dom = new DOMParser().parseFromString(numberingXml, 'application/xml');
+  const formatsByAbstract = new Map<string, string[]>();
+
+  for (const abstract of Array.from(
+    dom.getElementsByTagNameNS(W_NS, 'abstractNum')
+  )) {
+    const abstractId = abstract.getAttributeNS(W_NS, 'abstractNumId');
+    if (abstractId === null) {
+      continue;
+    }
+    const levels: string[] = [];
+    for (const lvl of children(abstract).filter(
+      (child) => child.localName === 'lvl'
+    )) {
+      const ilvl = Number(lvl.getAttributeNS(W_NS, 'ilvl') ?? levels.length);
+      levels[ilvl] =
+        children(lvl)
+          .find((child) => child.localName === 'numFmt')
+          ?.getAttributeNS(W_NS, 'val') ?? '';
+    }
+    formatsByAbstract.set(abstractId, levels);
+  }
+
+  const formats = new Map<string, string[]>();
+  for (const num of Array.from(dom.getElementsByTagNameNS(W_NS, 'num'))) {
+    const numId = num.getAttributeNS(W_NS, 'numId');
+    const abstractId = num
+      .getElementsByTagNameNS(W_NS, 'abstractNumId')[0]
+      ?.getAttributeNS(W_NS, 'val');
+    const levels =
+      abstractId === null ? undefined : formatsByAbstract.get(abstractId);
+    if (numId !== null && levels) {
+      formats.set(numId, levels);
+    }
+  }
+
+  return formats;
+}
+
+interface ParagraphNumbering {
+  ilvl: number;
+  numId: string;
+  numIdElement: Element;
+}
+
+/** The `<w:numPr>` of a paragraph, when it has one that names a numbering. */
+function numberingOf(paragraph: Element): ParagraphNumbering | null {
+  const pPr = children(paragraph).find((child) => child.localName === 'pPr');
+  const numPr =
+    pPr && children(pPr).find((child) => child.localName === 'numPr');
+  if (!numPr) {
+    return null;
+  }
+
+  const numIdElement = children(numPr).find(
+    (child) => child.localName === 'numId'
+  );
+  const numId = numIdElement?.getAttributeNS(W_NS, 'val');
+  if (!numIdElement || numId === undefined || numId === null) {
+    return null;
+  }
+
+  const ilvl = Number(
+    children(numPr)
+      .find((child) => child.localName === 'ilvl')
+      ?.getAttributeNS(W_NS, 'val') ?? '0'
+  );
+  return { ilvl, numId, numIdElement };
+}
+
+/**
+ * Word counts a multi-level list inside one numbering definition: its items
+ * share a `w:numId` and only `w:ilvl` changes. The generator instead gives
+ * every nesting depth its own definition, so a nested item's `%1` is that
+ * sub-list's counter rather than its parent's, and 1.1 can never appear.
+ *
+ * Point the deeper items of a list at the definition its first level uses. A
+ * fresh first-level definition opens a new list, so separate lists never share
+ * a counter, and a nested level whose format differs from the list's own (a
+ * bullet inside a numbered list) keeps its own definition.
+ */
+function unifyListNumbering(dom: Document, formats: NumberFormats): void {
+  let listNumId: string | null = null;
+
+  for (const paragraph of Array.from(dom.getElementsByTagNameNS(W_NS, 'p'))) {
+    const numbering = numberingOf(paragraph);
+    if (!numbering) {
+      // A list item's later paragraphs are unnumbered but indented under the
+      // item, so only an unindented paragraph ends the list.
+      const ind = paragraph.getElementsByTagNameNS(W_NS, 'ind')[0];
+      if (Number(ind?.getAttributeNS(W_NS, 'left') ?? 0) <= 0) {
+        listNumId = null;
+      }
+      continue;
+    }
+
+    if (numbering.ilvl === 0) {
+      listNumId = numbering.numId;
+      continue;
+    }
+    if (listNumId === null) {
+      continue;
+    }
+
+    const list = formats.get(listNumId);
+    const own = formats.get(numbering.numId);
+    if (!list || !own || list[numbering.ilvl] !== own[numbering.ilvl]) {
+      continue;
+    }
+    numbering.numIdElement.setAttributeNS(W_NS, 'w:val', listNumId);
+  }
+}
+
+/**
+ * Lays out lists the way a 公文 does, in the place Word itself writes these
+ * choices — the numbering definitions:
+ *
+ * - 首行缩进 N 字符: the item's first line is indented by the preset's
+ *   `firstLineIndentChars`, written as `w:firstLineChars` so Word shows it in
+ *   characters and it scales with the font size.
+ * - 编号与内容的间距 适中: `w:suff` is `space`, so one space separates the
+ *   number or bullet from its content instead of a tab.
+ * - 文本之前: ordered levels sit flush with the text block at every level, the
+ *   way a printed 公文 numbers its items (1. （1） ① all start from the same
+ *   margin). Bulleted levels instead step out by the preset's indent each
+ *   level, because a bullet carries no hierarchy of its own.
+ * - one bullet per nesting level, ● then ○ then ▪.
+ *
+ * Numbering itself is left alone: ordered levels keep the generator's
+ * `%1.` / `%2.` text. The level's tab stop stays where it is, so a renderer
+ * that ignores `w:suff` still puts the content near the indent rather than on
+ * top of the mark.
+ */
+export function patchNumberingXml(
+  numberingXml: string,
+  preset: FontPreset
+): string {
+  const dom = new DOMParser().parseFromString(numberingXml, 'application/xml');
+  const indentChars = preset.paragraph.firstLineIndentChars ?? 0;
+  const bullets = preset.list?.bullets ?? [];
+
+  for (const lvl of Array.from(dom.getElementsByTagNameNS(W_NS, 'lvl'))) {
+    const format = children(lvl).find((child) => child.localName === 'numFmt');
+    const bulleted = format?.getAttributeNS(W_NS, 'val') === 'bullet';
+    const level = Number(lvl.getAttributeNS(W_NS, 'ilvl') ?? '0');
+    // Only bullets nest by indentation; numbering text already shows the level.
+    const indentLevel = bulleted ? level : 0;
+
+    setNumberSeparator(lvl);
+
+    const ind = childOrCreate(numberingParagraphOf(lvl), 'ind', 'last');
+    for (const attribute of ['hanging', 'hangingChars', 'firstLine']) {
+      ind.removeAttributeNS(W_NS, attribute);
+    }
+    // One character is the body font size in twips, which is what a renderer
+    // that ignores the `*Chars` attributes needs alongside them.
+    ind.setAttributeNS(
+      W_NS,
+      'w:left',
+      String(indentLevel * indentChars * preset.body.sizePt * 20)
+    );
+    ind.setAttributeNS(
+      W_NS,
+      'w:leftChars',
+      String(indentLevel * indentChars * 100)
+    );
+    ind.setAttributeNS(W_NS, 'w:firstLineChars', String(indentChars * 100));
+
+    if (bulleted && bullets.length) {
+      setBulletGlyph(lvl, level, bullets, preset.body.eastAsia);
+    } else if (!bulleted && preset.list?.multilevelNumbers) {
+      setMultilevelNumber(lvl, level);
+    }
+  }
+
+  return keepXmlDeclaration(
+    numberingXml,
+    new XMLSerializer().serializeToString(dom)
+  );
+}
+
+/**
+ * Gives each nesting level its own bullet, as Word's multi-level library does.
+ * The generator repeats one private-use glyph in the Symbol font at every
+ * level, so the level's run properties move to the body font, which carries
+ * these shapes.
+ */
+function setBulletGlyph(
+  lvl: Element,
+  level: number,
+  bullets: string[],
+  font: string
+): void {
+  const format = children(lvl).find((child) => child.localName === 'numFmt');
+  if (format?.getAttributeNS(W_NS, 'val') !== 'bullet') {
+    return;
+  }
+
+  const lvlText = children(lvl).find((child) => child.localName === 'lvlText');
+  if (!lvlText) {
+    return;
+  }
+  lvlText.setAttributeNS(
+    W_NS,
+    'w:val',
+    bullets[Math.min(level, bullets.length - 1)]
+  );
+
+  const rFonts = childOrCreate(
+    childOrCreate(lvl, 'rPr', 'last'),
+    'rFonts',
+    'first'
+  );
+  for (const attribute of ['ascii', 'hAnsi', 'eastAsia', 'cs']) {
+    rFonts.setAttributeNS(W_NS, `w:${attribute}`, font);
+  }
+}
+
+/**
+ * Makes a nested number carry its parents: level 0 stays `1.`, level 1 becomes
+ * `1.1`, level 2 `1.1.1`. Word restarts a level whenever the one above it
+ * moves, which is its default, so the second item of the third item reads 3.2.
+ */
+function setMultilevelNumber(lvl: Element, level: number): void {
+  const lvlText = children(lvl).find((child) => child.localName === 'lvlText');
+  if (!lvlText) {
+    return;
+  }
+
+  const parents = Array.from({ length: level }, (_, index) => `%${index + 1}`);
+  lvlText.setAttributeNS(
+    W_NS,
+    'w:val',
+    [...parents, `%${level + 1}.`].join('.')
+  );
+}
+
+/** `<w:suff>` sits between `<w:isLgl>` and `<w:lvlText>` in a level. */
+function setNumberSeparator(lvl: Element): void {
+  const existing = children(lvl).find((child) => child.localName === 'suff');
+  const suff = existing ?? lvl.ownerDocument.createElementNS(W_NS, 'w:suff');
+  if (!existing) {
+    const lvlText = children(lvl).find(
+      (child) => child.localName === 'lvlText'
+    );
+    lvl.insertBefore(suff, lvlText ?? null);
+  }
+  suff.setAttributeNS(W_NS, 'w:val', 'space');
+}
+
+/** The paragraph properties a numbering level carries, created when absent. */
+function numberingParagraphOf(lvl: Element): Element {
+  return childOrCreate(lvl, 'pPr', 'last');
+}
+
+/**
+ * Cells sit outside the page grid: exact spacing at the line pitch would
+ * stretch every row to a whole pitch and clip what wraps, so a cell paragraph
+ * takes its own line spacing and stops snapping to the grid (Word's 如果定义了
+ * 文档网格，则与网格对齐 checkbox, `w:snapToGrid`).
+ */
+function layoutTableCell(
+  pPr: Element,
+  table: TableStyle,
+  grid: Grid | null
+): void {
+  const spacing = spacingFor(table.lineSpacing, grid);
+  const spacingElement = paragraphProperty(pPr, 'spacing');
+  spacingElement.setAttributeNS(W_NS, 'w:line', spacing.line);
+  spacingElement.setAttributeNS(W_NS, 'w:lineRule', spacing.rule);
+
+  paragraphProperty(pPr, 'snapToGrid').setAttributeNS(
+    W_NS,
+    'w:val',
+    table.snapToGrid ? '1' : '0'
+  );
+}
+
+/** `<w:vAlign>` in a cell's properties, created where Word writes it. */
+function cellVerticalAlign(cell: Element): Element {
+  const tcPr = childOrCreate(cell, 'tcPr', 'first');
+  const existing = children(tcPr).find((child) => child.localName === 'vAlign');
+  if (existing) {
+    return existing;
+  }
+  const created = tcPr.ownerDocument.createElementNS(W_NS, 'w:vAlign');
+  const hideMark = children(tcPr).find(
+    (child) => child.localName === 'hideMark'
+  );
+  return tcPr.insertBefore(created, hideMark ?? null);
 }
 
 /**

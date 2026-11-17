@@ -5,10 +5,13 @@ export { convertMarkdownToWord, type ConversionOptions } from './converter.js';
 export { extractTitle, parseMarkdownToHtml } from './markdown-parser.js';
 export {
   CHINESE_OFFICIAL_DOC_FONTS,
+  CHINESE_OFFICIAL_MULTILEVEL_FONTS,
   FONT_PRESETS,
   type FontPreset,
   type LevelStyle,
   type LineSpacing,
+  type ListStyle,
   type PageLayout,
   type ParagraphStyle,
+  type TableStyle,
 } from './font-presets.js';

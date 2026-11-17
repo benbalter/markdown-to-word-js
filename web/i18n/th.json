@@ -14,6 +14,7 @@
   "styleLabel": "รูปแบบ",
   "styleDefault": "ค่าเริ่มต้น",
   "styleChineseOfficial": "เอกสารราชการจีน (公文)",
+  "styleChineseOfficialMultilevel": "เอกสารทางการจีน (公文) เลข 1.1",
   "styleChineseHint": "ข้อความนี้ดูเหมือนภาษาจีน หากต้องการใช้ฟอนต์แบบ 公文 ให้เลือก “เอกสารราชการจีน (公文)”",
   "convertButton": "แปลงเป็น Word",
   "shortcutHint": "หรือกด {keys}",

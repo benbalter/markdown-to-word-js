@@ -3,7 +3,10 @@ import JSZip from 'jszip';
 import mammoth from 'mammoth';
 import { convertMarkdownToWord } from '../src/converter';
 import { patchDocumentXml } from '../src/docx-font-preset';
-import { CHINESE_OFFICIAL_DOC_FONTS } from '../src/font-presets';
+import {
+  CHINESE_OFFICIAL_DOC_FONTS,
+  CHINESE_OFFICIAL_MULTILEVEL_FONTS,
+} from '../src/font-presets';
 
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
@@ -451,5 +454,467 @@ describe('Chinese official document page layout', () => {
         .getElementsByTagNameNS(W_NS, 'docGrid')[0]
         .getAttributeNS(W_NS, 'linePitch')
     ).toBe('634');
+  });
+});
+
+const LIST_MARKDOWN = `1. 第一项 with English
+2. 第二项
+   1. 嵌套项
+
+- 无序一
+- 无序二
+`;
+
+interface NumberingLevel {
+  ilvl: number;
+  format: string | null;
+  suff: string | null;
+  left: string | null;
+  leftChars: string | null;
+  firstLineChars: string | null;
+  hanging: string | null;
+  firstLine: string | null;
+}
+
+async function levelsOf(blob: Blob): Promise<NumberingLevel[]> {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const xml = await zip.file('word/numbering.xml')!.async('string');
+  const dom = new DOMParser().parseFromString(xml, 'application/xml');
+
+  return Array.from(dom.getElementsByTagNameNS(W_NS, 'lvl')).map((lvl) => {
+    const ind = lvl.getElementsByTagNameNS(W_NS, 'ind')[0];
+    return {
+      ilvl: Number(lvl.getAttributeNS(W_NS, 'ilvl') ?? '0'),
+      format:
+        lvl
+          .getElementsByTagNameNS(W_NS, 'numFmt')[0]
+          ?.getAttributeNS(W_NS, 'val') ?? null,
+      suff:
+        lvl
+          .getElementsByTagNameNS(W_NS, 'suff')[0]
+          ?.getAttributeNS(W_NS, 'val') ?? null,
+      left: ind?.getAttributeNS(W_NS, 'left') ?? null,
+      leftChars: ind?.getAttributeNS(W_NS, 'leftChars') ?? null,
+      firstLineChars: ind?.getAttributeNS(W_NS, 'firstLineChars') ?? null,
+      hanging: ind?.getAttributeNS(W_NS, 'hanging') ?? null,
+      firstLine: ind?.getAttributeNS(W_NS, 'firstLine') ?? null,
+    };
+  });
+}
+
+describe('lists under the 公文 preset', () => {
+  it('steps bullet indents out two characters per level, with a space after the mark', async () => {
+    const bullets = (
+      await levelsOf(
+        await convertMarkdownToWord(LIST_MARKDOWN, {
+          fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+        })
+      )
+    ).filter((level) => level.format === 'bullet');
+
+    expect(bullets.length).toBeGreaterThanOrEqual(4);
+    for (const level of bullets) {
+      expect(level).toEqual({
+        ilvl: level.ilvl,
+        format: 'bullet',
+        suff: 'space',
+        // Two characters of the 16pt body font are 640 twips each.
+        left: String(level.ilvl * 640),
+        leftChars: String(level.ilvl * 200),
+        firstLineChars: '200',
+        hanging: null,
+        firstLine: null,
+      });
+    }
+  });
+
+  it('keeps ordered levels flush left with the same paragraph rules and numbering text', async () => {
+    const levels = await levelsOf(
+      await convertMarkdownToWord(LIST_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+    const ordered = levels.filter((level) => level.format === 'decimal');
+
+    expect(ordered.length).toBeGreaterThanOrEqual(4);
+    for (const level of ordered) {
+      expect(level).toEqual({
+        ilvl: level.ilvl,
+        format: 'decimal',
+        suff: 'space',
+        left: '0',
+        leftChars: '0',
+        firstLineChars: '200',
+        hanging: null,
+        firstLine: null,
+      });
+    }
+  });
+
+  it('leaves the numbering definitions untouched without a preset', async () => {
+    const levels = await levelsOf(await convertMarkdownToWord(LIST_MARKDOWN));
+
+    expect(levels[0]).toMatchObject({
+      suff: null,
+      left: '720',
+      leftChars: null,
+      firstLineChars: null,
+      hanging: '360',
+    });
+  });
+
+  it('still converts a document that has no lists', async () => {
+    const blob = await convertMarkdownToWord('正文。\n', {
+      fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+    });
+    const { value: html } = await mammoth.convertToHtml({
+      buffer: Buffer.from(await blob.arrayBuffer()),
+    });
+
+    expect(html).toContain('正文。');
+  });
+});
+
+const TABLE_MARKDOWN = `正文段落。
+
+| 阶段 | 备注 |
+| --- | --- |
+| 报送 | 含 English |
+| 抽查 | 第二行 |
+`;
+
+interface CellLayout {
+  verticalAlign: (string | null)[];
+  cellSpacing: string[];
+  cellSnapToGrid: (string | null)[];
+  bodySpacing: string[];
+  bodySnapToGrid: (string | null)[];
+}
+
+async function layoutOf(blob: Blob): Promise<CellLayout> {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const xml = await zip.file('word/document.xml')!.async('string');
+  const dom = new DOMParser().parseFromString(xml, 'application/xml');
+
+  const spacingOf = (paragraph: Element): string => {
+    const spacing = paragraph.getElementsByTagNameNS(W_NS, 'spacing')[0];
+    return spacing
+      ? `${spacing.getAttributeNS(W_NS, 'line')}/${spacing.getAttributeNS(W_NS, 'lineRule')}`
+      : '(inherited)';
+  };
+  const snapOf = (paragraph: Element): string | null =>
+    paragraph
+      .getElementsByTagNameNS(W_NS, 'snapToGrid')[0]
+      ?.getAttributeNS(W_NS, 'val') ?? null;
+
+  const cells = Array.from(dom.getElementsByTagNameNS(W_NS, 'tc'));
+  const cellParagraphs = cells.flatMap((cell) =>
+    Array.from(cell.children).filter(
+      (child) => child.namespaceURI === W_NS && child.localName === 'p'
+    )
+  );
+  const bodyParagraphs = Array.from(
+    dom.getElementsByTagNameNS(W_NS, 'p')
+  ).filter((paragraph) => !cellParagraphs.includes(paragraph));
+
+  return {
+    verticalAlign: cells.map(
+      (cell) =>
+        cell
+          .getElementsByTagNameNS(W_NS, 'vAlign')[0]
+          ?.getAttributeNS(W_NS, 'val') ?? null
+    ),
+    cellSpacing: cellParagraphs.map(spacingOf),
+    cellSnapToGrid: cellParagraphs.map(snapOf),
+    bodySpacing: [...new Set(bodyParagraphs.map(spacingOf))],
+    bodySnapToGrid: [...new Set(bodyParagraphs.map(snapOf))],
+  };
+}
+
+describe('tables under the 公文 preset', () => {
+  it('centers cell content vertically and keeps cells off the page grid', async () => {
+    const layout = await layoutOf(
+      await convertMarkdownToWord(TABLE_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+
+    // Two columns across the header row and two body rows.
+    expect(layout.verticalAlign).toEqual(Array(6).fill('center'));
+    // 单倍行距: line 240 twips with the auto rule, not the grid's exact pitch.
+    expect(layout.cellSpacing).toEqual(Array(6).fill('240/auto'));
+    expect(layout.cellSnapToGrid).toEqual(Array(6).fill('0'));
+  });
+
+  it('leaves body paragraphs on the grid spacing', async () => {
+    const layout = await layoutOf(
+      await convertMarkdownToWord(TABLE_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+
+    expect(layout.bodySpacing).toEqual(['(inherited)']);
+    expect(layout.bodySnapToGrid).toEqual([null]);
+  });
+
+  it('leaves tables untouched without a preset', async () => {
+    const layout = await layoutOf(await convertMarkdownToWord(TABLE_MARKDOWN));
+
+    expect(layout.verticalAlign).toEqual(Array(6).fill(null));
+    expect(layout.cellSpacing).toEqual(Array(6).fill('null/auto'));
+    expect(layout.cellSnapToGrid).toEqual(Array(6).fill(null));
+  });
+
+  it('still round-trips the cell text', async () => {
+    const blob = await convertMarkdownToWord(TABLE_MARKDOWN, {
+      fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+    });
+    const { value: html } = await mammoth.convertToHtml({
+      buffer: Buffer.from(await blob.arrayBuffer()),
+    });
+
+    expect(html).toContain('报送');
+    expect(html).toContain('含 English');
+  });
+});
+
+const NESTED_LIST_MARKDOWN = `- 一级甲
+- 一级乙
+  - 二级甲
+    - 三级甲
+      - 四级甲
+1. 有序一
+   1. 有序嵌套一
+`;
+
+interface LevelGlyph {
+  format: string | null;
+  glyph: string | null;
+  font: string | null;
+}
+
+async function levelsOfBullets(blob: Blob): Promise<LevelGlyph[][]> {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const xml = await zip.file('word/numbering.xml')!.async('string');
+  const dom = new DOMParser().parseFromString(xml, 'application/xml');
+
+  return Array.from(dom.getElementsByTagNameNS(W_NS, 'abstractNum')).map(
+    (abstract) =>
+      Array.from(abstract.children)
+        .filter((child) => child.localName === 'lvl')
+        .slice(0, 4)
+        .map((lvl) => ({
+          format:
+            lvl
+              .getElementsByTagNameNS(W_NS, 'numFmt')[0]
+              ?.getAttributeNS(W_NS, 'val') ?? null,
+          glyph:
+            lvl
+              .getElementsByTagNameNS(W_NS, 'lvlText')[0]
+              ?.getAttributeNS(W_NS, 'val') ?? null,
+          font: lvl
+            .getElementsByTagNameNS(W_NS, 'rFonts')[0]
+            ?.getAttributeNS(W_NS, 'ascii'),
+        }))
+  );
+}
+
+describe('nested bullets under the 公文 preset', () => {
+  it('gives each nesting level its own bullet', async () => {
+    const bullets = (
+      await levelsOfBullets(
+        await convertMarkdownToWord(NESTED_LIST_MARKDOWN, {
+          fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+        })
+      )
+    ).filter((levels) => levels[0]?.format === 'bullet');
+
+    expect(bullets.length).toBeGreaterThan(0);
+    for (const levels of bullets) {
+      expect(levels.map((level) => level.glyph)).toEqual(['●', '○', '▪', '▪']);
+    }
+  });
+
+  it('draws the bullets in the body font, not Symbol', async () => {
+    const definitions = await levelsOfBullets(
+      await convertMarkdownToWord(NESTED_LIST_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+
+    for (const levels of definitions) {
+      for (const level of levels) {
+        expect(level.font).toBe(level.format === 'bullet' ? '仿宋' : undefined);
+      }
+    }
+  });
+
+  it('numbers ordered levels across their parents with the multi-level preset', async () => {
+    const ordered = (
+      await levelsOfBullets(
+        await convertMarkdownToWord(NESTED_LIST_MARKDOWN, {
+          fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
+        })
+      )
+    ).filter((levels) => levels[0]?.format === 'decimal');
+
+    for (const levels of ordered) {
+      expect(levels.map((level) => level.glyph)).toEqual([
+        '%1.',
+        '%1.%2.',
+        '%1.%2.%3.',
+        '%1.%2.%3.%4.',
+      ]);
+    }
+  });
+
+  it('leaves one repeated Symbol bullet at every level without a preset', async () => {
+    const bullets = (
+      await levelsOfBullets(await convertMarkdownToWord(NESTED_LIST_MARKDOWN))
+    ).filter((levels) => levels[0]?.format === 'bullet');
+
+    expect(bullets.length).toBeGreaterThan(0);
+    for (const levels of bullets) {
+      expect(new Set(levels.map((level) => level.glyph)).size).toBe(1);
+      expect(levels.map((level) => level.font)).toEqual([
+        'Symbol',
+        'Symbol',
+        'Symbol',
+        'Symbol',
+      ]);
+    }
+  });
+});
+
+const MULTILEVEL_MARKDOWN = `1. 甲
+2. 乙
+   1. 乙之一
+   2. 乙之二
+3. 丙
+   1. 丙之一
+      1. 丙之一之一
+
+结尾段落。
+
+1. 另一个列表
+2. 另一个列表二
+`;
+
+// A loose item: its second paragraph is unnumbered, and the sub-list follows it.
+const LOOSE_ITEM_MARKDOWN = `1. 甲
+2. 乙
+
+   第二段说明文字。
+
+   1. 乙之一
+   2. 乙之二
+3. 丙
+`;
+
+interface ListItem {
+  text: string;
+  ilvl: number;
+  numId: string;
+}
+
+async function listItemsOf(blob: Blob): Promise<ListItem[]> {
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const xml = await zip.file('word/document.xml')!.async('string');
+  const dom = new DOMParser().parseFromString(xml, 'application/xml');
+
+  return Array.from(dom.getElementsByTagNameNS(W_NS, 'p'))
+    .map((paragraph) => {
+      const numPr = paragraph.getElementsByTagNameNS(W_NS, 'numPr')[0];
+      if (!numPr) {
+        return null;
+      }
+      return {
+        text: (paragraph.textContent ?? '').trim(),
+        ilvl: Number(
+          numPr
+            .getElementsByTagNameNS(W_NS, 'ilvl')[0]
+            ?.getAttributeNS(W_NS, 'val') ?? '0'
+        ),
+        numId:
+          numPr
+            .getElementsByTagNameNS(W_NS, 'numId')[0]
+            ?.getAttributeNS(W_NS, 'val') ?? '',
+      };
+    })
+    .filter((item): item is ListItem => item !== null);
+}
+
+describe('multi-level numbering under the 公文 preset', () => {
+  it('counts one list through a single numbering definition', async () => {
+    const items = await listItemsOf(
+      await convertMarkdownToWord(MULTILEVEL_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
+      })
+    );
+
+    const firstList = items.slice(0, 7);
+    expect(firstList.map((item) => item.ilvl)).toEqual([0, 0, 1, 1, 0, 1, 2]);
+    // Word restarts a level when the one above it moves, so 乙's items are 2.1
+    // and 2.2 and 丙's grandchild is 3.1.1 — all from this one definition.
+    expect(new Set(firstList.map((item) => item.numId)).size).toBe(1);
+  });
+
+  it('keeps a later list on its own counter', async () => {
+    const items = await listItemsOf(
+      await convertMarkdownToWord(MULTILEVEL_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
+      })
+    );
+
+    const first = new Set(items.slice(0, 7).map((item) => item.numId));
+    const second = new Set(items.slice(7).map((item) => item.numId));
+    expect(second.size).toBe(1);
+    expect([...first].some((numId) => second.has(numId))).toBe(false);
+  });
+
+  it('gives each nesting depth its own numbering definition without a preset', async () => {
+    const items = await listItemsOf(
+      await convertMarkdownToWord(MULTILEVEL_MARKDOWN)
+    );
+
+    const nested = items.filter((item) => item.ilvl > 0);
+    expect(nested.length).toBeGreaterThan(0);
+    // The generator's per-depth ids are why a nested item restarts at 1.
+    expect(
+      new Set(items.slice(0, 7).map((item) => item.numId)).size
+    ).toBeGreaterThan(1);
+  });
+
+  it('leaves the 公文 preset on the generator numbering', async () => {
+    // GB/T 9704 numbers levels 一、 （一） 1. （1）, so 1.1 is opt-in through
+    // the multi-level preset rather than the 公文 default.
+    const items = await listItemsOf(
+      await convertMarkdownToWord(MULTILEVEL_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_DOC_FONTS,
+      })
+    );
+
+    expect(
+      new Set(items.slice(0, 7).map((item) => item.numId)).size
+    ).toBeGreaterThan(1);
+  });
+
+  it('keeps counting through a later, unnumbered paragraph in a list item', async () => {
+    // The continuation paragraph is unnumbered but indented under its item, so
+    // it must not end the list: without that, the sub-list below keeps its own
+    // definition and its %1 refers to nothing, so the items read 1.1 and 1.2
+    // under the third entry instead of 3.1 and 3.2.
+    const items = await listItemsOf(
+      await convertMarkdownToWord(LOOSE_ITEM_MARKDOWN, {
+        fontPreset: CHINESE_OFFICIAL_MULTILEVEL_FONTS,
+      })
+    );
+
+    const parents = items.filter((item) => item.ilvl === 0);
+    const children = items.filter((item) => item.ilvl === 1);
+    expect(children.length).toBeGreaterThan(0);
+    for (const child of children) {
+      expect(child.numId).toBe(parents[0].numId);
+    }
   });
 });

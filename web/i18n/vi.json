@@ -14,6 +14,7 @@
   "styleLabel": "Kiểu",
   "styleDefault": "Mặc định",
   "styleChineseOfficial": "Công văn tiếng Trung (公文)",
+  "styleChineseOfficialMultilevel": "Tài liệu chính thức Trung Quốc (公文), đánh số 1.1",
   "styleChineseHint": "Đây có vẻ là văn bản tiếng Trung. Để dùng định dạng 公文, hãy chọn “Công văn tiếng Trung (公文)”.",
   "convertButton": "Chuyển sang Word",
   "shortcutHint": "hoặc nhấn {keys}",
